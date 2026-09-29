@@ -31,9 +31,10 @@ async function firebaseImpl(loginUI) {
   const au = await import(base + "firebase-auth.js");
   const app = initializeApp(CONFIG.firebase);
   let db;
+  const dbId = CONFIG.database || "(default)";   // nombre de la base de datos de Firestore
   try {
-    db = fs.initializeFirestore(app, { localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() }) });
-  } catch (e) { db = fs.getFirestore(app); }
+    db = fs.initializeFirestore(app, { localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() }) }, dbId);
+  } catch (e) { db = fs.getFirestore(app, dbId); }
   const auth = au.getAuth(app);
   if (needsLogin) {
     const allowed = [CONFIG.emails.a, CONFIG.emails.b].filter(Boolean).map(e => e.toLowerCase());
