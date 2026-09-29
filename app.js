@@ -709,11 +709,11 @@ function loadLeaflet() {
   });
   return leafletP;
 }
-const TILES = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-const ATTR = '© <a href="https://www.openstreetmap.org/copyright">OSM</a> · © <a href="https://carto.com/">CARTO</a>';
+const TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 function baseMap(el) {
   const m = L.map(el, { zoomControl: false, attributionControl: true, worldCopyJump: true }).setView([45, 10], 3);
-  L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19, subdomains: "abcd" }).addTo(m);
+  L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19 }).addTo(m);
   return m;
 }
 
