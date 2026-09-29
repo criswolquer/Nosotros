@@ -16,6 +16,10 @@ export const CONFIG = {
   // 2) Código secreto de la pareja (no lo compartas; ya está generado)
   couple: "4AZIZhNNdznlToMOnho9sGQq",
 
+  // 2b) Vuestros emails: SOLO estas dos personas podrán entrar (con email y contraseña).
+  //     Si los dejas vacíos, cualquiera con el código secreto podría entrar.
+  emails: { a: "", b: "" },
+
   // 3) Vuestros nombres: a = tú, b = tu pareja
   names: { a: "Christian", b: "Celia" },
 

@@ -237,18 +237,18 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 .buybar .btn{padding:10px 12px;font-size:14px}
 
 /* ---- Mapa ---- */
-.map{height:340px;border-radius:16px;overflow:hidden;background:#0b1a2b;position:relative;z-index:0}
+.map{height:270px;border-radius:16px;overflow:hidden;background:#0b1a2b;position:relative;z-index:0}
 .mapmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:15px}
 .mapstats{display:flex;justify-content:center;gap:18px;margin-top:10px;font-size:14px;color:var(--muted);text-align:center}
 .mapstats b{color:var(--text)}
-.pin{width:52px;height:52px;border-radius:50%;border:3px solid #fff;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.35);position:relative}
-.pin:after{content:"";position:absolute;left:50%;bottom:-9px;margin-left:-7px;border:7px solid transparent;border-bottom:0;border-top-color:#fff}
+.pin{width:40px;height:40px;border-radius:50%;border:2.5px solid #fff;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.35);position:relative}
+.pin:after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:#fff}
 .pin{overflow:visible}
 .pin .ph{width:100%;height:100%;border-radius:50%;background-size:cover;background-position:center;background-color:#eee}
 .leaflet-marker-pane .pin img{width:100%!important;height:100%!important;max-width:none!important;object-fit:cover}
 .pin.a{border-color:#7fb7ff} .pin.a:after{border-top-color:#7fb7ff}
 .pin.b{border-color:#ff6b8b} .pin.b:after{border-top-color:#ff6b8b}
-.pin.nophoto{display:flex;align-items:center;justify-content:center;font-size:24px}
+.pin.nophoto{display:flex;align-items:center;justify-content:center;font-size:18px}
 .pop img{width:100%;border-radius:10px;margin-bottom:6px;display:block}
 .pop b{display:block;font-size:14px;color:#3a2330}
 .pop p{margin:4px 0;font-size:14px;color:#3a2330}
@@ -305,6 +305,94 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 .plbanner{display:flex;align-items:center;gap:8px;width:100%;background:#233a2e;border:1px solid var(--ok);border-radius:14px;padding:8px 8px 8px 12px;margin-top:10px}
 .plbanner span{flex:1;font-size:14px}
 .plbanner .btn{padding:9px 12px;font-size:14px}
+
+/* ================= EXTRAS ================= */
+.love.night{background:linear-gradient(135deg,#3b3f8f,#7a5cc7);box-shadow:0 10px 30px rgba(90,80,200,.35);font-size:26px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.love.night small{font-size:12px;font-weight:700}
+nav button{font-size:10px}
+nav button i{font-size:22px}
+#gameSeg button{font-size:13px;padding:9px 2px}
+/* ánimo */
+.moods{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.moods button{background:var(--card2);border:2px solid transparent;border-radius:12px;font-size:24px;padding:6px 0}
+.moods button.on{border-color:var(--accent);background:#4a2a45}
+#moodOther{margin-top:10px;font-size:15px}
+.moodcal{display:grid;grid-template-columns:62px repeat(14,1fr);gap:2px;margin-top:12px;font-size:14px;align-items:center;text-align:center}
+.moodcal .n{font-size:11px;color:var(--muted);text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.moodcal .d{font-size:9px;color:var(--muted)}
+.moodcal .e{height:20px;line-height:20px}
+.moodcal .e.empty{color:#4a3a4e}
+/* voz */
+.voicebar{display:flex;align-items:center;gap:8px;margin-top:10px;background:#3a2240;border:1px solid var(--accent);border-radius:14px;padding:8px 8px 8px 12px}
+.voicebar span{flex:1;font-size:15px}
+.voicebar .btn{padding:9px 12px;font-size:14px}
+#voiceBtn.rec{background:#e5354f;border-color:#e5354f;animation:recp 1s infinite}
+@keyframes recp{50%{opacity:.6}}
+.bub.voice{display:flex;align-items:center;gap:8px;cursor:pointer;min-width:150px}
+.bub.voice .pl{font-size:22px}
+.bub.voice .wave{flex:1;height:18px;background:repeating-linear-gradient(90deg,currentColor 0 3px,transparent 3px 6px);opacity:.45;border-radius:3px;-webkit-mask:linear-gradient(90deg,#000 0 100%)}
+.bub.voice.playing .wave{opacity:.9}
+/* ruleta */
+.wheelwrap{position:relative;width:290px;height:290px;margin:6px auto 0}
+.wheel{width:100%;height:100%;border-radius:50%;border:6px solid #fff;box-shadow:0 8px 30px rgba(0,0,0,.35);transition:transform 4.2s cubic-bezier(.17,.67,.12,1);position:relative}
+.wheel span{position:absolute;left:50%;top:50%;font-size:24px;width:30px;height:30px;margin:-15px 0 0 -15px;display:flex;align-items:center;justify-content:center}
+.wheelptr{position:absolute;left:50%;top:-14px;transform:translateX(-50%);font-size:30px;color:#fff;z-index:2;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+.wres{background:var(--card2);border-radius:16px;padding:14px;margin-top:14px}
+.wres .big2{font-size:21px;font-weight:800;margin:4px 0 6px}
+/* logros */
+.achgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ach{background:var(--card2);border-radius:14px;padding:12px 4px;text-align:center;border:1px solid var(--line)}
+.ach i{font-style:normal;font-size:32px;display:block}
+.ach b{display:block;font-size:12px;margin-top:4px}
+.ach small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.ach.lock i{filter:grayscale(1);opacity:.35}
+.ach.got{border-color:var(--accent2);background:#3d2a3c}
+/* cartas */
+.owgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.env{position:relative;background:linear-gradient(160deg,#ffe3ea,#ffc7d4);color:#5a2a3a;border:0;border-radius:14px;padding:16px 10px 12px;text-align:center;font-weight:700;font-size:14px;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.env i{font-style:normal;font-size:30px;display:block;margin-bottom:4px}
+.env .cnt{position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;border-radius:99px;min-width:22px;height:22px;font-size:12px;display:flex;align-items:center;justify-content:center;padding:0 6px}
+.env.read{background:linear-gradient(160deg,#4a3a4e,#3a2b3f);color:var(--muted)}
+.lrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.lrow:first-child{border-top:0}
+.lrow span{flex:1}
+.lrow small{color:var(--muted)}
+.lrow .x{background:none;border:0;color:var(--muted);font-size:15px}
+.cap{display:flex;align-items:center;gap:12px;background:var(--card2);border-radius:14px;padding:12px;margin-top:8px}
+.cap i{font-style:normal;font-size:30px}
+.cap div{flex:1;min-width:0}
+.cap b{display:block;font-size:15px}
+.cap small{color:var(--muted);font-size:13px}
+.cap.open{border:1px solid var(--accent2);cursor:pointer;animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 4px rgba(255,179,138,.25)}}
+.cap .x{background:none;border:0;color:var(--muted);font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips button{background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:99px;padding:6px 10px;font-size:13px}
+.drow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.drow:first-child{border-top:0}
+.drow i{font-style:normal;font-size:26px}
+.drow div{flex:1;min-width:0}
+.drow b{display:block;font-size:15px}
+.drow small{color:var(--muted);font-size:13px}
+.drow .left{font-weight:800;color:var(--accent2);text-align:right;font-size:15px;white-space:nowrap}
+.drow.today .left{color:var(--ok)}
+.drow .x{background:none;border:0;color:var(--muted);font-size:15px}
+.chkline{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);white-space:nowrap}
+.chkline input{width:auto}
+#dtDate{flex:1}
+.rvimg{max-width:100%;max-height:34vh;border-radius:14px;margin-bottom:14px}
+.rvnav{display:flex;gap:10px;margin:-8px 0 16px}
+.rvnav button{background:rgba(255,255,255,.1);border:0;color:#fff;border-radius:99px;padding:8px 14px;font-size:14px}
+#readView .letter{text-align:left}
+/* minijuego */
+.fgview{position:fixed;inset:0;z-index:95;background:linear-gradient(#7ec8ff,#c9ecff);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);touch-action:none;user-select:none;-webkit-user-select:none}
+.fgtop{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;font-weight:800;font-size:20px;color:#3a2330}
+#fgCanvas{flex:1;width:100%;display:block}
+.fgmsg{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);background:#fff;color:#3a2330;border-radius:20px;padding:20px 24px;text-align:center;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.25);min-width:240px}
+.fgmsg:empty{display:none}
+.fgmsg .btn{margin-top:12px;width:100%}
+.wheel.empty{background:var(--card2)!important;display:flex;align-items:center;justify-content:center}
+.wheel .wtxt{position:static;width:auto;height:auto;margin:0;font-size:15px;color:var(--muted);padding:0 40px;line-height:1.3}
 </style>
 </head>
 <body>
@@ -362,13 +450,25 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     </section>
   </div>
 
-  <button class="love" id="btnThink">Pienso en ti ❤️</button>
+  <div class="row" style="gap:10px">
+    <button class="love" id="btnThink" style="flex:2">Pienso en ti ❤️</button>
+    <button class="love night" id="btnNight" style="flex:1">🌙<small>Buenas noches</small></button>
+  </div>
+
+  <section class="card">
+    <div class="label">¿Cómo estás hoy?</div>
+    <div class="moods" id="moodPick"></div>
+    <div id="moodOther" class="sub"></div>
+    <div class="moodcal" id="moodCal"></div>
+  </section>
 
   <section class="card">
     <div class="label">Buzón</div>
     <div class="chat" id="chat"></div>
+    <div id="voiceBar" class="voicebar hidden"></div>
     <div class="sendrow">
       <label class="btn snapbtn" title="Foto de ver una vez">📸<input id="snapInput" type="file" accept="image/*" hidden></label>
+      <button class="btn snapbtn" id="voiceBtn" title="Nota de voz">🎙️</button>
       <input id="msgInput" placeholder="Escribe algo bonito…" enterkeyhint="send">
       <button class="btn primary" id="msgSend">➤</button>
     </div>
@@ -409,6 +509,14 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   </section>
 
   <section class="card">
+    <div class="label">Minijuego 🍓</div>
+    <div class="row" style="align-items:center">
+      <div style="flex:1"><b>Atrapa fresas</b><div class="sub" style="margin-top:2px;font-size:13px" id="fgInfo">30 segundos · gana monedas</div></div>
+      <button class="btn primary" id="fgPlay">Jugar ▶</button>
+    </div>
+  </section>
+
+  <section class="card">
     <div class="label">Crecimiento</div>
     <div class="stages" id="stages"></div>
     <div class="bar"><div id="petBar" style="width:0"></div></div>
@@ -442,9 +550,11 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 
 <!-- ============ JUEGOS ============ -->
 <main id="tab-games" class="hidden">
-  <div class="seg">
-    <button class="on" data-g="quiz">¿Me conoces?</button>
-    <button data-g="ttt">Tres en raya</button>
+  <div class="seg" id="gameSeg">
+    <button class="on" data-g="quiz">💭 Conoces</button>
+    <button data-g="ttt">❌⭕ Raya</button>
+    <button data-g="wheel">🎡 Ruleta</button>
+    <button data-g="ach">🏅 Logros</button>
   </div>
 
   <div id="g-quiz">
@@ -471,6 +581,36 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     </section>
   </div>
 
+  <div id="g-wheel" class="hidden">
+    <section class="card" style="text-align:center">
+      <div class="label" style="text-align:left">Nuestra ruleta 🎡</div>
+      <div class="wheelwrap"><div class="wheelptr">▼</div><div class="wheel" id="wheel"></div></div>
+      <button class="love mt" id="wheelSpin">¡Girar! 🎡</button>
+      <div id="wheelRes"></div>
+    </section>
+    <section class="card">
+      <div class="label">¿Qué puede salir?</div>
+      <div class="sendrow" style="margin-top:0">
+        <select id="wEmoji" class="plcat">
+          <option>🎬</option><option>🍕</option><option>🍝</option><option>☕</option><option>🍷</option><option>🎮</option><option>🎤</option><option>💃</option>
+          <option>📞</option><option>💋</option><option>🤗</option><option>💆</option><option>🛁</option><option>🎁</option><option>✈️</option><option>🌙</option>
+          <option>😈</option><option>🔥</option><option>💸</option><option>❓</option><option selected>⭐</option>
+        </select>
+        <input id="wText" placeholder="Escribe una opción…" maxlength="60" enterkeyhint="done">
+        <button class="btn primary" id="wAdd">＋</button>
+      </div>
+      <div id="wList" class="mt"></div>
+    </section>
+  </div>
+
+  <div id="g-ach" class="hidden">
+    <section class="card">
+      <div class="label">Vuestros logros</div>
+      <div class="sub" id="achCount" style="margin:0 0 12px"></div>
+      <div class="achgrid" id="achGrid"></div>
+    </section>
+  </div>
+
   <div id="g-ttt" class="hidden">
     <section class="card">
       <div class="score" id="tttScore"></div>
@@ -485,6 +625,37 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
       <div class="bet"><input id="tttBet"><button class="btn" id="tttBetSave">💾</button></div>
     </section>
   </div>
+</main>
+
+<!-- ============ CARTAS ============ -->
+<main id="tab-letters" class="hidden">
+  <section class="card">
+    <div class="label">Ábrelo cuando… 💌</div>
+    <div class="owgrid" id="owGrid"></div>
+    <button class="btn primary mt" id="owWrite" style="width:100%"></button>
+    <div id="owMine" class="mt"></div>
+  </section>
+
+  <section class="card">
+    <div class="label">Cápsula del tiempo ⏳</div>
+    <div class="sub" style="margin:0 0 8px">Cartas y fotos que no se pueden abrir hasta una fecha.</div>
+    <div id="capList"></div>
+    <button class="btn mt" id="capNew" style="width:100%">🔒 Crear una cápsula</button>
+  </section>
+
+  <section class="card">
+    <div class="label">Fechas especiales 📅</div>
+    <div id="dateList"></div>
+    <div class="sendrow">
+      <select id="dtEmoji" class="plcat"><option>🎂</option><option>💍</option><option>✈️</option><option>🎉</option><option>❤️</option><option>🎄</option><option>⭐</option></select>
+      <input id="dtName" placeholder="Cumple de Celia…">
+    </div>
+    <div class="sendrow">
+      <input id="dtDate" type="date">
+      <label class="chkline"><input type="checkbox" id="dtYearly" checked> Cada año</label>
+      <button class="btn primary" id="dtAdd">＋</button>
+    </div>
+  </section>
 </main>
 
 <!-- ============ RECUERDOS ============ -->
@@ -558,10 +729,61 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   <div class="snapbot" id="snapBot"></div>
 </div>
 
+<!-- Escribir carta -->
+<dialog id="owDlg">
+  <h2 style="margin-top:0">✍️ Carta para <span class="oname2"></span></h2>
+  <div class="field"><label>Ábrelo cuando…</label><select id="owWhen"></select></div>
+  <div class="field"><label>Tu carta</label><textarea id="owText" style="min-height:180px" placeholder="Escribe desde el corazón…"></textarea></div>
+  <div class="row"><button class="btn" style="flex:1" id="owCancel">Cancelar</button><button class="btn primary" style="flex:1" id="owSend">Guardar 💌</button></div>
+</dialog>
+
+<!-- Crear cápsula -->
+<dialog id="capDlg">
+  <h2 style="margin-top:0">⏳ Nueva cápsula</h2>
+  <div class="field"><label>Título (esto sí se verá)</label><input id="capTitle" placeholder="Para nuestro segundo aniversario"></div>
+  <div class="field"><label>Mensaje secreto</label><textarea id="capText" style="min-height:120px"></textarea></div>
+  <div class="field"><label class="btn" style="display:block;text-align:center">📷 Añadir foto (opcional)<input id="capPhoto" type="file" accept="image/*" hidden></label><div class="sub" id="capPhotoTxt"></div></div>
+  <div class="field"><label>Se podrá abrir el…</label><input id="capDate" type="date"><div class="chips" id="capQuick"></div></div>
+  <div class="row"><button class="btn" style="flex:1" id="capCancel">Cancelar</button><button class="btn primary" style="flex:1" id="capSave">Cerrar cápsula 🔒</button></div>
+</dialog>
+
+<!-- Leer carta / cápsula -->
+<div id="readView" class="overlay hidden">
+  <div class="heart" id="rvIcon">💌</div>
+  <h2 id="rvTitle"></h2>
+  <div class="days" id="rvSub"></div>
+  <img id="rvImg" class="rvimg hidden" alt="">
+  <div class="letter" id="rvText"></div>
+  <div class="rvnav" id="rvNav"></div>
+  <button class="love" style="max-width:320px" id="rvClose">Cerrar</button>
+</div>
+
+<!-- Minijuego -->
+<div id="fgView" class="fgview hidden">
+  <div class="fgtop"><span id="fgScore">🍓 0</span><span id="fgTime">⏱ 30</span><button class="icon-btn" id="fgQuit" style="width:36px;height:36px;font-size:15px">✕</button></div>
+  <canvas id="fgCanvas"></canvas>
+  <div class="fgmsg" id="fgMsg"></div>
+</div>
+
+<!-- Acceso -->
+<div id="loginView" class="overlay hidden">
+  <div class="heart">🔐</div>
+  <h2>Solo para vosotros dos</h2>
+  <div class="days">Entra con tu email</div>
+  <div style="width:100%;max-width:340px">
+    <input id="lgEmail" type="email" placeholder="tu@email.com" autocomplete="email" style="margin-bottom:10px">
+    <input id="lgPass" type="password" placeholder="Contraseña (mín. 6)" autocomplete="current-password" style="margin-bottom:10px">
+    <button class="love" id="lgIn" style="margin-bottom:8px">Entrar</button>
+    <button class="btn" id="lgNew" style="width:100%">Es mi primera vez: crear cuenta</button>
+    <div class="sub" id="lgErr" style="color:#ffb0b0;min-height:22px;margin-top:10px"></div>
+  </div>
+</div>
+
 <nav>
   <button class="on" data-tab="home"><i>🏠</i>Inicio<span class="dot hidden" id="dotHome"></span></button>
   <button data-tab="pet"><i>🐣</i>Mascota<span class="dot hidden" id="dotPet"></span></button>
   <button data-tab="games"><i>🎮</i>Juegos<span class="dot hidden" id="dotGames"></span></button>
+  <button data-tab="letters"><i>💌</i>Cartas<span class="dot hidden" id="dotLetters"></span></button>
   <button data-tab="mem"><i>📸</i>Recuerdos</button>
 </nav>
 

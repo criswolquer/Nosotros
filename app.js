@@ -19,20 +19,22 @@ const buzz = n => { if (navigator.vibrate) navigator.vibrate(n || 40); };
 const offline = e => { console.error(e); toast(navigator.onLine ? "No se pudo guardar, prueba otra vez" : "Necesitas conexión para esto 📶"); };
 
 // ================= Navegación =================
-const TABS = ["home", "pet", "games", "mem"];
+const TABS = ["home", "pet", "games", "letters", "mem"];
 function showTab(t) {
   TABS.forEach(x => $("tab-" + x).classList.toggle("hidden", x !== t));
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
   ls.set("tab", t); window.scrollTo(0, 0);
   if (t === "home") $("dotHome").classList.add("hidden");
   if (t === "mem") initMemMap();
+  if (t === "letters") { renderLetters(); renderCaps(); renderDates(); }
+  if (t === "games") renderAch();
   if (t === "pet") setTimeout(() => { renderPet(); if (stageOf((state.pet || {}).xp || 0) > 0) say(phrase()); }, 350);
 }
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
-document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
-  document.querySelectorAll(".seg button").forEach(x => x.classList.toggle("on", x === b));
-  $("g-quiz").classList.toggle("hidden", b.dataset.g !== "quiz");
-  $("g-ttt").classList.toggle("hidden", b.dataset.g !== "ttt");
+document.querySelectorAll("#gameSeg button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("#gameSeg button").forEach(x => x.classList.toggle("on", x === b));
+  ["quiz", "ttt", "wheel", "ach"].forEach(g => $("g-" + g).classList.toggle("hidden", b.dataset.g !== g));
+  if (b.dataset.g === "ach") renderAch();
 });
 
 // ================= Relojes y contadores =================
@@ -135,6 +137,7 @@ function renderChat(list) {
   const tm = m => `<span class="t">${new Date(m.at).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>`;
   const bub = m => {
     const side = m.from === who ? "me" : "them";
+    if (m.kind === "voice" && m.audio) return `<div class="bub ${side} voice" data-voice="${esc(m.id)}"><span class="pl">▶️</span><span class="wave"></span><span>${mmss(m.dur || 0)}${tm(m)}</span></div>`;
     if (m.kind !== "snap") return `<div class="bub ${side}">${esc(m.text)}${tm(m)}</div>`;
     if (m.from === who) return `<div class="bub me snap"><span class="one">1</span><span>Foto · ${m.opened ? "Abierta ✓✓" : "Enviada ✓"}${tm(m)}</span></div>`;
     if (m.opened || !m.photo) return `<div class="bub them snap gone"><span class="one">1</span><span>Foto abierta${tm(m)}</span></div>`;
@@ -144,6 +147,7 @@ function renderChat(list) {
     : '<div class="empty">Aún no hay mensajes. Pulsa "Pienso en ti" ✨</div>';
   $("chat").scrollTop = $("chat").scrollHeight;
   $("chat").querySelectorAll("[data-snap]").forEach(b => b.onclick = () => openSnap(b.dataset.snap));
+  $("chat").querySelectorAll("[data-voice]").forEach(b => b.onclick = () => { const m = list.find(x => x.id === b.dataset.voice); if (m) playAudio(m.audio, b); });
 }
 
 // ================= Pregunta del día =================
@@ -161,7 +165,7 @@ const QUESTIONS = [
 ];
 const qIndex = () => Math.floor(Date.parse(dayKey()) / DAY) % QUESTIONS.length;
 function renderQuestion() {
-  $("question").textContent = QUESTIONS[qIndex()];
+  $("question").textContent = gz(QUESTIONS[qIndex()], who);
   const a = state.ans || {}, mine = a[who], theirs = a[other()];
   let h = "";
   if (mine) {
@@ -330,6 +334,7 @@ function petInfo() {
 }
 function currentExpr(I) {
   if (Date.now() < tempUntil) return tempExpr;
+  if ((I.p.nap || 0) > Date.now()) return "sleep";
   const h = hourIn(myTz);
   if (h >= 23 || h < 7) return "sleep";
   if (I.sad) return "sad";
@@ -758,7 +763,7 @@ function drawMemMap() {
   memLayer.clearLayers();
   withLoc.forEach(m => {
     const html = m.photo ? `<div class="pin ${m.from}"><div class="ph" style="background-image:url('${m.photo}')"></div></div>` : `<div class="pin ${m.from} nophoto">💗</div>`;
-    const icon = L.divIcon({ html, className: "", iconSize: [52, 60], iconAnchor: [26, 58], popupAnchor: [0, -54] });
+    const icon = L.divIcon({ html, className: "", iconSize: [40, 47], iconAnchor: [20, 46], popupAnchor: [0, -42] });
     const when = new Date(m.taken || m.at).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
     L.marker([m.lat, m.lng], { icon }).addTo(memLayer).bindPopup(
       `<div class="pop">${m.photo ? `<img src="${m.photo}">` : ""}<b>📍 ${esc(m.place || "")}</b>${m.text ? `<p>${esc(m.text)}</p>` : ""}<small>${esc(name(m.from))} · ${when}</small></div>`, { maxWidth: 240, minWidth: 200 });
@@ -955,6 +960,402 @@ function confetti() {
   }
 }
 
+
+// ================= Utilidades comunes =================
+const fmtDate = (t, o = { day: "numeric", month: "short", year: "numeric" }) => new Date(t).toLocaleDateString("es-ES", o);
+const localKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function shrinkPhoto(file, max = 900, q = 0.72) {
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      res(c.toDataURL("image/jpeg", q));
+    };
+    img.onerror = rej; img.src = url;
+  });
+}
+function readView({ icon, title, sub, text, img, nav }) {
+  $("rvIcon").textContent = icon; $("rvTitle").textContent = title; $("rvSub").textContent = sub || "";
+  $("rvText").textContent = text || "";
+  $("rvImg").classList.toggle("hidden", !img); if (img) $("rvImg").src = img;
+  $("rvNav").innerHTML = nav || "";
+  $("readView").classList.remove("hidden"); $("readView").scrollTop = 0;
+}
+$("rvClose").onclick = () => $("readView").classList.add("hidden");
+
+// ================= Estado de ánimo =================
+const MOODS = ["😄", "🥰", "🙂", "😐", "😴", "😔", "😢", "😤"];
+const MOOD_TXT = { "😄": "genial", "🥰": "con mucho amor", "🙂": "bien", "😐": "normal", "😴": "con sueño", "😔": "de bajón", "😢": "triste", "😤": "de mal humor" };
+// Christian (a) en masculino, Celia (b) en femenino: "enfadado/a" → "enfadado" / "enfadada"
+const gz = (t, w) => String(t).replace(/(\w+)o\/a\b/g, (_, r) => r + (w === "b" ? "a" : "o"));
+let moods = {};
+function renderMoods(list) {
+  if (list) { moods = {}; list.forEach(m => moods[m.id] = m); }
+  const t = localKey(), mine = (moods[t] || {})[who], theirs = (moods[t] || {})[other()];
+  $("moodPick").innerHTML = MOODS.map(e => `<button class="${mine === e ? "on" : ""}" data-m="${e}">${e}</button>`).join("");
+  $("moodPick").querySelectorAll("button").forEach(b => b.onclick = () => {
+    const e = b.dataset.m;
+    S.merge("moods/" + t, { [who]: e, at: Date.now() }); buzz(20);
+    if (mine !== e) sendMsg(`${e} Hoy me siento ${MOOD_TXT[e]}`, "mood");
+    moods[t] = { ...(moods[t] || {}), [who]: e }; renderMoods();
+  });
+  const o = name(other());
+  $("moodOther").innerHTML = theirs
+    ? `${esc(o)} hoy está ${theirs} <b>${MOOD_TXT[theirs]}</b>` + (["😔", "😢", "😤", "😴"].includes(theirs) ? ` <button class="linkbtn" id="moodHug">· Mándale un mimo 💗</button>` : "")
+    : `${esc(o)} aún no ha dicho cómo está hoy`;
+  const mh = $("moodHug"); if (mh) mh.onclick = () => { sendMsg("🤗 Te mando un abrazo muy fuerte, todo va a ir bien 💗", "think"); toast("Mimo enviado 💗"); };
+  let cal = `<div></div>`, days = [];
+  for (let i = 13; i >= 0; i--) { const d = new Date(Date.now() - i * DAY); days.push(localKey(d)); cal += `<div class="d">${d.getDate()}</div>`; }
+  for (const w of [who, other()]) {
+    cal += `<div class="n">${esc(name(w))}</div>` + days.map(k => { const e = (moods[k] || {})[w]; return `<div class="e ${e ? "" : "empty"}">${e || "·"}</div>`; }).join("");
+  }
+  $("moodCal").innerHTML = cal;
+}
+
+// ================= Buenas noches =================
+const NIGHT = ["Buenas noches, mi amor 🌙 Sueña conmigo", "Que descanses 💤 Te quiero", "Buenas noches ✨ Mañana te echo de menos otra vez", "Un beso de buenas noches 😘🌙", "Duerme bien, ojalá estuvieras aquí 🌙"];
+$("btnNight").onclick = () => {
+  buzz(40); sendMsg(NIGHT[Math.floor(Math.random() * NIGHT.length)], "night");
+  petTx(p => { p.nap = Date.now() + 8 * 36e5; return p; }).catch(() => {});
+  toast(`Beso de buenas noches enviado a ${name(other())} 🌙 ${(state.pet && state.pet.name) || "El pollito"} se va a dormir`, 3200);
+};
+
+// ================= Notas de voz =================
+let rec = null, recChunks = [], recStart = 0, recTimer = null, voiceDraft = null, playing = null;
+function pickMime() {
+  if (!window.MediaRecorder) return null;
+  for (const m of ["audio/mp4", "audio/mp4;codecs=mp4a.40.2", "audio/aac", "audio/webm;codecs=opus", "audio/webm"]) if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) return m;
+  return "";
+}
+async function startRec() {
+  const mime = pickMime(); if (mime === null) return toast("Tu móvil no deja grabar audio aquí 😕");
+  let stream; try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { return toast("Necesito permiso para el micrófono 🎙️", 3500); }
+  recChunks = [];
+  try { rec = new MediaRecorder(stream, mime ? { mimeType: mime, audioBitsPerSecond: 32000 } : undefined); } catch (e) { rec = new MediaRecorder(stream); }
+  rec.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+  rec.onstop = () => {
+    stream.getTracks().forEach(t => t.stop()); clearInterval(recTimer); $("voiceBtn").classList.remove("rec"); $("voiceBtn").textContent = "🎙️";
+    const dur = Math.round((Date.now() - recStart) / 1000);
+    const blob = new Blob(recChunks, { type: rec.mimeType || mime || "audio/mp4" }); rec = null;
+    if (dur < 1 || blob.size < 500) { $("voiceBar").classList.add("hidden"); return toast("Muy corta 🙈"); }
+    if (blob.size > 700 * 1024) { $("voiceBar").classList.add("hidden"); return toast("Demasiado larga, máximo 1 minuto"); }
+    const fr = new FileReader(); fr.onload = () => { voiceDraft = { audio: fr.result, dur }; showVoiceDraft(); }; fr.readAsDataURL(blob);
+  };
+  rec.start(); recStart = Date.now();
+  $("voiceBtn").classList.add("rec"); $("voiceBtn").textContent = "⏹";
+  $("voiceBar").classList.remove("hidden"); $("voiceBar").innerHTML = `<span>🔴 Grabando… <b id="recT">0:00</b></span><button class="btn" id="recStop">Parar</button>`;
+  $("recStop").onclick = () => rec && rec.stop();
+  recTimer = setInterval(() => { const s = Math.round((Date.now() - recStart) / 1000); const e = $("recT"); if (e) e.textContent = `0:${String(s).padStart(2, "0")}`; if (s >= 60 && rec) rec.stop(); }, 250);
+}
+const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+function showVoiceDraft() {
+  $("voiceBar").classList.remove("hidden");
+  $("voiceBar").innerHTML = `<span>🎙️ Nota de voz · ${mmss(voiceDraft.dur)}</span><button class="btn" id="vdPlay">▶</button><button class="btn primary" id="vdSend">Enviar</button><button class="btn" id="vdX">✕</button>`;
+  $("vdPlay").onclick = () => playAudio(voiceDraft.audio, null);
+  $("vdSend").onclick = () => {
+    S.add("messages", { from: who, kind: "voice", text: "🎙️ Nota de voz", audio: voiceDraft.audio, dur: voiceDraft.dur, at: Date.now() });
+    voiceDraft = null; $("voiceBar").classList.add("hidden"); buzz(); toast("Nota de voz enviada 🎙️");
+  };
+  $("vdX").onclick = () => { voiceDraft = null; $("voiceBar").classList.add("hidden"); };
+}
+$("voiceBtn").onclick = () => { if (rec) rec.stop(); else startRec(); };
+function playAudio(src, el) {
+  if (playing) { playing.a.pause(); playing.el && playing.el.classList.remove("playing"); const same = playing.src === src; playing = null; if (same) return; }
+  const a = new Audio(src); playing = { a, el, src };
+  if (el) el.classList.add("playing");
+  a.onended = () => { el && el.classList.remove("playing"); playing = null; };
+  a.play().catch(() => { toast("No se pudo reproducir en este móvil 😕"); el && el.classList.remove("playing"); playing = null; });
+}
+
+// ================= Ruleta personalizada =================
+// Las opciones las ponéis vosotros y se comparten entre los dos móviles (state/wheel)
+const WCOL = ["#ff6b8b", "#ffb38a", "#ffd93b", "#9ff0cf", "#9fd3ff", "#cdb4ff"];
+let wheelItems = [], wheelRot = 0, wheelBusy = false;
+function drawWheel(d) {
+  if (d !== undefined) wheelItems = (d && d.items) || [];
+  const n = wheelItems.length, W = $("wheel");
+  if (n < 2) {
+    W.classList.add("empty"); W.style.background = "";
+    W.innerHTML = `<span class="wtxt">Añadid al menos 2 opciones abajo 👇</span>`;
+  } else {
+    W.classList.remove("empty");
+    const step = 360 / n, r = n > 10 ? 112 : 105, fs = n > 14 ? 17 : 24;
+    W.style.background = `conic-gradient(${wheelItems.map((_, i) => `${WCOL[i % WCOL.length]} ${i * step}deg ${(i + 1) * step}deg`).join(",")})`;
+    W.innerHTML = wheelItems.map((it, i) => { const a = (i + .5) * step; return `<span style="font-size:${fs}px;transform:rotate(${a}deg) translateY(-${r}px) rotate(${-a}deg)">${esc(it.e || "⭐")}</span>`; }).join("");
+  }
+  $("wheelSpin").disabled = n < 2;
+  $("wList").innerHTML = n ? wheelItems.map((it, i) => `<div class="lrow"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;flex:none;background:${WCOL[i % WCOL.length]}"></span><span>${esc(it.e || "⭐")} ${esc(it.t)}</span><button class="x" data-wd="${i}">✕</button></div>`).join("")
+    : '<div class="empty">Ideas: "Peli y manta", "Quien pierda paga la cena", "Masaje de 10 min", "Videollamada sorpresa"…</div>';
+  $("wList").querySelectorAll("[data-wd]").forEach(b => b.onclick = () => {
+    const it = wheelItems[+b.dataset.wd]; if (!it || !confirm(`¿Quitar "${it.t}"?`)) return;
+    S.tx("state/wheel", w => { w = w || { items: [] }; w.items = w.items.filter(x => !(x.t === it.t && x.e === it.e)); return w; }).catch(offline);
+  });
+}
+function addWheel() {
+  const t = $("wText").value.trim(); if (!t) return toast("Escribe una opción");
+  const e = $("wEmoji").value;
+  if (wheelItems.length >= 20) return toast("Máximo 20 opciones");
+  S.tx("state/wheel", w => { w = w || { items: [] }; w.items = [...(w.items || []), { e, t: t.slice(0, 60), by: who }]; return w; })
+    .then(() => { $("wText").value = ""; buzz(15); }).catch(offline);
+}
+$("wAdd").onclick = addWheel;
+$("wText").onkeydown = e => { if (e.key === "Enter") addWheel(); };
+$("wheelSpin").onclick = () => {
+  const n = wheelItems.length; if (wheelBusy || n < 2) return; wheelBusy = true; buzz(20);
+  const items = wheelItems.slice(), step = 360 / n, pick = Math.floor(Math.random() * n);
+  const target = 360 - (pick + .5) * step + (Math.random() - .5) * step * .6;
+  wheelRot += 360 * 5 + ((target - wheelRot) % 360 + 360) % 360;
+  $("wheel").style.transform = `rotate(${wheelRot}deg)`; $("wheelRes").innerHTML = "";
+  setTimeout(() => {
+    wheelBusy = false; buzz([30, 40, 30]);
+    const { e, t } = items[pick];
+    $("wheelRes").innerHTML = `<div class="wres"><div class="sub" style="margin:0">Ha salido:</div><div class="big2">${esc(e || "⭐")} ${esc(t)}</div>
+      <div class="row"><button class="btn" style="flex:1" id="wrPlan">📝 A planes</button><button class="btn primary" style="flex:1" id="wrSend">💬 Contárselo</button></div></div>`;
+    $("wrPlan").onclick = () => { addPlan(t, e); toast("Añadido a vuestros planes 📝"); };
+    $("wrSend").onclick = () => { sendMsg(`🎡 La ruleta ha dicho: ${e} ${t}`, "wheel"); toast(`Enviado a ${name(other())} 💌`); };
+  }, 4300);
+};
+
+// ================= Minijuego: atrapa fresas =================
+const FG_ITEMS = [{ e: "🍓", v: 1, w: 50 }, { e: "🍒", v: 1, w: 25 }, { e: "⭐", v: 3, w: 8 }, { e: "🌶️", v: -2, w: 17 }];
+let fg = null;
+function fgInfo() {
+  const p = state.pet || {}, d = p.day && p.day.d === dayKey() ? p.day : {};
+  const got = (d.game || {})[who] || 0;
+  $("fgInfo").textContent = got >= 30 ? "Hoy ya habéis ganado el máximo (30 🪙). ¡Juega por diversión!" : `30 segundos · hoy puedes ganar ${30 - got} 🪙 más`;
+}
+$("fgPlay").onclick = () => {
+  $("fgView").classList.remove("hidden"); document.body.style.overflow = "hidden";
+  const cv = $("fgCanvas"), dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
+  fg = { ctx, W, H, x: W / 2, items: [], score: 0, left: 30, last: 0, spawn: 0, run: false, raf: 0, t0: 0 };
+  $("fgScore").textContent = "🍓 0"; $("fgTime").textContent = "⏱ 30";
+  $("fgMsg").innerHTML = `<div style="font-size:40px">🐤</div>Mueve el dedo para atrapar<br>🍓🍒 +1 · ⭐ +3 · 🌶️ −2<button class="btn primary" id="fgGo">¡Empezar!</button>`;
+  $("fgGo").onclick = () => { $("fgMsg").innerHTML = ""; fg.run = true; fg.t0 = performance.now(); fg.last = fg.t0; fg.raf = requestAnimationFrame(fgLoop); };
+  fgDraw();
+};
+const fgMove = e => { if (!fg) return; const r = $("fgCanvas").getBoundingClientRect(); const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left; fg.x = Math.max(28, Math.min(fg.W - 28, cx)); if (!fg.run) fgDraw(); };
+$("fgCanvas").addEventListener("touchmove", e => { e.preventDefault(); fgMove(e); }, { passive: false });
+$("fgCanvas").addEventListener("touchstart", fgMove, { passive: true });
+$("fgCanvas").addEventListener("mousemove", fgMove);
+function fgPick() { const tot = FG_ITEMS.reduce((a, b) => a + b.w, 0); let r = Math.random() * tot; for (const it of FG_ITEMS) { if ((r -= it.w) < 0) return it; } return FG_ITEMS[0]; }
+function fgLoop(t) {
+  if (!fg || !fg.run) return;
+  const dt = Math.min(50, t - fg.last) / 1000; fg.last = t;
+  const el = (t - fg.t0) / 1000; fg.left = Math.max(0, 30 - el);
+  fg.spawn -= dt; const rate = 0.55 - Math.min(0.3, el * 0.01);
+  if (fg.spawn <= 0) { fg.spawn = rate; const it = fgPick(); fg.items.push({ ...it, x: 20 + Math.random() * (fg.W - 40), y: -20, vy: 160 + el * 6 + Math.random() * 60 }); }
+  const cy = fg.H - 60;
+  fg.items.forEach(o => { o.y += o.vy * dt; if (!o.hit && o.y > cy - 26 && o.y < cy + 20 && Math.abs(o.x - fg.x) < 38) { o.hit = true; fg.score = Math.max(0, fg.score + o.v); fg.flash = { v: o.v, t: 0.6 }; if (navigator.vibrate) navigator.vibrate(o.v > 0 ? 15 : [30, 30, 30]); } });
+  fg.items = fg.items.filter(o => !o.hit && o.y < fg.H + 30);
+  if (fg.flash) fg.flash.t -= dt;
+  $("fgScore").textContent = "🍓 " + fg.score; $("fgTime").textContent = "⏱ " + Math.ceil(fg.left);
+  fgDraw();
+  if (fg.left <= 0) return fgEnd();
+  fg.raf = requestAnimationFrame(fgLoop);
+}
+function fgDraw() {
+  const { ctx, W, H } = fg; ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#7cc95b"; ctx.beginPath(); ctx.ellipse(W / 2, H + 30, W * .8, 70, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = "32px system-ui, Apple Color Emoji, Segoe UI Emoji"; fg.items.forEach(o => ctx.fillText(o.e, o.x, o.y));
+  const p = state.pet || {}, C = COLORS.find(c => c.id === p.color) || COLORS[0], cy = fg.H - 60, x = fg.x;
+  ctx.fillStyle = C.dark; ctx.beginPath(); ctx.ellipse(x - 27, cy + 6, 9, 16, .4, 0, Math.PI * 2); ctx.ellipse(x + 27, cy + 6, 9, 16, -.4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = C.body; ctx.beginPath(); ctx.arc(x, cy, 30, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = C.belly; ctx.beginPath(); ctx.ellipse(x, cy + 12, 18, 14, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#2b1a10"; ctx.beginPath(); ctx.arc(x - 10, cy - 6, 4, 0, Math.PI * 2); ctx.arc(x + 10, cy - 6, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#ff9f1c"; ctx.beginPath(); ctx.moveTo(x - 8, cy + 1); ctx.lineTo(x + 8, cy + 1); ctx.lineTo(x, cy + (fg.run ? 12 : 8)); ctx.fill();
+  ctx.fillStyle = "rgba(255,143,163,.7)"; ctx.beginPath(); ctx.ellipse(x - 19, cy + 4, 5, 3, 0, 0, Math.PI * 2); ctx.ellipse(x + 19, cy + 4, 5, 3, 0, 0, Math.PI * 2); ctx.fill();
+  if (fg.flash && fg.flash.t > 0) { ctx.font = "bold 22px system-ui"; ctx.fillStyle = fg.flash.v > 0 ? "#1f8a4c" : "#d0304a"; ctx.fillText((fg.flash.v > 0 ? "+" : "") + fg.flash.v, x, cy - 50 - (0.6 - fg.flash.t) * 40); }
+}
+function fgEnd() {
+  fg.run = false; cancelAnimationFrame(fg.raf);
+  const score = fg.score; let gain = 0;
+  petTx(p => { p.day.game = p.day.game || {}; const got = p.day.game[who] || 0; gain = Math.max(0, Math.min(Math.floor(score / 2), 30 - got)); p.day.game[who] = got + gain; p.coins += gain; p.best_game = Math.max(p.best_game || 0, score); return p; })
+    .then(() => {
+      const best = (state.pet && state.pet.best_game) || score;
+      $("fgMsg").innerHTML = `<div style="font-size:40px">${score >= 20 ? "🏆" : score >= 10 ? "🥳" : "🐤"}</div>¡Has atrapado <b>${score}</b>!<br>${gain ? `+${gain} 🪙 para la mascota` : "Hoy ya no ganas más monedas"}<br><small>Récord: ${best}</small>
+        <button class="btn primary" id="fgAgain">Otra vez 🔁</button><button class="btn" id="fgOut">Salir</button>`;
+      $("fgAgain").onclick = () => $("fgPlay").click(); $("fgOut").onclick = fgClose;
+      if (score >= 15) sendMsg(`🍓 He atrapado ${score} fresas en el minijuego. ¡Supérame!`, "game");
+    }).catch(() => { $("fgMsg").innerHTML = `¡Has atrapado <b>${score}</b>!<button class="btn" id="fgOut">Salir</button>`; $("fgOut").onclick = fgClose; });
+}
+function fgClose() { if (fg) { fg.run = false; cancelAnimationFrame(fg.raf); } fg = null; $("fgView").classList.add("hidden"); document.body.style.overflow = ""; fgInfo(); }
+$("fgQuit").onclick = fgClose;
+
+// ================= Ábrelo cuando… =================
+const OW = [
+  ["triste", "😢", "estés triste"], ["echas", "🥺", "me eches de menos"], ["dormir", "🌙", "no puedas dormir"], ["maldia", "🌧️", "tengas un mal día"],
+  ["feliz", "🥳", "estés muy feliz"], ["enfado", "😤", "estés enfadado/a conmigo"], ["solo", "🫂", "te sientas solo/a"], ["animo", "💪", "necesites ánimos"],
+  ["duda", "💭", "dudes de lo nuestro"], ["aniv", "💍", "sea nuestro aniversario"]
+];
+let letters = [];
+function renderLetters(list) {
+  if (list) letters = list;
+  const toMe = letters.filter(l => l.to === who), mine = letters.filter(l => l.from === who);
+  const groups = OW.map(([id, e, t]) => ({ id, e, t, all: toMe.filter(l => l.when === id) })).filter(g => g.all.length);
+  $("owGrid").innerHTML = groups.length ? groups.map(g => {
+    const un = g.all.filter(l => !l.opened).length;
+    return `<button class="env ${un ? "" : "read"}" data-ow="${g.id}"><i>${un ? "💌" : g.e}</i>Ábrelo cuando ${esc(gz(g.t, who))}${un ? `<span class="cnt">${un}</span>` : ""}</button>`;
+  }).join("") : `<div class="empty" style="grid-column:1/-1">Aún no hay cartas para ti. Pídele a ${esc(name(other()))} que te escriba alguna 😉</div>`;
+  $("owGrid").querySelectorAll("[data-ow]").forEach(b => b.onclick = () => openOW(b.dataset.ow));
+  $("owWrite").textContent = `✍️ Escribir una carta para ${name(other())}`;
+  $("owMine").innerHTML = mine.length ? `<div class="sub" style="margin:4px 0">Tus cartas para ${esc(name(other()))}:</div>` + mine.sort((a, b) => b.at - a.at).map(l => {
+    const o = OW.find(x => x[0] === l.when) || ["", "💌", ""];
+    return `<div class="lrow"><span>${o[1]} Cuando ${esc(gz(o[2], other()))}</span><small>${l.opened ? "Abierta ✓✓ " + fmtDate(l.openedAt, { day: "numeric", month: "short" }) : "Sin abrir"}</small><button class="x" data-dl="${esc(l.id)}">✕</button></div>`;
+  }).join("") : "";
+  $("owMine").querySelectorAll("[data-dl]").forEach(b => b.onclick = () => { if (confirm("¿Borrar esta carta?")) S.del("letters/" + b.dataset.dl); });
+  $("dotLetters").classList.toggle("hidden", !toMe.some(l => !l.opened) && !capsReady().length);
+}
+function openOW(id, idx) {
+  const o = OW.find(x => x[0] === id), list = letters.filter(l => l.to === who && l.when === id).sort((a, b) => a.at - b.at);
+  if (!list.length) return;
+  if (idx === undefined) { idx = list.findIndex(l => !l.opened); if (idx < 0) idx = list.length - 1; }
+  const l = list[idx];
+  readView({
+    icon: o[1], title: `Para cuando ${gz(o[2], who)}`, sub: `De ${name(l.from)} · ${fmtDate(l.at)}`, text: l.text,
+    nav: list.length > 1 ? `<button id="owPrev" ${idx ? "" : "disabled"}>‹ Anterior</button><span style="align-self:center;font-size:13px">${idx + 1}/${list.length}</span><button id="owNext" ${idx < list.length - 1 ? "" : "disabled"}>Siguiente ›</button>` : ""
+  });
+  const pv = $("owPrev"), nx = $("owNext");
+  if (pv) pv.onclick = () => openOW(id, idx - 1); if (nx) nx.onclick = () => openOW(id, idx + 1);
+  if (!l.opened) { S.merge("letters/" + l.id, { opened: true, openedAt: Date.now() }); sendMsg(`💌 He abierto tu carta "Ábrelo cuando ${gz(o[2], who)}"`, "letter"); }
+}
+$("owWrite").onclick = () => {
+  document.querySelectorAll(".oname2").forEach(e => e.textContent = name(other()));
+  $("owWhen").innerHTML = OW.map(([id, e, t]) => `<option value="${id}">${e} Cuando ${gz(t, other())}</option>`).join("");
+  $("owText").value = ""; $("owDlg").showModal();
+};
+$("owCancel").onclick = () => $("owDlg").close();
+$("owSend").onclick = () => {
+  const t = $("owText").value.trim(); if (!t) return toast("Escribe tu carta");
+  const w = $("owWhen").value, o = OW.find(x => x[0] === w);
+  S.add("letters", { from: who, to: other(), when: w, text: t, opened: false, at: Date.now() });
+  sendMsg(`💌 Te he dejado una carta: "Ábrelo cuando ${gz(o[2], other())}"`, "letter");
+  $("owDlg").close(); toast("Carta guardada 💌"); buzz();
+};
+
+// ================= Cápsula del tiempo =================
+let caps = [], capPhotoData = null;
+const capsReady = () => caps.filter(c => c.unlockAt <= Date.now() && !(c.opened || {})[who]);
+function renderCaps(list) {
+  if (list) caps = list;
+  const now = Date.now();
+  $("capList").innerHTML = caps.length ? caps.slice().sort((a, b) => a.unlockAt - b.unlockAt).map(c => {
+    const open = c.unlockAt <= now, seen = (c.opened || {})[who];
+    const d = Math.ceil((c.unlockAt - now) / DAY);
+    const sub = open ? (seen ? `Abierta · de ${esc(name(c.from))}` : "🎁 ¡Ya se puede abrir! Toca aquí") : `Se abre el ${fmtDate(c.unlockAt, { day: "numeric", month: "long", year: "numeric" })} · faltan ${d} día${d === 1 ? "" : "s"}`;
+    return `<div class="cap ${open ? "open" : ""}" data-cap="${esc(c.id)}"><i>${open ? (seen ? "📜" : "🎁") : "🔒"}</i><div><b>${esc(c.title || "Cápsula")}</b><small>${sub}</small></div>${c.from === who && !open ? `<button class="x" data-dc="${esc(c.id)}">✕</button>` : ""}</div>`;
+  }).join("") : '<div class="empty">Aún no hay cápsulas.</div>';
+  $("capList").querySelectorAll("[data-cap]").forEach(b => b.onclick = e => {
+    if (e.target.dataset.dc) return;
+    const c = caps.find(x => x.id === b.dataset.cap); if (!c) return;
+    if (c.unlockAt > Date.now()) return toast(`🔒 Aún no. Faltan ${Math.ceil((c.unlockAt - Date.now()) / DAY)} días`);
+    readView({ icon: "🎁", title: c.title || "Cápsula del tiempo", sub: `De ${name(c.from)} · cerrada el ${fmtDate(c.at)}`, text: c.text, img: c.photo });
+    if (!(c.opened || {})[who]) { S.merge("capsules/" + c.id, { opened: { [who]: Date.now() } }); confetti(); sendMsg(`🎁 He abierto la cápsula "${c.title || ""}"`, "capsule"); }
+  });
+  $("capList").querySelectorAll("[data-dc]").forEach(b => b.onclick = () => { if (confirm("¿Borrar esta cápsula?")) S.del("capsules/" + b.dataset.dc); });
+  renderLetters();
+}
+function nextAnniv() {
+  if (!CONFIG.start) return null;
+  const s = new Date(CONFIG.start + "T09:00:00"), n = new Date(); let d = new Date(n.getFullYear(), s.getMonth(), s.getDate(), 9);
+  if (d <= n) d = new Date(n.getFullYear() + 1, s.getMonth(), s.getDate(), 9);
+  return d;
+}
+$("capNew").onclick = () => {
+  $("capTitle").value = ""; $("capText").value = ""; $("capPhotoTxt").textContent = ""; capPhotoData = null; $("capPhoto").value = "";
+  const q = [];
+  const an = nextAnniv(); if (an) q.push(["💍 Próximo aniversario", an]);
+  if (state.main.next && state.main.next > Date.now()) q.push(["✈️ Cuando nos veamos", new Date(state.main.next)]);
+  q.push(["📅 En 1 mes", new Date(Date.now() + 30 * DAY)], ["🗓️ En 6 meses", new Date(Date.now() + 182 * DAY)], ["🎆 En 1 año", new Date(Date.now() + 365 * DAY)]);
+  $("capQuick").innerHTML = q.map(([t, d], i) => `<button data-q="${i}">${t}</button>`).join("");
+  $("capQuick").querySelectorAll("button").forEach(b => b.onclick = () => { $("capDate").value = localKey(q[+b.dataset.q][1]); });
+  $("capDate").value = localKey(q[0][1]); $("capDate").min = localKey(new Date(Date.now() + DAY));
+  $("capDlg").showModal();
+};
+$("capPhoto").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; capPhotoData = await shrinkPhoto(f); $("capPhotoTxt").textContent = "📷 Foto lista"; });
+$("capCancel").onclick = () => $("capDlg").close();
+$("capSave").onclick = () => {
+  const title = $("capTitle").value.trim(), text = $("capText").value.trim(), d = $("capDate").value;
+  if (!text && !capPhotoData) return toast("Escribe algo o añade una foto");
+  if (!d) return toast("Elige la fecha");
+  const unlockAt = new Date(d + "T00:00:00").getTime(); if (unlockAt <= Date.now()) return toast("Tiene que ser una fecha futura");
+  S.add("capsules", { from: who, title: title || "Cápsula del tiempo", text, photo: capPhotoData, unlockAt, opened: {}, at: Date.now() });
+  sendMsg(`⏳ He cerrado una cápsula del tiempo: "${title || "Cápsula"}". Se abrirá el ${fmtDate(unlockAt, { day: "numeric", month: "long", year: "numeric" })} 🔒`, "capsule");
+  $("capDlg").close(); toast("Cápsula cerrada 🔒"); buzz();
+};
+
+// ================= Fechas especiales =================
+let dates = [];
+function nextOcc(d) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  let t = new Date(d.date + "T00:00:00");
+  if (d.yearly) { t.setFullYear(today.getFullYear()); if (t < today) t.setFullYear(today.getFullYear() + 1); }
+  return { t, days: Math.round((t - today) / DAY) };
+}
+function renderDates(list) {
+  if (list) dates = list;
+  const all = dates.map(d => ({ ...d, own: true }));
+  if (CONFIG.start) all.push({ id: "_aniv", emoji: "💍", name: "Nuestro aniversario", date: CONFIG.start, yearly: true, years: true });
+  if (state.main.next && state.main.next > Date.now() - DAY) all.push({ id: "_next", emoji: "✈️", name: "¡Nos vemos!", date: localKey(new Date(state.main.next)), yearly: false });
+  const rows = all.map(d => ({ d, ...nextOcc(d) })).filter(r => r.days >= 0).sort((a, b) => a.days - b.days);
+  $("dateList").innerHTML = rows.length ? rows.map(({ d, t, days }) => {
+    const yrs = d.years ? ` · ${t.getFullYear() - new Date(d.date).getFullYear()} años` : "";
+    return `<div class="drow ${days === 0 ? "today" : ""}"><i>${esc(d.emoji || "⭐")}</i><div><b>${esc(d.name)}</b><small>${fmtDate(t, { day: "numeric", month: "long", year: "numeric" })}${yrs}${d.yearly ? " · 🔁" : ""}</small></div>
+      <span class="left">${days === 0 ? "¡Hoy! 🎉" : days === 1 ? "Mañana" : days + " días"}</span>${d.own ? `<button class="x" data-dd="${esc(d.id)}">✕</button>` : ""}</div>`;
+  }).join("") : '<div class="empty">Añadid cumpleaños, aniversarios, viajes…</div>';
+  $("dateList").querySelectorAll("[data-dd]").forEach(b => b.onclick = () => { if (confirm("¿Borrar esta fecha?")) S.del("dates/" + b.dataset.dd); });
+}
+$("dtAdd").onclick = () => {
+  const n = $("dtName").value.trim(), d = $("dtDate").value; if (!n || !d) return toast("Pon nombre y fecha");
+  S.add("dates", { emoji: $("dtEmoji").value, name: n.slice(0, 60), date: d, yearly: $("dtYearly").checked, from: who, at: Date.now() });
+  sendMsg(`📅 He añadido una fecha especial: ${$("dtEmoji").value} ${n}`, "date");
+  $("dtName").value = ""; $("dtDate").value = ""; toast("Fecha guardada 📅");
+};
+$("dtName").placeholder = `Cumple de ${name("b")}…`;
+
+// ================= Logros =================
+function achievements() {
+  const p = state.pet || {}, q = state.quiz || {}, g = state.ttt || {};
+  const withLoc = memList.filter(m => typeof m.lat === "number"), countries = new Set(withLoc.map(m => m.country).filter(Boolean)).size;
+  const plansDone = plans.filter(x => x.done).length, owned = Object.keys(p.owned || {}).length;
+  const quizOk = ["a", "b"].reduce((s, w) => s + Object.values((q.gu || {})[w] || {}).filter(x => x.ok === true).length, 0);
+  const games = g.score ? g.score.a + g.score.b + g.score.d : 0;
+  const moodDays = Object.values(moods).filter(m => m.a && m.b).length;
+  const capOpen = caps.filter(c => Object.keys(c.opened || {}).length).length;
+  return [
+    ["🐣", "¡Ha nacido!", "La mascota sale del huevo", p.xp || 0, 2],
+    ["🔥", "Racha de 7", "7 días seguidos cuidándole", p.best || 0, 7],
+    ["☄️", "Racha de 30", "30 días seguidos", p.best || 0, 30],
+    ["👑", "Legendario", "El pollo llega al máximo", p.xp || 0, 180],
+    ["🤗", "100 mimos", "Mimos a la mascota", p.hugs || 0, 100],
+    ["🛍️", "De compras", "Comprar 5 cosas", owned, 5],
+    ["📍", "Viajeros", "3 lugares en el mapa", withLoc.length, 3],
+    ["🌍", "Trotamundos", "3 países en el mapa", countries, 3],
+    ["📝", "Primer plan", "Cumplir un plan", plansDone, 1],
+    ["🏆", "10 planes", "Cumplir 10 planes", plansDone, 10],
+    ["🧠", "Telepatía", "10 aciertos en ¿Me conoces?", quizOk, 10],
+    ["🎮", "Jugones", "10 partidas de tres en raya", games, 10],
+    ["💌", "Cartero", "Escribir 5 cartas", letters.length, 5],
+    ["⏳", "Del pasado", "Abrir una cápsula", capOpen, 1],
+    ["😊", "Sinceros", "7 días diciendo cómo estáis", moodDays, 7]
+  ].map(([e, n, d, v, goal]) => ({ e, n, d, v: Math.min(v, goal), goal, ok: v >= goal }));
+}
+let achReady = false;
+function renderAch() {
+  const A = achievements(), got = A.filter(a => a.ok);
+  $("achCount").textContent = `${got.length} de ${A.length} conseguidos`;
+  $("achGrid").innerHTML = A.map(a => `<div class="ach ${a.ok ? "got" : "lock"}"><i>${a.e}</i><b>${esc(a.n)}</b><small>${a.ok ? "✓ " + esc(a.d) : `${a.v}/${a.goal} · ${esc(a.d)}`}</small></div>`).join("");
+  if (!achReady) return;
+  let seen = []; try { seen = JSON.parse(ls.get("achSeen") || "[]"); } catch (e) {}
+  const fresh = got.filter(a => !seen.includes(a.n));
+  if (fresh.length) { ls.set("achSeen", JSON.stringify([...seen, ...fresh.map(a => a.n)])); setTimeout(() => { toast(`🏅 ¡Nuevo logro! ${fresh[0].e} ${fresh[0].n}`, 3500); confetti(); }, 600); }
+}
+setInterval(renderAch, 5000);
+
 // ================= Carta y ajustes =================
 function openIntro() {
   $("introLetter").textContent = CONFIG.letter; $("introSign").textContent = CONFIG.sign;
@@ -968,6 +1369,7 @@ $("btnLetter").onclick = openIntro;
 const toLocalInput = t => { const d = new Date(t - new Date(t).getTimezoneOffset() * 6e4); return d.toISOString().slice(0, 16); };
 $("btnSettings").onclick = () => {
   $("sNext").value = state.main.next ? toLocalInput(state.main.next) : "";
+  $("sWho").closest(".field").classList.toggle("hidden", S.needsLogin);
   $("sWho").innerHTML = ["a", "b"].map(w => `<option value="${w}" ${w === who ? "selected" : ""}>${esc(name(w))}</option>`).join("");
   $("settings").showModal();
 };
@@ -989,24 +1391,51 @@ function pickWho() {
   });
 }
 
+function loginUI(err) {
+  return new Promise(res => {
+    $("loginView").classList.remove("hidden"); $("lgErr").textContent = err || "";
+    const allowed = [CONFIG.emails?.a, CONFIG.emails?.b].filter(Boolean).map(x => x.toLowerCase());
+    const go = mode => {
+      const email = $("lgEmail").value.trim().toLowerCase(), pass = $("lgPass").value;
+      if (!email || pass.length < 6) { $("lgErr").textContent = "Pon tu email y una contraseña de al menos 6 caracteres"; return; }
+      if (!allowed.includes(email)) { $("lgErr").textContent = "Este email no está invitado 🙈"; return; }
+      $("lgErr").textContent = "Un momento…"; res({ email, pass, mode });
+    };
+    $("lgIn").onclick = () => go("in"); $("lgNew").onclick = () => go("new");
+  });
+}
+
 async function start() {
   if (S.demo) $("demoBanner").classList.remove("hidden");
-  if (who !== "a" && who !== "b") await pickWho();
+  if (S.needsLogin) {
+    try { await S.init(loginUI); } catch (e) { console.error(e); toast("No se pudo conectar. Revisa config.js", 5000); return; }
+    $("loginView").classList.add("hidden");
+    who = S.userEmail === (CONFIG.emails.a || "").toLowerCase() ? "a" : "b"; ls.set("who", who);
+  } else if (who !== "a" && who !== "b") await pickWho();
   if (who === "b" && !ls.get("introSeen")) openIntro();
   const t = ls.get("tab"); if (TABS.includes(t)) showTab(t);
-  tick(); renderQuestion(); renderPet(); renderQuiz(); renderTTT();
-  try { await S.init(); } catch (e) { console.error(e); toast("No se pudo conectar. Revisa config.js", 5000); return; }
+  tick(); renderQuestion(); renderPet(); renderQuiz(); renderTTT(); renderMoods([]); drawWheel(); fgInfo(); renderLetters([]); renderCaps([]); renderDates([]);
+  if (!S.needsLogin) { try { await S.init(); } catch (e) { console.error(e); toast("No se pudo conectar. Revisa config.js", 5000); return; } }
   S.merge("state/main", { tz: { [who]: myTz } });
-  S.watchDoc("state/main", d => { state.main = d || {}; tick(); });
-  S.watchDoc("state/pet", d => { state.pet = d; renderPet(); });
+  S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); });
+  S.watchDoc("state/pet", d => { state.pet = d; renderPet(); fgInfo(); });
   S.watchDoc("quiz/main", d => { state.quiz = d; renderQuiz(); });
   S.watchDoc("state/ttt", d => { state.ttt = d; renderTTT(); renderQuiz(); });
+  S.watchDoc("state/wheel", drawWheel);
   S.watchCol("messages", l => { state.msgs = l; renderChat(l); }, 40);
   S.watchCol("memories", renderMem, 100);
   S.watchCol("plans", renderPlans, 200);
+  S.watchCol("moods", renderMoods, 40);
+  S.watchCol("letters", renderLetters, 200);
+  S.watchCol("capsules", renderCaps, 100);
+  S.watchCol("dates", renderDates, 100);
   watchAnswers();
-  setInterval(() => { tick(); watchAnswers(); renderPet(); }, 15000);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) { tick(); watchAnswers(); renderPet(); } });
+  setTimeout(() => {   // logros: los que ya teníais no saltan como nuevos
+    if (ls.get("achSeen") === null) ls.set("achSeen", JSON.stringify(achievements().filter(a => a.ok).map(a => a.n)));
+    achReady = true; renderAch();
+  }, 4000);
+  setInterval(() => { tick(); watchAnswers(); renderPet(); renderCaps(); }, 15000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { tick(); watchAnswers(); renderPet(); renderMoods(); renderCaps(); renderDates(); } });
 }
 start();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
