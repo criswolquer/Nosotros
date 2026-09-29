@@ -5,6 +5,10 @@ export const demo = !CONFIG.firebase;
 // Si hay emails en config.js, solo esas dos personas pueden entrar (email + contraseña)
 export const needsLogin = !demo && !!(CONFIG.emails && (CONFIG.emails.a || CONFIG.emails.b));
 export let userEmail = null;
+// Estado de la conexión para enseñarlo en pantalla
+let statusCb = () => {};
+export const onStatus = fn => { statusCb = fn; };
+const fail = (where) => e => { console.error(where, e); statusCb("error", (e && (e.code || e.message)) || String(e), where); };
 let impl;
 
 export async function init(loginUI) {
@@ -19,9 +23,10 @@ const AUTH_ERR = {
 };
 export const watchDoc = (p, cb) => impl.watchDoc(p, cb);
 export const watchCol = (p, cb, lim) => impl.watchCol(p, cb, lim);
-export const merge = (p, d) => impl.merge(p, d).catch(e => console.error(e));
-export const add = (p, d) => impl.add(p, d).catch(e => console.error(e));
-export const del = (p) => impl.del(p).catch(e => console.error(e));
+export const merge = (p, d) => impl.merge(p, d).catch(fail("guardar"));
+export const add = (p, d) => impl.add(p, d).catch(fail("enviar"));
+export const del = (p) => impl.del(p).catch(fail("borrar"));
+export async function logout() { if (impl && impl.logout) await impl.logout(); }
 export const tx = (p, fn) => impl.tx(p, fn);
 
 async function firebaseImpl(loginUI) {
@@ -61,10 +66,11 @@ async function firebaseImpl(loginUI) {
     return parts.length % 2 ? fs.collection(db, ...parts) : fs.doc(db, ...parts);
   };
   return {
-    watchDoc: (p, cb) => fs.onSnapshot(R(p), s => cb(s.exists() ? s.data() : null), e => console.error(e)),
+    logout: () => au.signOut(auth),
+    watchDoc: (p, cb) => fs.onSnapshot(R(p), s => { statusCb("ok"); cb(s.exists() ? s.data() : null); }, fail("leer")),
     watchCol: (p, cb, lim) => fs.onSnapshot(
       fs.query(R(p), fs.orderBy("at", "desc"), fs.limit(lim || 50)),
-      s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))), e => console.error(e)),
+      s => { statusCb("ok"); cb(s.docs.map(d => ({ id: d.id, ...d.data() }))); }, fail("leer")),
     merge: (p, d) => fs.setDoc(R(p), d, { merge: true }),
     add: (p, d) => fs.addDoc(R(p), d),
     del: (p) => fs.deleteDoc(R(p)),

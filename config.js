@@ -40,6 +40,11 @@ export const CONFIG = {
   letter: "Hace un año que empezó lo nuestro.\n\nLa distancia es larga, pero cada día contigo la hace más corta. Te he hecho esta app para que, estés donde estés, me tengas un poquito más cerca.\n\nFeliz aniversario.",
   sign: "Te quiero, Christian ❤️",
 
+  // 7) Avisos con la app cerrada: dirección de tu servidor de Cloudflare (la pondremos cuando lo crees)
+  pushUrl: "",
+  vapidPublic: "BIESSgB6LD0_mid1CaXoeV_nqPN8YupKs8SQrxjXeRN7Nd7nFk4E6G8ND1FyagXnj0CrQlLkwze__d3MTW0rWtI",
+  pushSecret: "abTidlXm25yVH4DpA52syGZj9WyiqpB_",
+
   // 6) Nombre inicial de vuestra mascota (luego se puede cambiar desde la app)
   petName: "Pollito"
 };

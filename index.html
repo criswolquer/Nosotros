@@ -393,6 +393,83 @@ nav button i{font-size:22px}
 .fgmsg .btn{margin-top:12px;width:100%}
 .wheel.empty{background:var(--card2)!important;display:flex;align-items:center;justify-content:center}
 .wheel .wtxt{position:static;width:auto;height:auto;margin:0;font-size:15px;color:var(--muted);padding:0 40px;line-height:1.3}
+.conn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:6px 12px;border-radius:99px;margin:-6px 0 12px;background:var(--card);border:1px solid var(--line);color:var(--muted);max-width:100%}
+.conn.ok{color:#8ff0b4;border-color:#2f6a48;background:#1d3327}
+.conn.demo{color:#ffd99a;border-color:#6b5020;background:#3b2a12}
+.conn.err{color:#ffb0b0;border-color:#7a2d3a;background:#3d1c24}
+.pushban{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#3b2a55,#4a2140);border:1px solid #7a5cc7;border-radius:16px;padding:12px 12px 12px 14px;margin-bottom:14px;font-size:14px}
+.pushban span{flex:1;line-height:1.35}
+.pushban .btn{padding:10px 12px;font-size:14px;white-space:nowrap}
+.pushban .x{background:none;border:0;color:var(--muted);font-size:16px;padding:4px}
+
+/* ================= JUEGOS v2 ================= */
+.gmenu{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gcard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;color:var(--text);padding:16px 8px 14px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:104px;justify-content:center}
+.gcard i{font-style:normal;font-size:34px}
+.gcard b{font-size:14px}
+.gcard:active{transform:scale(.97)}
+.gbadge{position:absolute;top:8px;right:8px;background:var(--card2);color:var(--accent2);font-size:11px;font-weight:800;border-radius:99px;padding:3px 8px}
+.gbadge.hot{background:var(--accent);color:#fff;animation:recp 1.6s infinite}
+.ghead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ghead h2{margin:0;font-size:21px}
+.ghead .btn{padding:9px 12px;font-size:14px}
+/* conecta 4 */
+.c4{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;background:#2d4fb8;padding:8px;border-radius:16px;margin-top:12px}
+.c4c{aspect-ratio:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.c4c span{width:86%;height:86%;border-radius:50%;background:#1b1320;box-shadow:inset 0 3px 6px rgba(0,0,0,.5);transition:background .2s}
+.c4c.win span{box-shadow:0 0 0 3px #fff}
+/* flota */
+.bsgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;background:#12324f;padding:5px;border-radius:12px}
+.bsgrid.small{max-width:230px;margin:0 auto}
+.bsc{aspect-ratio:1;background:#1f5f8f;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.bsgrid.small .bsc{font-size:10px}
+.bsc.ship{background:#8b97a8}
+.bsc.hit{background:#c0392b} .bsc.sunk{background:#6b1d1d} .bsc.miss{background:#15486e;color:#9fd3ff}
+.bsc.can{cursor:pointer} .bsc.can:active{background:#2c7cb8}
+.bsmsg{text-align:center;color:var(--muted);font-size:14px;min-height:18px;margin-top:4px}
+/* wordle */
+.wdgrid{display:flex;flex-direction:column;gap:6px;align-items:center;margin:12px 0}
+.wdrow{display:flex;gap:6px}
+.wd{width:48px;height:48px;border:2px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;background:var(--card2)}
+.wd.g{background:#3a9d5d;border-color:#3a9d5d} .wd.y{background:#c9a227;border-color:#c9a227} .wd.b{background:#3d3540;border-color:#3d3540}
+/* dibujo */
+.drword{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:700}
+.drword input{flex:1;font-weight:800;text-transform:uppercase}
+.drword .btn{padding:10px 12px}
+.drwrap{background:#fff;border-radius:14px;overflow:hidden}
+#drCanvas{width:100%;display:block;touch-action:none}
+.drtools{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.drcol{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.3)}
+.drcol.on{border:3px solid var(--accent);transform:scale(1.15)}
+.drsz{width:34px;height:34px;border-radius:10px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+.drsz i{background:var(--text);border-radius:50%;display:block}
+.drsz.on{border-color:var(--accent)}
+.drimg{width:100%;border-radius:14px;background:#fff;display:block}
+.drgal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.drg img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#fff;display:block}
+.drg small{display:block;font-size:11px;color:var(--muted);margin-top:3px;line-height:1.25}
+/* qué prefieres */
+.wyr{display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:center}
+.wyr button{background:var(--card2);border:2px solid var(--line);color:var(--text);border-radius:16px;padding:18px;font-size:19px;font-weight:800}
+.wyr button:active{border-color:var(--accent);background:#4a2a45}
+.wyr span{color:var(--muted);font-weight:700}
+/* memory */
+.mmgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 6px}
+.mmc{aspect-ratio:1;border-radius:12px;border:0;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:26px;color:#fff;padding:0;overflow:hidden}
+.mmc.up{background:var(--card2)}
+.mmc.ok{opacity:.55}
+.mmc .ph{display:block;width:100%;height:100%;background-size:cover;background-position:center}
+.mmc .em{font-size:30px}
+/* vales y rasca */
+.scard{position:relative;height:150px;border-radius:18px;overflow:hidden;margin:6px 0 4px;background:linear-gradient(135deg,#ffe3ea,#ffd1a8)}
+.scprize{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#5a2a3a;font-size:38px;padding:10px}
+.scprize b{font-size:17px;margin-top:6px}
+#scCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:pointer}
+.scdone{padding:30px 10px;color:var(--muted);font-size:16px;line-height:1.5}
+.vale{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#3d2a3c,#2f2238);border:1px dashed var(--accent2);border-radius:14px;padding:10px 10px 10px 14px;margin-top:8px}
+.vale span{flex:1;font-size:15px;font-weight:700;min-width:0}
+.vale small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:2px}
+.vale .btn{padding:9px 12px;font-size:14px}
 </style>
 </head>
 <body>
@@ -424,6 +501,8 @@ nav button i{font-size:22px}
   </div>
 </header>
 
+<div id="connPill" class="conn">⏳ Conectando…</div>
+<div id="pushBanner" class="pushban hidden"></div>
 <div id="demoBanner" class="banner hidden">🧪 Modo prueba: aún no está conectada, los datos solo se guardan en este móvil. En ⚙️ puedes cambiar de persona para probar los dos lados.</div>
 
 <!-- ============ INICIO ============ -->
@@ -550,14 +629,132 @@ nav button i{font-size:22px}
 
 <!-- ============ JUEGOS ============ -->
 <main id="tab-games" class="hidden">
-  <div class="seg" id="gameSeg">
-    <button class="on" data-g="quiz">💭 Conoces</button>
-    <button data-g="ttt">❌⭕ Raya</button>
-    <button data-g="wheel">🎡 Ruleta</button>
-    <button data-g="ach">🏅 Logros</button>
+  <div id="gameMenu" class="gmenu"></div>
+
+  <div id="gameHead" class="ghead hidden">
+    <button class="btn" id="gameBack">‹ Juegos</button>
+    <h2 id="gameTitle"></h2>
   </div>
 
-  <div id="g-quiz">
+  <!-- Conecta 4 -->
+  <div id="g-c4" class="hidden">
+    <section class="card"><div class="score" id="c4Score"></div></section>
+    <section class="card">
+      <div class="turn" id="c4Turn"></div>
+      <div class="c4" id="c4Board"></div>
+      <button class="btn primary hidden mt" style="width:100%" id="c4Again">Revancha 🔁</button>
+    </section>
+  </div>
+
+  <!-- Hundir la flota -->
+  <div id="g-bs" class="hidden">
+    <section class="card"><div class="score" id="bsScore"></div></section>
+    <section class="card">
+      <div class="turn" id="bsTurn"></div>
+      <div class="bsmsg" id="bsMsg"></div>
+      <div class="label mt" id="bsSeaLbl">Su mar</div>
+      <div class="bsgrid" id="bsSea"></div>
+      <div class="label mt">Tu flota</div>
+      <div class="bsgrid small" id="bsMine"></div>
+      <div class="row mt" id="bsSetupBtns"></div>
+    </section>
+  </div>
+
+  <!-- Wordle -->
+  <div id="g-wordle" class="hidden">
+    <section class="card">
+      <div class="turn" id="wdTurn"></div>
+      <div class="wdgrid" id="wdGrid"></div>
+      <div id="wdBox"></div>
+    </section>
+    <section class="card"><div class="sub" style="margin:0">🟩 letra en su sitio · 🟨 está en la palabra pero en otro sitio · ⬛ no está</div></section>
+  </div>
+
+  <!-- Dibuja y adivina -->
+  <div id="g-draw" class="hidden">
+    <section class="card" id="drGuessCard">
+      <div class="label">Adivina el dibujo de <span class="oname"></span></div>
+      <div id="drGuess"></div>
+    </section>
+    <section class="card">
+      <div class="label">Dibuja para <span class="oname"></span></div>
+      <div id="drWord" class="drword"></div>
+      <div class="drwrap"><canvas id="drCanvas"></canvas></div>
+      <div class="drtools" id="drTools"></div>
+      <div class="row mt"><button class="btn" style="flex:1" id="drUndo">↩︎ Deshacer</button><button class="btn" style="flex:1" id="drClear">🗑 Borrar</button><button class="btn primary" style="flex:1.4" id="drSend">Enviar 🎨</button></div>
+    </section>
+    <section class="card">
+      <div class="label">Galería</div>
+      <div class="drgal" id="drGal"></div>
+    </section>
+  </div>
+
+  <!-- ¿Qué prefieres? -->
+  <div id="g-wyr" class="hidden">
+    <section class="card" style="text-align:center">
+      <div class="label" style="text-align:left">Compatibilidad</div>
+      <div class="big" id="wyrPct">—</div>
+      <div class="sub" id="wyrStats"></div>
+    </section>
+    <section class="card"><div class="label">¿Qué prefieres?</div><div id="wyrBox"></div></section>
+    <section class="card"><div class="label">Vuestras respuestas</div><div id="wyrHist"></div></section>
+  </div>
+
+  <!-- Verdad o reto -->
+  <div id="g-tod" class="hidden">
+    <section class="card" style="text-align:center">
+      <div class="row"><button class="love" style="flex:1;background:linear-gradient(135deg,#4d7cff,#7b61ff)" id="todT">🤫 Verdad</button><button class="love" style="flex:1" id="todD">🔥 Reto</button></div>
+      <div id="todRes"></div>
+    </section>
+    <section class="card"><div class="label">Añade los vuestros</div>
+      <div class="sendrow" style="margin-top:0"><select id="todKind" class="plcat" style="width:auto"><option value="t">🤫</option><option value="d">🔥</option></select><input id="todText" placeholder="Una verdad o un reto…"><button class="btn primary" id="todAdd">＋</button></div>
+      <div id="todMine" class="mt"></div>
+    </section>
+  </div>
+
+  <!-- Memory -->
+  <div id="g-memory" class="hidden">
+    <section class="card">
+      <div class="row" style="justify-content:space-between;align-items:center"><div class="sub" style="margin:0" id="mmInfo"></div><button class="btn" id="mmNew">Nueva 🔁</button></div>
+      <div class="mmgrid" id="mmGrid"></div>
+      <div class="sub" id="mmBest"></div>
+    </section>
+  </div>
+
+  <!-- Rasca y gana -->
+  <div id="g-scratch" class="hidden">
+    <section class="card" style="text-align:center">
+      <div class="label" style="text-align:left">Rasca y gana 🎟️</div>
+      <div id="scBox"></div>
+    </section>
+    <section class="card"><div class="label">Tus vales 🎟️</div><div id="vcMine"></div></section>
+    <section class="card"><div class="label">Vales que regalas a <span class="oname"></span></div>
+      <div class="sub" style="margin:0 0 8px">Esto es lo que <span class="oname"></span> puede ganar al rascar.</div>
+      <div class="sendrow" style="margin-top:0"><input id="scPrize" placeholder="Vale por un masaje…"><button class="btn primary" id="scAdd">＋</button></div>
+      <div id="scList" class="mt"></div>
+      <div class="sub" style="margin-top:10px" id="vcTheirs"></div>
+    </section>
+  </div>
+
+  <!-- Tienda de vales -->
+  <div id="g-shop" class="hidden">
+    <section class="card" style="text-align:center">
+      <div class="sub" style="margin:0">Monedas de los dos</div>
+      <div class="big" id="shCoins">🪙 0</div>
+      <div class="sub" style="font-size:13px">Se ganan cuidando al pollito y jugando</div>
+    </section>
+    <section class="card"><div class="label">Lo que te ofrece <span class="oname"></span></div><div id="shBuy"></div></section>
+    <section class="card"><div class="label">Tus vales 🎟️</div><div id="shMine"></div></section>
+    <section class="card"><div class="label">Lo que tú ofreces a <span class="oname"></span></div>
+      <div class="sendrow" style="margin-top:0">
+        <select id="shEmoji" class="plcat"><option>💆</option><option>🍕</option><option>🎬</option><option>🥐</option><option>💋</option><option>🤗</option><option>📸</option><option>🎵</option><option>🍫</option><option>🌹</option><option>😈</option><option selected>🎁</option></select>
+        <input id="shText" placeholder="Vale por un masaje…">
+      </div>
+      <div class="sendrow"><input id="shPrice" type="number" inputmode="numeric" min="5" max="5000" placeholder="Precio 🪙" style="flex:1"><button class="btn primary" id="shAdd">Poner a la venta</button></div>
+      <div id="shOffers" class="mt"></div>
+    </section>
+  </div>
+  <div id="g-quiz" class="hidden">
     <section class="card">
       <div class="label">Marcador</div>
       <div class="score" id="quizScore"></div>
@@ -790,6 +987,8 @@ nav button i{font-size:22px}
 <dialog id="settings">
   <h2 style="margin-top:0">Ajustes</h2>
   <div class="field"><label>Próxima vez que os veis (se ve en los dos móviles)</label><input id="sNext" type="datetime-local"></div>
+  <div class="field" id="sAccount"></div>
+  <div class="field" id="sPush"></div>
   <div class="field"><label>¿Quién eres en este móvil?</label><select id="sWho"></select></div>
   <div class="row">
     <button class="btn" style="flex:1" id="sCancel">Cancelar</button>

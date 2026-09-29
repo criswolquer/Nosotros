@@ -1,5 +1,6 @@
 import { CONFIG } from "./config.js";
 import * as S from "./store.js";
+let GAMES_READY = false;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -27,15 +28,11 @@ function showTab(t) {
   if (t === "home") $("dotHome").classList.add("hidden");
   if (t === "mem") initMemMap();
   if (t === "letters") { renderLetters(); renderCaps(); renderDates(); }
-  if (t === "games") renderAch();
+  if (t === "games") { if (curGame) openGame(curGame); else renderGameMenu(); }
   if (t === "pet") setTimeout(() => { renderPet(); if (stageOf((state.pet || {}).xp || 0) > 0) say(phrase()); }, 350);
 }
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
-document.querySelectorAll("#gameSeg button").forEach(b => b.onclick = () => {
-  document.querySelectorAll("#gameSeg button").forEach(x => x.classList.toggle("on", x === b));
-  ["quiz", "ttt", "wheel", "ach"].forEach(g => $("g-" + g).classList.toggle("hidden", b.dataset.g !== g));
-  if (b.dataset.g === "ach") renderAch();
-});
+
 
 // ================= Relojes y contadores =================
 function fmt(tz, o) { try { return new Intl.DateTimeFormat("es-ES", { timeZone: tz, ...o }).format(new Date()); } catch (e) { return new Intl.DateTimeFormat("es-ES", o).format(new Date()); } }
@@ -78,6 +75,7 @@ const SWEET = [
 ];
 function sendMsg(text, kind = "text") {
   S.add("messages", { from: who, text, kind, at: Date.now() });
+  notifyOther(text);
 }
 $("btnThink").onclick = () => { buzz(60); sendMsg(SWEET[Math.floor(Math.random() * SWEET.length)], "think"); toast("Enviado a " + name(other()) + " 💌"); };
 $("msgSend").onclick = () => { const t = $("msgInput").value.trim(); if (!t) return; sendMsg(t); $("msgInput").value = ""; };
@@ -106,6 +104,7 @@ $("snapInput").addEventListener("change", e => {
     $("snapCancel").onclick = () => { snapDraft = null; snapHide(); };
     $("snapSend").onclick = () => {
       S.add("messages", { from: who, kind: "snap", text: "📸 Te he enviado una foto (ver una vez)", photo: snapDraft, opened: false, at: Date.now() });
+      notifyOther("📸 Te ha enviado una foto de ver una vez");
       snapDraft = null; snapHide(); buzz(); toast("Foto enviada 📸 Solo podrá verla una vez");
     };
   };
@@ -604,7 +603,7 @@ function renderQuiz() {
   $("quizHist").innerHTML = hist.length ? hist.slice(0, 20).map(({ w, i, g }) => `<div class="guess"><div class="q">${esc(name(w))} sobre ${esc(name(w === "a" ? "b" : "a"))} · ${esc(QZ[i])}</div>
     <div class="g">"${esc(g.t)}"</div><span class="tag ${g.ok ? "ok" : "bad"}">${g.ok ? "✅ Acertó" : "❌ Era: " + esc((ans[w === "a" ? "b" : "a"] || {})[i])}</span></div>`).join("")
     : '<div class="empty">Aquí saldrán vuestros aciertos y fallos.</div>';
-  $("dotGames").classList.toggle("hidden", !(pend.length || toGuess.length || tttMyTurn()));
+  quizBadge = pend.length + toGuess.length; if (typeof updateGamesDot === "function" && GAMES_READY) { updateGamesDot(); if (!curGame && !$("tab-games").classList.contains("hidden")) renderGameMenu(); }
 }
 
 // ================= Tres en raya =================
@@ -961,6 +960,82 @@ function confetti() {
 }
 
 
+
+// ================= Avisos con la app cerrada (Web Push) =================
+let otherSub = null;
+const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+const standalone = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+function u8(b64) { b64 = b64.replace(/-/g, "+").replace(/_/g, "/"); while (b64.length % 4) b64 += "="; const s = atob(b64); return Uint8Array.from(s, c => c.charCodeAt(0)); }
+function pushState() {
+  if (S.demo || !CONFIG.pushUrl || !CONFIG.vapidPublic) return "off";
+  if (isIOS && !standalone()) return "needHome";
+  if (!pushSupported()) return "unsupported";
+  if (Notification.permission === "denied") return "denied";
+  if (Notification.permission === "granted" && ls.get("pushOn") === "1") return "on";
+  return "ask";
+}
+function renderPush() {
+  const st = pushState(), b = $("pushBanner");
+  const hide = ls.get("pushBanHide") === "1";
+  const msg = {
+    needHome: `🔔 Para recibir avisos, añade la app a la <b>pantalla de inicio</b> (Compartir → Añadir a pantalla de inicio) y ábrela desde ahí.`,
+    ask: `🔔 Activa los avisos para enterarte cuando ${esc(name(other()))} te escriba, aunque la app esté cerrada.`,
+    denied: `🔕 Tienes los avisos bloqueados. Actívalos en Ajustes del móvil → Notificaciones → Nosotros.`,
+    unsupported: `🔕 Este navegador no permite avisos. Prueba con Safari (iPhone) o Chrome (Android).`
+  }[st];
+  b.classList.toggle("hidden", !msg || hide);
+  if (msg) {
+    b.innerHTML = `<span>${msg}</span>${st === "ask" ? `<button class="btn primary" id="pushGo">Activar</button>` : ""}<button class="x" id="pushX">✕</button>`;
+    const g = $("pushGo"); if (g) g.onclick = enablePush;
+    $("pushX").onclick = () => { ls.set("pushBanHide", "1"); b.classList.add("hidden"); };
+  }
+  const sp = $("sPush");
+  if (sp) sp.innerHTML = st === "off" ? "" : `<label>Avisos con la app cerrada</label>${st === "on"
+    ? `<div class="row" style="align-items:center"><span style="flex:1;font-size:14px">🔔 Activados${otherSub ? "" : ` · ${esc(name(other()))} aún no los ha activado`}</span><button class="btn" id="sPushTest">Probar</button></div>`
+    : st === "ask" ? `<button class="btn primary" id="sPushOn" style="width:100%">🔔 Activar avisos</button>` : `<div class="sub" style="margin:0">${msg}</div>`}`;
+  const t = $("sPushTest"); if (t) t.onclick = testPush;
+  const o = $("sPushOn"); if (o) o.onclick = enablePush;
+}
+async function enablePush() {
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { toast("Sin permiso no puedo avisarte 🔕", 3500); renderPush(); return; }
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(CONFIG.vapidPublic) });
+    await S.merge("push/" + who, { sub: JSON.parse(JSON.stringify(sub)), at: Date.now(), device: isIOS ? "iPhone" : "otro" });
+    ls.set("pushOn", "1"); renderPush(); toast("🔔 ¡Avisos activados!"); buzz();
+  } catch (e) { console.error(e); toast("No se pudieron activar los avisos: " + (e.message || e), 5000); }
+}
+async function refreshPushSub() {   // si el móvil renueva la suscripción, la guardamos otra vez
+  if (pushState() !== "on") return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(CONFIG.vapidPublic) });
+    const j = JSON.parse(JSON.stringify(sub));
+    if (ls.get("pushEp") !== j.endpoint) { await S.merge("push/" + who, { sub: j, at: Date.now() }); ls.set("pushEp", j.endpoint); }
+  } catch (e) { console.warn(e); }
+}
+async function pushTo(sub, title, body) {
+  if (!CONFIG.pushUrl || !sub || !sub.endpoint) return null;
+  try {
+    const r = await fetch(CONFIG.pushUrl, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: CONFIG.pushSecret, sub, title, body, url: location.href.split("#")[0], tag: "nosotros-" + Date.now() }) });
+    return await r.json();
+  } catch (e) { console.warn("push", e); return null; }
+}
+function notifyOther(body) {
+  if (S.demo || !otherSub) return;
+  pushTo(otherSub, name(who) + " 💌", body).then(r => { if (r && r.gone) S.merge("push/" + other(), { sub: null }); });
+}
+async function testPush() {
+  const d = await new Promise(res => { const un = S.watchDoc("push/" + who, x => { res(x); setTimeout(() => un && un(), 0); }); });
+  const r = await pushTo(d && d.sub, "Nosotros 🔔", "¡Los avisos funcionan! 🎉");
+  toast(r && r.ok ? "Aviso de prueba enviado: te llegará en unos segundos 🔔" : "El aviso de prueba falló" + (r ? ` (${r.status || r.error})` : " (sin conexión con el servidor)"), 4500);
+}
+
 // ================= Utilidades comunes =================
 const fmtDate = (t, o = { day: "numeric", month: "short", year: "numeric" }) => new Date(t).toLocaleDateString("es-ES", o);
 const localKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -1056,6 +1131,7 @@ function showVoiceDraft() {
   $("vdPlay").onclick = () => playAudio(voiceDraft.audio, null);
   $("vdSend").onclick = () => {
     S.add("messages", { from: who, kind: "voice", text: "🎙️ Nota de voz", audio: voiceDraft.audio, dur: voiceDraft.dur, at: Date.now() });
+    notifyOther("🎙️ Te ha enviado una nota de voz");
     voiceDraft = null; $("voiceBar").classList.add("hidden"); buzz(); toast("Nota de voz enviada 🎙️");
   };
   $("vdX").onclick = () => { voiceDraft = null; $("voiceBar").classList.add("hidden"); };
@@ -1124,7 +1200,8 @@ let fg = null;
 function fgInfo() {
   const p = state.pet || {}, d = p.day && p.day.d === dayKey() ? p.day : {};
   const got = (d.game || {})[who] || 0;
-  $("fgInfo").textContent = got >= 30 ? "Hoy ya habéis ganado el máximo (30 🪙). ¡Juega por diversión!" : `30 segundos · hoy puedes ganar ${30 - got} 🪙 más`;
+  const bb = p.best_by || {};
+  $("fgInfo").textContent = (got >= 30 ? "Hoy ya has ganado el máximo (30 🪙)" : `Hoy puedes ganar ${30 - got} 🪙 más`) + ` · 🏆 ${name("a")} ${bb.a || 0} · ${name("b")} ${bb.b || 0}`;
 }
 $("fgPlay").onclick = () => {
   $("fgView").classList.remove("hidden"); document.body.style.overflow = "hidden";
@@ -1173,18 +1250,500 @@ function fgDraw() {
 }
 function fgEnd() {
   fg.run = false; cancelAnimationFrame(fg.raf);
-  const score = fg.score; let gain = 0;
-  petTx(p => { p.day.game = p.day.game || {}; const got = p.day.game[who] || 0; gain = Math.max(0, Math.min(Math.floor(score / 2), 30 - got)); p.day.game[who] = got + gain; p.coins += gain; p.best_game = Math.max(p.best_game || 0, score); return p; })
+  const score = fg.score; let gain = 0, prevOther = 0, prevMine = 0;
+  petTx(p => { p.day.game = p.day.game || {}; const got = p.day.game[who] || 0; gain = Math.max(0, Math.min(Math.floor(score / 2), 30 - got)); p.day.game[who] = got + gain; p.coins += gain; p.best_game = Math.max(p.best_game || 0, score); prevOther = (p.best_by || {})[other()] || 0; prevMine = (p.best_by || {})[who] || 0; p.best_by = { ...(p.best_by || {}), [who]: Math.max(prevMine, score) }; return p; })
     .then(() => {
       const best = (state.pet && state.pet.best_game) || score;
       $("fgMsg").innerHTML = `<div style="font-size:40px">${score >= 20 ? "🏆" : score >= 10 ? "🥳" : "🐤"}</div>¡Has atrapado <b>${score}</b>!<br>${gain ? `+${gain} 🪙 para la mascota` : "Hoy ya no ganas más monedas"}<br><small>Récord: ${best}</small>
         <button class="btn primary" id="fgAgain">Otra vez 🔁</button><button class="btn" id="fgOut">Salir</button>`;
       $("fgAgain").onclick = () => $("fgPlay").click(); $("fgOut").onclick = fgClose;
-      if (score >= 15) sendMsg(`🍓 He atrapado ${score} fresas en el minijuego. ¡Supérame!`, "game");
+      if (score > prevOther && prevMine <= prevOther && prevOther > 0) sendMsg(`🏆 ¡He batido tu récord en Atrapa fresas: ${score}! 🍓`, "game");
+      else if (score >= 15) sendMsg(`🍓 He atrapado ${score} fresas en el minijuego. ¡Supérame!`, "game");
     }).catch(() => { $("fgMsg").innerHTML = `¡Has atrapado <b>${score}</b>!<button class="btn" id="fgOut">Salir</button>`; $("fgOut").onclick = fgClose; });
 }
 function fgClose() { if (fg) { fg.run = false; cancelAnimationFrame(fg.raf); } fg = null; $("fgView").classList.add("hidden"); document.body.style.overflow = ""; fgInfo(); }
 $("fgQuit").onclick = fgClose;
+
+
+// =====================================================================
+//                         JUEGOS (menú y nuevos)
+// =====================================================================
+const G = { c4: null, bs: null, wordle: null, wyr: null, tod: null, memory: null, scratch: null, shop: null };
+let drawings = [], vouchers = [], quizBadge = 0, curGame = null;
+const norm = s => String(s || "").toUpperCase().replace(/Ñ/g, "#").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/#/g, "Ñ").trim();
+const rnd = a => a[Math.floor(Math.random() * a.length)];
+const SYMC = { a: "#4d9dff", b: "#ff6b8b" };
+
+const GAMES = [
+  { id: "quiz", e: "💭", n: "¿Me conoces?" }, { id: "ttt", e: "❌", n: "Tres en raya" }, { id: "c4", e: "🔴", n: "Conecta 4" },
+  { id: "bs", e: "🚢", n: "Hundir la flota" }, { id: "wordle", e: "🔤", n: "Wordle" }, { id: "draw", e: "🎨", n: "Dibuja y adivina" },
+  { id: "wyr", e: "⚖️", n: "¿Qué prefieres?" }, { id: "tod", e: "🤫", n: "Verdad o reto" }, { id: "memory", e: "🧩", n: "Memory" },
+  { id: "scratch", e: "🎟️", n: "Rasca y gana" }, { id: "shop", e: "🛍️", n: "Tienda de vales" }, { id: "wheel", e: "🎡", n: "Ruleta" },
+  { id: "ach", e: "🏅", n: "Logros" }
+];
+function gameBadge(id) {
+  const g = G;
+  switch (id) {
+    case "quiz": return quizBadge ? { t: "¡Te toca!", hot: 1 } : null;
+    case "ttt": return tttMyTurn() ? { t: "¡Te toca!", hot: 1 } : null;
+    case "c4": return g.c4 && !g.c4.win && g.c4.turn === who ? { t: "¡Te toca!", hot: 1 } : null;
+    case "bs": if (!g.bs || g.bs.phase === "end") return null;
+      if (g.bs.phase === "setup" && !(g.bs.ready || {})[who]) return { t: "Coloca tu flota", hot: 1 };
+      return g.bs.phase === "play" && g.bs.turn === who ? { t: "¡Te toca!", hot: 1 } : null;
+    case "wordle": return g.wordle && g.wordle.status === "play" && g.wordle.setter !== who ? { t: "¡Adivina!", hot: 1 } : null;
+    case "draw": { const n = drawings.filter(d => d.to === who && !d.solved && !d.gaveUp).length; return n ? { t: n + " por adivinar", hot: 1 } : null; }
+    case "wyr": { const n = wyrPendingForMe(); return n ? { t: n + " nuevas", hot: 0 } : null; }
+    case "scratch": return ((g.scratch || {}).last || {})[who] !== dayKey() ? { t: "¡Disponible!", hot: 0 } : null;
+    case "shop": { const n = (((g.shop || {}).offers || {})[other()] || []).length; return n ? { t: n + " a la venta", hot: 0 } : null; }
+  }
+  return null;
+}
+function renderGameMenu() {
+  $("gameMenu").innerHTML = GAMES.map(x => { const b = gameBadge(x.id); return `<button class="gcard" data-open="${x.id}"><i>${x.e}</i><b>${x.n}</b>${b ? `<span class="gbadge ${b.hot ? "hot" : ""}">${b.t}</span>` : ""}</button>`; }).join("");
+  $("gameMenu").querySelectorAll("[data-open]").forEach(b => b.onclick = () => openGame(b.dataset.open));
+  updateGamesDot();
+}
+function updateGamesDot() { $("dotGames").classList.toggle("hidden", !GAMES.some(x => { const b = gameBadge(x.id); return b && b.hot; })); }
+function openGame(id) {
+  curGame = id;
+  $("gameMenu").classList.add("hidden"); $("gameHead").classList.remove("hidden");
+  const g = GAMES.find(x => x.id === id); $("gameTitle").textContent = g.e + " " + g.n;
+  GAMES.forEach(x => { const el = $("g-" + x.id); if (el) el.classList.toggle("hidden", x.id !== id); });
+  document.querySelectorAll(".oname").forEach(e => e.textContent = name(other()));
+  ({ quiz: renderQuiz, ttt: renderTTT, c4: renderC4, bs: renderBS, wordle: renderWordle, draw: renderDraw, wyr: renderWyr, tod: renderTod, memory: () => mm ? renderMM() : newMM(), scratch: renderScratch, shop: renderShop2, wheel: () => drawWheel(), ach: renderAch }[id] || (() => {}))();
+  window.scrollTo(0, 0);
+}
+function closeGame() {
+  curGame = null; $("gameMenu").classList.remove("hidden"); $("gameHead").classList.add("hidden");
+  GAMES.forEach(x => { const el = $("g-" + x.id); if (el) el.classList.add("hidden"); });
+  renderGameMenu(); window.scrollTo(0, 0);
+}
+$("gameBack").onclick = closeGame;
+const gRefresh = id => { if (curGame === id) openGameRender(id); renderGameMenu(); };
+function openGameRender(id) { ({ c4: renderC4, bs: renderBS, wordle: renderWordle, draw: renderDraw, wyr: renderWyr, tod: renderTod, memory: renderMMBest, scratch: renderScratch, shop: renderShop2 }[id] || (() => {}))(); }
+
+// ---------------- Conecta 4 ----------------
+const c4New = prev => { const starter = prev ? (prev.starter === "a" ? "b" : "a") : "a"; return { b: Array(42).fill(""), turn: starter, starter, win: null, line: [], score: prev?.score || { a: 0, b: 0, d: 0 }, at: Date.now() }; };
+function c4Line(b, w) {
+  for (let r = 0; r < 6; r++) for (let c = 0; c < 7; c++) {
+    if (b[r * 7 + c] !== w) continue;
+    for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+      const cells = []; for (let k = 0; k < 4; k++) { const rr = r + dr * k, cc = c + dc * k; if (rr < 0 || rr > 5 || cc < 0 || cc > 6 || b[rr * 7 + cc] !== w) break; cells.push(rr * 7 + cc); }
+      if (cells.length === 4) return cells;
+    }
+  }
+  return null;
+}
+function renderC4() {
+  const g = G.c4 || c4New();
+  $("c4Score").innerHTML = `<div><b>${g.score.a}</b><span style="color:${SYMC.a}">● ${esc(name("a"))}</span></div><div><b>${g.score.d}</b><span>empates</span></div><div><b>${g.score.b}</b><span style="color:${SYMC.b}">● ${esc(name("b"))}</span></div>`;
+  $("c4Turn").innerHTML = g.win === "d" ? "¡Empate! 🤝" : g.win ? (g.win === who ? "¡Has ganado! 🎉" : `Ha ganado ${esc(name(g.win))} 😅`) : g.turn === who ? `Tu turno <span style="color:${SYMC[who]}">●</span> Toca una columna` : `Turno de ${esc(name(g.turn))}…`;
+  $("c4Board").innerHTML = g.b.map((v, i) => `<div class="c4c ${g.line.includes(i) ? "win" : ""}" data-col="${i % 7}"><span style="${v ? `background:${SYMC[v]}` : ""}"></span></div>`).join("");
+  $("c4Board").querySelectorAll("[data-col]").forEach(c => c.onclick = () => c4Drop(+c.dataset.col));
+  $("c4Again").classList.toggle("hidden", !g.win);
+}
+function c4Drop(col) {
+  const g0 = G.c4 || c4New();
+  if (g0.win) return; if (g0.turn !== who) return toast("Espera a que juegue " + name(g0.turn));
+  let res = null;
+  S.tx("games/c4", g => {
+    g = g || c4New(); if (g.win || g.turn !== who) return null;
+    let r = 5; while (r >= 0 && g.b[r * 7 + col]) r--; if (r < 0) return null;
+    g.b[r * 7 + col] = who;
+    const l = c4Line(g.b, who);
+    if (l) { g.win = who; g.line = l; g.score[who]++; res = "win"; }
+    else if (g.b.every(Boolean)) { g.win = "d"; g.score.d++; res = "draw"; }
+    else { g.turn = other(); res = "move"; }
+    return g;
+  }).then(g => {
+    if (!g) return; buzz(20);
+    if (res === "win") { addCoins(15); confetti(); sendMsg("🔴 ¡Te he ganado al Conecta 4!", "game"); }
+    else if (res === "draw") { addCoins(5); sendMsg("🤝 Empate en el Conecta 4", "game"); }
+    else sendMsg("🔴 Te toca en el Conecta 4", "game");
+  }).catch(offline);
+}
+$("c4Again").onclick = () => S.tx("games/c4", g => g && g.win ? c4New(g) : null).then(g => { if (g) sendMsg("🔁 ¡Revancha al Conecta 4!", "game"); }).catch(offline);
+
+// ---------------- Hundir la flota ----------------
+const BS_N = 8, FLEET = [4, 3, 3, 2, 2];
+let bsDraft = null;
+function randomFleet() {
+  const occ = new Set(), ships = [];
+  for (const len of FLEET) for (let t = 0; t < 500; t++) {
+    const h = Math.random() < .5, r = Math.floor(Math.random() * (h ? BS_N : BS_N - len + 1)), c = Math.floor(Math.random() * (h ? BS_N - len + 1 : BS_N));
+    const cells = []; for (let k = 0; k < len; k++) cells.push(h ? r * BS_N + c + k : (r + k) * BS_N + c);
+    if (cells.some(x => occ.has(x))) continue; cells.forEach(x => occ.add(x)); ships.push({ c: cells }); break;
+  }
+  return ships;
+}
+const bsNew = prev => { const starter = prev ? (prev.starter === "a" ? "b" : "a") : "a"; return { phase: "setup", ships: {}, ready: {}, shots: { a: [], b: [] }, turn: starter, starter, win: null, last: null, score: prev?.score || { a: 0, b: 0 }, at: Date.now() }; };
+function bsGrid(el, cells, clickable, onClick) {
+  el.innerHTML = cells.map((c, i) => `<div class="bsc ${c.cls || ""} ${clickable && c.can ? "can" : ""}" data-i="${i}">${c.t || ""}</div>`).join("");
+  if (clickable) el.querySelectorAll(".bsc.can").forEach(d => d.onclick = () => onClick(+d.dataset.i));
+}
+function renderBS() {
+  const g = G.bs || bsNew(), me = who, ot = other();
+  $("bsScore").innerHTML = `<div><b>${g.score.a}</b><span>⚓ ${esc(name("a"))}</span></div><div><b>${g.score.b}</b><span>⚓ ${esc(name("b"))}</span></div>`;
+  const myShips = (g.ships[me] || (bsDraft = bsDraft || randomFleet())), shipSet = new Set(myShips.flatMap(s => s.c));
+  const theirShots = new Set((g.shots || {})[ot] || []), myShots = new Set((g.shots || {})[me] || []);
+  const otherCells = new Set(((g.ships || {})[ot] || []).flatMap(s => s.c));
+  const sunkCells = new Set(((g.ships || {})[ot] || []).filter(s => s.c.every(x => myShots.has(x))).flatMap(s => s.c));
+  bsGrid($("bsMine"), Array.from({ length: 64 }, (_, i) => ({ cls: (shipSet.has(i) ? "ship" : "") + (theirShots.has(i) ? (shipSet.has(i) ? " hit" : " miss") : ""), t: theirShots.has(i) ? (shipSet.has(i) ? "💥" : "·") : "" })), false);
+  let btns = "";
+  if (g.phase === "setup") {
+    $("bsSea").classList.add("hidden"); $("bsSeaLbl").classList.add("hidden");
+    if ((g.ready || {})[me]) { $("bsTurn").textContent = `Esperando a que ${name(ot)} coloque su flota… ⚓`; $("bsMsg").textContent = ""; }
+    else { $("bsTurn").textContent = "Coloca tu flota"; $("bsMsg").textContent = "Barcos de 4, 3, 3, 2 y 2 casillas. Puedes recolocarlos al azar."; btns = `<button class="btn" style="flex:1" id="bsShuffle">🔀 Recolocar</button><button class="btn primary" style="flex:1" id="bsReady">✅ ¡Listo!</button>`; }
+  } else {
+    $("bsSea").classList.remove("hidden"); $("bsSeaLbl").classList.remove("hidden");
+    const myTurn = g.phase === "play" && g.turn === me;
+    $("bsTurn").innerHTML = g.phase === "end" ? (g.win === me ? "¡Has hundido toda su flota! 🏆" : `${esc(name(g.win))} ha hundido tu flota 😵`) : myTurn ? "Tu turno: dispara en su mar 🎯" : `Turno de ${esc(name(ot))}…`;
+    const L = g.last; $("bsMsg").textContent = L ? `${L.by === me ? "Tu disparo" : name(L.by) + " disparó"}: ${L.sunk ? "¡Hundido! 🔥" : L.hit ? "¡Tocado! 💥" : "Agua 💧"}` : "";
+    bsGrid($("bsSea"), Array.from({ length: 64 }, (_, i) => myShots.has(i) ? { cls: otherCells.has(i) ? (sunkCells.has(i) ? "sunk" : "hit") : "miss", t: otherCells.has(i) ? (sunkCells.has(i) ? "🔥" : "💥") : "💧" } : { can: myTurn }), myTurn, bsShoot);
+    if (g.phase === "end") btns = `<button class="btn primary" style="flex:1" id="bsAgain">Nueva partida 🔁</button>`;
+  }
+  $("bsSetupBtns").innerHTML = btns;
+  const sh = $("bsShuffle"); if (sh) sh.onclick = () => { bsDraft = randomFleet(); renderBS(); };
+  const rd = $("bsReady"); if (rd) rd.onclick = () => {
+    const fleet = bsDraft || randomFleet();
+    S.tx("games/bs", g => { g = g || bsNew(); if (g.phase !== "setup") return null; g.ships = { ...(g.ships || {}), [me]: fleet }; g.ready = { ...(g.ready || {}), [me]: true }; if (g.ready[ot]) { g.phase = "play"; g.turn = g.starter; } return g; })
+      .then(g => { if (!g) return; bsDraft = null; sendMsg(g.phase === "play" ? "🚢 ¡Flotas listas! Empieza la batalla" : "🚢 He colocado mi flota. ¡Coloca la tuya!", "game"); }).catch(offline);
+  };
+  const ag = $("bsAgain"); if (ag) ag.onclick = () => S.tx("games/bs", g => g && g.phase === "end" ? bsNew(g) : null).then(g => { if (g) { bsDraft = null; sendMsg("🔁 ¡Nueva partida de Hundir la flota!", "game"); } }).catch(offline);
+}
+function bsShoot(i) {
+  let res = null;
+  S.tx("games/bs", g => {
+    if (!g || g.phase !== "play" || g.turn !== who) return null;
+    const shots = g.shots[who] || []; if (shots.includes(i)) return null;
+    g.shots[who] = [...shots, i];
+    const ships = g.ships[other()] || [], cells = ships.flatMap(s => s.c), hit = cells.includes(i);
+    const s = ships.find(s => s.c.includes(i)), sunk = !!(hit && s && s.c.every(x => g.shots[who].includes(x)));
+    g.last = { by: who, cell: i, hit, sunk };
+    if (cells.every(x => g.shots[who].includes(x))) { g.phase = "end"; g.win = who; g.score[who]++; res = "win"; }
+    else if (!hit) { g.turn = other(); res = "miss"; } else res = sunk ? "sunk" : "hit";
+    return g;
+  }).then(g => {
+    if (!g) return; buzz(res === "miss" ? 15 : [30, 40, 30]);
+    if (res === "win") { addCoins(20); confetti(); sendMsg("🏆 ¡He hundido toda tu flota!", "game"); }
+    else if (res === "miss") sendMsg("🚢 Agua 💧 ¡Te toca disparar!", "game");
+    else toast(res === "sunk" ? "¡Hundido! 🔥 Vuelves a disparar" : "¡Tocado! 💥 Vuelves a disparar");
+  }).catch(offline);
+}
+
+// ---------------- Wordle ----------------
+function wdEval(guess, word) {
+  const g = [...guess], w = [...word], res = Array(5).fill("b"), cnt = {};
+  for (let i = 0; i < 5; i++) { if (g[i] === w[i]) res[i] = "g"; else cnt[w[i]] = (cnt[w[i]] || 0) + 1; }
+  for (let i = 0; i < 5; i++) if (res[i] !== "g" && cnt[g[i]] > 0) { res[i] = "y"; cnt[g[i]]--; }
+  return res;
+}
+function renderWordle() {
+  const g = G.wordle, guesser = g ? (g.setter === "a" ? "b" : "a") : null;
+  const guesses = (g && g.guesses) || [], word = g ? g.word : "";
+  let rows = "";
+  for (let r = 0; r < 6; r++) {
+    const gs = guesses[r], ev = gs ? wdEval(gs, word) : null;
+    rows += `<div class="wdrow">${Array.from({ length: 5 }, (_, i) => `<span class="wd ${ev ? ev[i] : ""}">${gs ? [...gs][i] : ""}</span>`).join("")}</div>`;
+  }
+  $("wdGrid").innerHTML = g ? rows : "";
+  let box = "";
+  if (!g || g.status !== "play") {
+    const last = g ? (g.status === "won" ? `🎉 ${esc(name(guesser))} adivinó <b>${esc(word)}</b> en ${guesses.length} intento${guesses.length === 1 ? "" : "s"}` : `😅 La palabra era <b>${esc(word)}</b>`) : "";
+    $("wdTurn").innerHTML = g ? last : "Nueva partida";
+    box = `<div class="sub">Elige una palabra secreta de 5 letras para que ${esc(name(other()))} la adivine:</div>
+      <div class="sendrow"><input id="wdNew" maxlength="5" autocapitalize="characters" autocomplete="off" placeholder="PERRO" style="text-transform:uppercase;letter-spacing:4px;font-weight:800"><button class="btn primary" id="wdStart">Empezar</button></div>`;
+  } else if (g.setter === who) {
+    $("wdTurn").innerHTML = `Tu palabra: <b>${esc(word)}</b> · ${esc(name(guesser))} lleva ${guesses.length}/6`;
+    box = `<div class="sub">Esperando a que ${esc(name(guesser))} la adivine… 🤞</div>`;
+  } else {
+    $("wdTurn").innerHTML = `Adivina la palabra de ${esc(name(g.setter))} · intento ${guesses.length + 1}/6`;
+    box = `<div class="sendrow"><input id="wdGuess" maxlength="5" autocapitalize="characters" autocomplete="off" placeholder="?????" style="text-transform:uppercase;letter-spacing:4px;font-weight:800"><button class="btn primary" id="wdTry">Probar</button></div>`;
+  }
+  $("wdBox").innerHTML = box;
+  const st = $("wdStart"); if (st) st.onclick = () => {
+    const w = norm($("wdNew").value); if (!/^[A-ZÑ]{5}$/.test(w)) return toast("Tienen que ser 5 letras");
+    S.tx("games/wordle", x => (x && x.status === "play") ? null : { word: w, setter: who, guesses: [], status: "play", at: Date.now(), score: (x && x.score) || { a: 0, b: 0 } })
+      .then(r => { if (r) sendMsg("🔤 Te he puesto una palabra en el Wordle. ¡Adivínala!", "game"); }).catch(offline);
+  };
+  const tr = $("wdTry"), gi = $("wdGuess");
+  if (gi) gi.onkeydown = e => { if (e.key === "Enter") tr.click(); };
+  if (tr) tr.onclick = () => {
+    const w = norm(gi.value); if (!/^[A-ZÑ]{5}$/.test(w)) return toast("Escribe 5 letras");
+    let res = null;
+    S.tx("games/wordle", x => {
+      if (!x || x.status !== "play" || x.setter === who || x.guesses.length >= 6) return null;
+      x.guesses = [...x.guesses, w];
+      if (w === x.word) { x.status = "won"; x.score = x.score || { a: 0, b: 0 }; x.score[who] = (x.score[who] || 0) + 1; res = "won"; }
+      else if (x.guesses.length >= 6) { x.status = "lost"; res = "lost"; }
+      return x;
+    }).then(x => {
+      if (!x) return; buzz(15);
+      if (res === "won") { addCoins(15); confetti(); sendMsg(`🔤 ¡Adiviné tu palabra ${x.word} en ${x.guesses.length} intentos!`, "game"); }
+      else if (res === "lost") sendMsg(`🔤 No adiviné tu palabra 😅 Era ${x.word}`, "game");
+    }).catch(offline);
+  };
+}
+
+// ---------------- Dibuja y adivina ----------------
+const DRAW_WORDS = ["PERRO", "GATO", "CASA", "SOL", "LUNA", "ÁRBOL", "COCHE", "AVIÓN", "PLAYA", "PIZZA", "CORAZÓN", "FLOR", "BICICLETA", "PEZ", "MONTAÑA", "HELADO", "GUITARRA", "LIBRO", "RELOJ", "TELÉFONO",
+  "BARCO", "NUBE", "LLUVIA", "ESTRELLA", "TARTA", "GAFAS", "ZAPATO", "PARAGUAS", "CAFÉ", "MARIPOSA", "SERPIENTE", "CASTILLO", "ROBOT", "COHETE", "MANZANA", "PLÁTANO", "HAMBURGUESA", "CAMA", "SOFÁ", "TREN",
+  "PAYASO", "FANTASMA", "DRAGÓN", "PINGÜINO", "CONEJO", "ELEFANTE", "JIRAFA", "TORTUGA", "ARCOÍRIS", "VOLCÁN", "ISLA", "REGALO", "VELA", "BESO", "ANILLO", "MALETA", "PALOMITAS", "PIANO", "BALÓN", "POLLITO"];
+let drWordCur = rnd(DRAW_WORDS), drStrokes = [], drCur = null, drColor = "#222222", drSize = 6, drCtx = null;
+const DR_COLORS = ["#222222", "#e63946", "#ff9f1c", "#ffd93b", "#2a9d8f", "#4d7cff", "#9b5de5", "#ff6b8b", "#8a5a38", "#ffffff"];
+function drSetup() {
+  const cv = $("drCanvas"); if (drCtx && cv.width) return;
+  const W = cv.clientWidth || 300, dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = W * dpr; cv.style.height = W + "px";
+  drCtx = cv.getContext("2d"); drCtx.scale(dpr, dpr); drCtx.lineCap = "round"; drCtx.lineJoin = "round"; drRedraw();
+  const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left), (e.clientY - r.top)]; };
+  cv.onpointerdown = e => { cv.setPointerCapture(e.pointerId); drCur = { c: drColor, s: drSize, p: [pos(e)] }; drStrokes.push(drCur); drRedraw(); };
+  cv.onpointermove = e => { if (!drCur) return; drCur.p.push(pos(e)); drRedraw(); };
+  cv.onpointerup = cv.onpointercancel = () => { drCur = null; };
+  cv.style.touchAction = "none";
+}
+function drRedraw() {
+  const cv = $("drCanvas"), W = cv.clientWidth || 300; drCtx.fillStyle = "#fff"; drCtx.fillRect(0, 0, W, W);
+  for (const s of drStrokes) {
+    drCtx.strokeStyle = s.c; drCtx.lineWidth = s.s; drCtx.beginPath();
+    s.p.forEach(([x, y], i) => i ? drCtx.lineTo(x, y) : drCtx.moveTo(x, y));
+    if (s.p.length === 1) drCtx.lineTo(s.p[0][0] + .1, s.p[0][1]);
+    drCtx.stroke();
+  }
+}
+function renderDraw() {
+  const pend = drawings.filter(d => d.to === who && !d.solved && !d.gaveUp).sort((a, b) => a.at - b.at);
+  $("drGuessCard").classList.toggle("hidden", !pend.length);
+  if (pend.length) {
+    const d = pend[0];
+    $("drGuess").innerHTML = `<img class="drimg" src="${d.img}" alt="">
+      ${d.guesses && d.guesses.length ? `<div class="sub">Has probado: ${d.guesses.map(esc).join(", ")}</div>` : `<div class="sub">Pista: ${[...norm(d.word)].length} letras</div>`}
+      <div class="sendrow"><input id="drTry" placeholder="¿Qué es?" autocomplete="off"><button class="btn primary" id="drGo">Probar</button></div>
+      <button class="linkbtn mt" id="drGive">🏳️ Me rindo</button>${pend.length > 1 ? `<div class="sub">+${pend.length - 1} dibujo${pend.length > 2 ? "s" : ""} más esperando</div>` : ""}`;
+    $("drTry").onkeydown = e => { if (e.key === "Enter") $("drGo").click(); };
+    $("drGo").onclick = () => {
+      const t = norm($("drTry").value); if (!t) return;
+      if (t === norm(d.word)) {
+        S.merge("drawings/" + d.id, { solved: true, solvedAt: Date.now(), guesses: [...(d.guesses || []), t] });
+        addCoins(10); confetti(); buzz([30, 40, 30]); sendMsg(`🎨 ¡Adiviné tu dibujo! Era ${d.word}`, "game");
+      } else { S.merge("drawings/" + d.id, { guesses: [...(d.guesses || []), t] }); toast("¡No! Prueba otra vez 🤔"); buzz(60); }
+    };
+    $("drGive").onclick = () => { if (!confirm("¿Te rindes?")) return; S.merge("drawings/" + d.id, { gaveUp: true }); toast("Era: " + d.word); sendMsg(`🎨 Me rindo con tu dibujo… ¿era ${d.word}? 😅`, "game"); };
+  }
+  $("drWord").innerHTML = `<span>Dibuja:</span> <input id="drWordIn" value="${esc(drWordCur)}" maxlength="24"> <button class="btn" id="drOther">🔀</button>`;
+  $("drWordIn").oninput = e => { drWordCur = e.target.value; };
+  $("drOther").onclick = () => { drWordCur = rnd(DRAW_WORDS); $("drWordIn").value = drWordCur; };
+  $("drTools").innerHTML = DR_COLORS.map(c => `<button class="drcol ${c === drColor ? "on" : ""}" data-c="${c}" style="background:${c}"></button>`).join("") +
+    [3, 6, 14].map(s => `<button class="drsz ${s === drSize ? "on" : ""}" data-s="${s}"><i style="width:${s + 2}px;height:${s + 2}px"></i></button>`).join("");
+  $("drTools").querySelectorAll("[data-c]").forEach(b => b.onclick = () => { drColor = b.dataset.c; renderDraw(); });
+  $("drTools").querySelectorAll("[data-s]").forEach(b => b.onclick = () => { drSize = +b.dataset.s; renderDraw(); });
+  setTimeout(drSetup, 30);
+  const mine = drawings.slice().sort((a, b) => b.at - a.at).slice(0, 12);
+  $("drGal").innerHTML = mine.length ? mine.map(d => `<div class="drg"><img src="${d.img}" alt=""><small>${esc(name(d.from))} · ${esc(d.word)} ${d.solved ? "✅" : d.gaveUp ? "🏳️" : "⏳"}</small></div>`).join("") : '<div class="empty">Aún no hay dibujos.</div>';
+}
+$("drUndo").onclick = () => { drStrokes.pop(); drRedraw(); };
+$("drClear").onclick = () => { if (drStrokes.length && confirm("¿Borrar el dibujo?")) { drStrokes = []; drRedraw(); } };
+$("drSend").onclick = () => {
+  const word = (drWordCur || "").trim(); if (!word) return toast("Escribe qué has dibujado");
+  if (!drStrokes.length) return toast("Dibuja algo primero ✏️");
+  const img = $("drCanvas").toDataURL("image/jpeg", 0.7);
+  S.add("drawings", { from: who, to: other(), word: word.toUpperCase(), img, guesses: [], solved: false, gaveUp: false, at: Date.now() });
+  sendMsg("🎨 Te he enviado un dibujo. ¡Adivina qué es!", "game");
+  drStrokes = []; drRedraw(); drWordCur = rnd(DRAW_WORDS); renderDraw(); toast("Dibujo enviado 🎨");
+};
+
+// ---------------- ¿Qué prefieres? ----------------
+const WYR = [
+  ["🏖️ Playa", "⛰️ Montaña"], ["🍕 Pizza", "🍔 Hamburguesa"], ["🌅 Madrugar", "🌙 Trasnochar"], ["🎬 Cine", "🛋️ Peli en casa"], ["☕ Café", "🍵 Té"],
+  ["🐶 Perro", "🐱 Gato"], ["❄️ Invierno", "☀️ Verano"], ["✈️ Viajar lejos", "🚗 Escapada cerca"], ["🍝 Cocinar juntos", "🍽️ Ir a un restaurante"], ["📚 Leer", "📺 Ver series"],
+  ["🎢 Parque de atracciones", "🧖 Spa"], ["🏙️ Ciudad", "🌳 Campo"], ["🍫 Chocolate", "🍓 Fruta"], ["💌 Carta a mano", "🎁 Regalo sorpresa"], ["🎤 Karaoke", "💃 Bailar"],
+  ["🌮 Comida picante", "🍰 Dulce"], ["📸 Muchas fotos", "👀 Vivir el momento"], ["🏕️ Acampar", "🏨 Hotel"], ["🎮 Videojuegos", "🎲 Juegos de mesa"], ["🌧️ Día de lluvia en casa", "🌞 Día de sol fuera"],
+  ["🍿 Comedia", "😱 Terror"], ["🚿 Ducha", "🛁 Bañera"], ["🥐 Desayuno", "🍷 Cena"], ["🎵 Concierto", "🎭 Teatro"], ["🐧 Viaje al frío", "🌴 Viaje al calor"],
+  ["📱 Llamada", "💬 Mensajes"], ["🧳 Planearlo todo", "🎲 Improvisar"], ["🏡 Casa en el campo", "🏢 Piso en la ciudad"], ["🍦 Helado", "🍰 Tarta"], ["🌊 Barco", "🎈 Globo"],
+  ["🎂 Fiesta sorpresa", "🥂 Cena tranquila"], ["🦸 Volar", "👻 Ser invisible"], ["⏪ Viajar al pasado", "⏩ Viajar al futuro"], ["🍜 Comida asiática", "🥘 Comida española"], ["🐚 Isla desierta juntos", "🗼 París juntos"],
+  ["😴 Siesta", "🚶 Paseo"], ["🎧 Música a tope", "🤫 Silencio"], ["🌹 Flores", "🍫 Bombones"], ["🏋️ Deporte juntos", "🧘 Yoga juntos"], ["💍 Boda grande", "💒 Boda pequeña"]
+];
+const wyrAns = () => ((G.wyr || {}).ans || {});
+function wyrPendingForMe() { const A = wyrAns(), me = A[who] || {}, ot = A[other()] || {}; return Object.keys(ot).filter(i => me[i] === undefined).length; }
+function renderWyr() {
+  const A = wyrAns(), me = A[who] || {}, ot = A[other()] || {};
+  const both = WYR.map((_, i) => i).filter(i => me[i] !== undefined && ot[i] !== undefined), match = both.filter(i => me[i] === ot[i]);
+  $("wyrPct").textContent = both.length ? Math.round(match.length / both.length * 100) + "%" : "—";
+  $("wyrStats").textContent = both.length ? `Coincidís en ${match.length} de ${both.length} 💞` : "Responded los dos para ver vuestra compatibilidad";
+  let next = WYR.findIndex((_, i) => me[i] === undefined && ot[i] !== undefined); if (next < 0) next = WYR.findIndex((_, i) => me[i] === undefined);
+  if (next < 0) $("wyrBox").innerHTML = `<div class="empty">¡Has respondido todas! 🎉</div>`;
+  else {
+    const [x, y] = WYR[next];
+    $("wyrBox").innerHTML = `<div class="wyr"><button data-v="0">${esc(x)}</button><span>o</span><button data-v="1">${esc(y)}</button></div><div class="sub" style="text-align:center">${Object.keys(me).length}/${WYR.length} respondidas</div>`;
+    $("wyrBox").querySelectorAll("[data-v]").forEach(b => b.onclick = () => {
+      const v = +b.dataset.v; S.merge("games/wyr", { ans: { [who]: { [next]: v } } }); buzz(15);
+      if (ot[next] !== undefined) { if (ot[next] === v) { toast(`¡Coincidís! 💞 ${name(other())} también eligió eso`); addCoins(3); } else toast(`${name(other())} eligió lo otro 😅`); }
+    });
+  }
+  $("wyrHist").innerHTML = both.length ? both.slice(-12).reverse().map(i => `<div class="lrow"><span>${esc(WYR[i][me[i]])}</span><small>${esc(name(other()))}: ${esc(WYR[i][ot[i]].split(" ").slice(1).join(" "))}</small><span style="flex:none">${me[i] === ot[i] ? "✅" : "❌"}</span></div>`).join("") : '<div class="empty">Aquí saldrán vuestras respuestas.</div>';
+}
+
+// ---------------- Verdad o reto ----------------
+const TRUTHS = ["¿Qué fue lo primero que pensaste de mí?", "¿Cuál es tu recuerdo favorito conmigo?", "¿Qué es lo que más echas de menos cuando no estoy?", "¿Alguna vez has soñado conmigo? Cuéntamelo",
+  "¿Qué canción te recuerda a mí?", "¿Qué es lo más vergonzoso que te ha pasado?", "¿Qué te gustaría que hiciéramos juntos este año?", "¿Qué manía mía te hace gracia?", "¿Cuándo te diste cuenta de que te gustaba?",
+  "¿Qué es algo que nunca me has contado?", "¿Cuál es tu mayor miedo sobre lo nuestro?", "¿Qué parte de mi cuerpo te gusta más?", "¿Qué harías si mañana me tuvieras al lado todo el día?", "¿Qué te gustaría que te dijera más a menudo?",
+  "¿Cuál ha sido nuestro peor momento y qué aprendiste?", "¿Qué foto mía es tu favorita?", "¿A qué famoso te parezco?", "¿Qué es lo más romántico que alguien ha hecho por ti?", "¿Cómo te imaginas nuestra casa?", "¿Qué me regalarías si no hubiera límite de dinero?"];
+const DARES = ["Mándame una foto tuya ahora mismo, sin filtros 📸", "Mándame un audio cantando mi canción favorita 🎤", "Escríbeme un poema de 4 versos ✍️", "Hazme una videollamada y bésame en la pantalla 😘",
+  "Mándame una foto de lo que tienes delante ahora", "Dime 5 cosas que te encantan de mí, en un audio", "Pon tu fondo de pantalla una foto nuestra durante un día", "Mándame un selfie haciendo tu mejor cara de pato 🦆",
+  "Dibuja mi cara en Dibuja y adivina", "Imita mi voz en un audio 😂", "Mándame la última foto de tu galería", "Escríbeme una carta de 'Ábrelo cuando…'", "Hazme un baile en videollamada 💃",
+  "Cuéntame un chiste malo en audio", "Dime algo bonito en otro idioma", "Mándame una foto de tu comida de hoy", "Cambia mi nombre en tu móvil por uno cursi durante un día", "Graba un audio diciendo por qué me quieres",
+  "Hazte una foto con algo que te recuerde a mí", "Proponme una cita para cuando nos veamos, con todo detalle"];
+function renderTod() {
+  const items = ((G.tod || {}).items || []);
+  $("todMine").innerHTML = items.length ? items.map((x, i) => `<div class="lrow"><span>${x.k === "t" ? "🤫" : "🔥"} ${esc(x.t)}</span><small>${esc(name(x.by))}</small><button class="x" data-td="${i}">✕</button></div>`).join("") : '<div class="empty">Añadid verdades y retos propios y saldrán también.</div>';
+  $("todMine").querySelectorAll("[data-td]").forEach(b => b.onclick = () => S.tx("games/tod", g => { g = g || { items: [] }; g.items = g.items.filter((_, i) => i !== +b.dataset.td); return g; }).catch(offline));
+}
+function todPick(k) {
+  const own = ((G.tod || {}).items || []).filter(x => x.k === k).map(x => x.t), pool = [...(k === "t" ? TRUTHS : DARES), ...own, ...own];
+  const t = rnd(pool); buzz(20);
+  $("todRes").innerHTML = `<div class="wres"><div class="sub" style="margin:0">${k === "t" ? "🤫 Verdad" : "🔥 Reto"}</div><div class="big2">${esc(t)}</div>
+    <div class="row"><button class="btn" style="flex:1" id="todAgain">🔀 Otra</button><button class="btn primary" style="flex:1" id="todSend">💬 Mandárselo</button></div></div>`;
+  $("todAgain").onclick = () => todPick(k);
+  $("todSend").onclick = () => { sendMsg(`${k === "t" ? "🤫 Verdad" : "🔥 Reto"} para ti: ${t}`, "game"); toast(`Enviado a ${name(other())} 😏`); };
+}
+$("todT").onclick = () => todPick("t"); $("todD").onclick = () => todPick("d");
+$("todAdd").onclick = () => {
+  const t = $("todText").value.trim(); if (!t) return;
+  const k = $("todKind").value;
+  S.tx("games/tod", g => { g = g || { items: [] }; g.items = [...(g.items || []), { k, t: t.slice(0, 140), by: who }]; return g; }).then(() => { $("todText").value = ""; toast("Añadido ✨"); }).catch(offline);
+};
+
+// ---------------- Memory con vuestras fotos ----------------
+const MM_EMO = ["💗", "🐤", "🌙", "🌹", "✈️", "🍓", "🎁", "⭐"];
+let mm = null;
+function newMM() {
+  const photos = memList.filter(m => m.photo).map(m => m.photo).sort(() => Math.random() - .5).slice(0, 6);
+  const faces = [...photos.map(p => ({ img: p })), ...MM_EMO.sort(() => Math.random() - .5).slice(0, 6 - photos.length).map(e => ({ e }))];
+  const cards = [...faces, ...faces].map((f, i) => ({ ...f, k: faces.indexOf(f) })).sort(() => Math.random() - .5);
+  mm = { cards, open: [], done: new Set(), moves: 0, t0: 0, lock: false, photos: photos.length };
+  renderMM();
+}
+function renderMM() {
+  if (!mm) return newMM();
+  $("mmGrid").innerHTML = mm.cards.map((c, i) => { const up = mm.open.includes(i) || mm.done.has(i);
+    return `<button class="mmc ${up ? "up" : ""} ${mm.done.has(i) ? "ok" : ""}" data-i="${i}">${up ? (c.img ? `<span class="ph" style="background-image:url('${c.img}')"></span>` : `<span class="em">${c.e}</span>`) : "💗"}</button>`; }).join("");
+  $("mmGrid").querySelectorAll("[data-i]").forEach(b => b.onclick = () => mmFlip(+b.dataset.i));
+  const secs = mm.t0 ? Math.round(((mm.end || Date.now()) - mm.t0) / 1000) : 0;
+  $("mmInfo").textContent = `Movimientos: ${mm.moves} · ⏱ ${secs}s` + (mm.photos < 6 ? ` · ${mm.photos} fotos vuestras` : "");
+  renderMMBest();
+}
+function renderMMBest() {
+  const b = ((G.memory || {}).best) || {};
+  $("mmBest").textContent = `🏆 Récords: ${["a", "b"].map(w => `${name(w)} ${b[w] ? b[w].moves + " mov." : "—"}`).join(" · ")}` + (memList.some(m => m.photo) ? "" : " · Sube fotos en Recuerdos y saldrán aquí 📸");
+}
+function mmFlip(i) {
+  if (mm.lock || mm.done.has(i) || mm.open.includes(i)) return;
+  if (!mm.t0) mm.t0 = Date.now();
+  mm.open.push(i); buzz(8);
+  if (mm.open.length === 2) {
+    mm.moves++; const [a, b] = mm.open;
+    if (mm.cards[a].k === mm.cards[b].k) { mm.done.add(a); mm.done.add(b); mm.open = []; if (mm.done.size === mm.cards.length) return mmWin(); }
+    else { mm.lock = true; setTimeout(() => { mm.open = []; mm.lock = false; renderMM(); }, 800); }
+  }
+  renderMM();
+}
+function mmWin() {
+  mm.end = Date.now(); renderMM(); confetti(); buzz([30, 40, 30]);
+  const moves = mm.moves, secs = Math.round((mm.end - mm.t0) / 1000), prev = (((G.memory || {}).best) || {})[who];
+  if (!prev || moves < prev.moves) { S.merge("games/memory", { best: { [who]: { moves, secs, at: Date.now() } } }); if (prev) sendMsg(`🧩 ¡Nuevo récord en Memory: ${moves} movimientos!`, "game"); }
+  let g = 0; petTx(p => { p.day.mem = p.day.mem || {}; const n = p.day.mem[who] || 0; g = n < 3 ? 5 : 0; p.day.mem[who] = n + 1; p.coins += g; return p; })
+    .then(() => toast(`🧩 ¡Completado en ${moves} movimientos!${g ? " +5 🪙" : ""}`, 3500)).catch(() => {});
+}
+$("mmNew").onclick = newMM;
+
+// ---------------- Vales (Rasca y gana + Tienda) ----------------
+const DEFAULT_VALES = ["💆 Vale por un masaje de 10 minutos", "🎬 Vale por elegir la peli", "🥐 Vale por un desayuno en la cama", "🤗 Vale por un abrazo de 1 minuto", "📸 Vale por una foto tuya cuando quiera",
+  "🎵 Vale por una canción dedicada", "😏 Vale por ganar una discusión", "🍕 Vale por una cena que pago yo", "💋 Vale por 10 besos", "📞 Vale por una videollamada sorpresa"];
+function voucherList(el) {
+  const mine = vouchers.filter(v => v.to === who).sort((a, b) => b.at - a.at), unused = mine.filter(v => !v.used), used = mine.filter(v => v.used);
+  el.innerHTML = (unused.length ? unused.map(v => `<div class="vale"><span>${esc(v.text)}<small>de ${esc(name(v.from))} · ${v.src === "shop" ? "comprado" : "ganado rascando"} · ${fmtDate(v.at, { day: "numeric", month: "short" })}</small></span><button class="btn primary" data-use="${esc(v.id)}">Usar</button></div>`).join("") : '<div class="empty">Aún no tienes vales. ¡Rasca o compra alguno! 🎟️</div>')
+    + (used.length ? `<div class="sub" style="margin-top:10px">Usados: ${used.slice(0, 8).map(v => esc(v.text)).join(" · ")}</div>` : "");
+  el.querySelectorAll("[data-use]").forEach(b => b.onclick = () => {
+    const v = vouchers.find(x => x.id === b.dataset.use); if (!v || !confirm(`¿Usar ahora "${v.text}"?`)) return;
+    S.merge("vouchers/" + v.id, { used: true, usedAt: Date.now() }); sendMsg(`🎟️ ¡Canjeo mi vale! ${v.text}`, "vale"); confetti();
+  });
+}
+function renderScratch() {
+  const sc = G.scratch || {}, today = dayKey(), done = (sc.last || {})[who] === today;
+  const pool = ((sc.prizes || {})[other()] || []).length ? sc.prizes[other()] : DEFAULT_VALES;
+  if (done) $("scBox").innerHTML = `<div class="scdone">🌙 Ya has rascado hoy.<br>Vuelve mañana para otra tarjeta.</div>`;
+  else if (!$("scCanvas")) {
+    const r = Math.random(), prize = r < .45 ? { k: "vale", t: rnd(pool) } : r < .8 ? { k: "coins", n: rnd([10, 15, 20, 30]) } : { k: "nada" };
+    $("scBox").innerHTML = `<div class="scard"><div class="scprize">${prize.k === "vale" ? `🎟️<b>${esc(prize.t)}</b>` : prize.k === "coins" ? `🪙<b>+${prize.n} monedas</b>` : `🍀<b>¡Casi! Mañana más suerte</b>`}</div><canvas id="scCanvas"></canvas></div><div class="sub">Rasca con el dedo 👆</div>`;
+    scInit(prize);
+  }
+  document.querySelectorAll(".oname").forEach(e => e.textContent = name(other()));
+  const mine = (sc.prizes || {})[who] || [];
+  $("scList").innerHTML = mine.length ? mine.map((t, i) => `<div class="lrow"><span>${esc(t)}</span><button class="x" data-sp="${i}">✕</button></div>`).join("") : `<div class="empty">Si no pones ninguno, ${esc(name(other()))} puede ganar vales típicos (masaje, elegir la peli…).</div>`;
+  $("scList").querySelectorAll("[data-sp]").forEach(b => b.onclick = () => S.tx("games/scratch", g => { g = g || {}; g.prizes = g.prizes || {}; g.prizes[who] = (g.prizes[who] || []).filter((_, i) => i !== +b.dataset.sp); return g; }).catch(offline));
+  voucherList($("vcMine"));
+  const theirs = vouchers.filter(v => v.to === other() && !v.used);
+  $("vcTheirs").textContent = theirs.length ? `${name(other())} tiene ${theirs.length} vale${theirs.length === 1 ? "" : "s"} tuyo${theirs.length === 1 ? "" : "s"} sin usar: ${theirs.map(v => v.text).join(" · ")}` : "";
+}
+function scInit(prize) {
+  const cv = $("scCanvas"), box = cv.parentElement, W = box.clientWidth, H = box.clientHeight, dpr = window.devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr; const c = cv.getContext("2d"); c.scale(dpr, dpr);
+  const gr = c.createLinearGradient(0, 0, W, H); gr.addColorStop(0, "#c9c3d6"); gr.addColorStop(.5, "#e9e4f2"); gr.addColorStop(1, "#b7b0c6");
+  c.fillStyle = gr; c.fillRect(0, 0, W, H); c.fillStyle = "#7a6f8f"; c.font = "bold 18px system-ui"; c.textAlign = "center"; c.fillText("✨ RASCA AQUÍ ✨", W / 2, H / 2 + 6);
+  c.globalCompositeOperation = "destination-out"; c.lineCap = "round"; c.lineWidth = 34;
+  let down = false, last = null, n = 0, claimed = false;
+  const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  cv.style.touchAction = "none";
+  cv.onpointerdown = e => { down = true; last = pos(e); cv.setPointerCapture(e.pointerId); };
+  cv.onpointerup = cv.onpointercancel = () => { down = false; };
+  cv.onpointermove = e => {
+    if (!down || claimed) return; const p = pos(e); c.beginPath(); c.moveTo(...last); c.lineTo(...p); c.stroke(); last = p;
+    if (++n % 8) return;
+    const d = c.getImageData(0, 0, cv.width, cv.height).data; let clear = 0; for (let i = 3; i < d.length; i += 64) if (d[i] < 20) clear++;
+    if (clear / (d.length / 64) > .5) { claimed = true; cv.style.transition = "opacity .4s"; cv.style.opacity = 0; setTimeout(() => cv.remove(), 450); scClaim(prize); }
+  };
+}
+function scClaim(prize) {
+  const today = dayKey();
+  S.tx("games/scratch", g => { g = g || {}; g.last = g.last || {}; if (g.last[who] === today) return null; g.last[who] = today; return g; }).then(g => {
+    if (!g) return;
+    if (prize.k === "vale") { S.add("vouchers", { to: who, from: other(), text: prize.t, src: "scratch", used: false, at: Date.now() }); confetti(); sendMsg(`🎟️ ¡He ganado un vale rascando! ${prize.t}`, "vale"); }
+    else if (prize.k === "coins") { addCoins(prize.n); confetti(); }
+    buzz([30, 40, 30]);
+  }).catch(offline);
+}
+$("scAdd").onclick = () => {
+  const t = $("scPrize").value.trim(); if (!t) return;
+  S.tx("games/scratch", g => { g = g || {}; g.prizes = g.prizes || {}; g.prizes[who] = [...(g.prizes[who] || []), t.slice(0, 80)]; return g; }).then(() => { $("scPrize").value = ""; toast("Vale añadido 🎟️"); }).catch(offline);
+};
+
+// ---------------- Tienda de vales ----------------
+function renderShop2() {
+  $("shCoins").textContent = "🪙 " + coinsOf(state.pet);
+  const offers = ((G.shop || {}).offers || {}), theirs = offers[other()] || [], mine = offers[who] || [], coins = coinsOf(state.pet);
+  $("shBuy").innerHTML = theirs.length ? theirs.map(o => `<div class="vale"><span>${esc(o.e)} ${esc(o.t)}<small>🪙 ${o.price}</small></span><button class="btn ${coins >= o.price ? "primary" : ""}" data-buy="${esc(o.id)}" ${coins >= o.price ? "" : "disabled"}>${coins >= o.price ? "Comprar" : "Faltan " + (o.price - coins)}</button></div>`).join("")
+    : `<div class="empty">${esc(name(other()))} aún no ha puesto nada a la venta. ¡Pídeselo! 😉</div>`;
+  $("shBuy").querySelectorAll("[data-buy]").forEach(b => b.onclick = () => {
+    const o = theirs.find(x => x.id === b.dataset.buy); if (!o || !confirm(`¿Comprar "${o.t}" por ${o.price} 🪙?`)) return;
+    let ok = false;
+    petTx(p => { if (p.coins < o.price) return null; p.coins -= o.price; ok = true; return p; }).then(() => {
+      if (!ok) return toast("No tenéis suficientes monedas 🪙");
+      S.add("vouchers", { to: who, from: other(), text: `${o.e} ${o.t}`, src: "shop", price: o.price, used: false, at: Date.now() });
+      confetti(); buzz([30, 40, 30]); sendMsg(`🛍️ ¡Te he comprado un vale! ${o.e} ${o.t}`, "vale");
+    }).catch(offline);
+  });
+  $("shOffers").innerHTML = mine.length ? mine.map(o => `<div class="lrow"><span>${esc(o.e)} ${esc(o.t)}</span><small>🪙 ${o.price}</small><button class="x" data-rm="${esc(o.id)}">✕</button></div>`).join("") : '<div class="empty">Pon cosas que te pueda comprar: un masaje, elegir plan, una carta…</div>';
+  $("shOffers").querySelectorAll("[data-rm]").forEach(b => b.onclick = () => S.tx("games/shop", g => { g = g || {}; g.offers = g.offers || {}; g.offers[who] = (g.offers[who] || []).filter(x => x.id !== b.dataset.rm); return g; }).catch(offline));
+  voucherList($("shMine"));
+}
+$("shAdd").onclick = () => {
+  const t = $("shText").value.trim(), price = Math.round(+$("shPrice").value);
+  if (!t) return toast("Escribe qué ofreces"); if (!(price >= 5 && price <= 5000)) return toast("Precio entre 5 y 5000 🪙");
+  const o = { id: Math.random().toString(36).slice(2, 9), e: $("shEmoji").value, t: t.slice(0, 80), price };
+  S.tx("games/shop", g => { g = g || {}; g.offers = g.offers || {}; g.offers[who] = [...(g.offers[who] || []), o]; return g; })
+    .then(() => { $("shText").value = ""; $("shPrice").value = ""; toast("¡A la venta! 🛍️"); sendMsg(`🛍️ He puesto a la venta: ${o.e} ${o.t} (${o.price} 🪙)`, "vale"); }).catch(offline);
+};
+
+GAMES_READY = true;
 
 // ================= Ábrelo cuando… =================
 const OW = [
@@ -1341,7 +1900,12 @@ function achievements() {
     ["🎮", "Jugones", "10 partidas de tres en raya", games, 10],
     ["💌", "Cartero", "Escribir 5 cartas", letters.length, 5],
     ["⏳", "Del pasado", "Abrir una cápsula", capOpen, 1],
-    ["😊", "Sinceros", "7 días diciendo cómo estáis", moodDays, 7]
+    ["😊", "Sinceros", "7 días diciendo cómo estáis", moodDays, 7],
+    ["🎨", "Artistas", "Adivinar 5 dibujos", drawings.filter(d => d.solved).length, 5],
+    ["🚢", "Almirante", "Ganar a Hundir la flota", ((G.bs || {}).score || { a: 0, b: 0 }).a + ((G.bs || {}).score || { a: 0, b: 0 }).b, 1],
+    ["🔤", "Palabreros", "Adivinar 5 Wordles", ((G.wordle || {}).score || { a: 0, b: 0 }).a + ((G.wordle || {}).score || { a: 0, b: 0 }).b, 5],
+    ["⚖️", "Compatibles", "20 coincidencias en ¿Qué prefieres?", (() => { const A = (G.wyr || {}).ans || {}, x = A.a || {}, y = A.b || {}; return Object.keys(x).filter(i => y[i] !== undefined && y[i] === x[i]).length; })(), 20],
+    ["🎟️", "Canjeadores", "Usar 5 vales", vouchers.filter(v => v.used).length, 5]
   ].map(([e, n, d, v, goal]) => ({ e, n, d, v: Math.min(v, goal), goal, ok: v >= goal }));
 }
 let achReady = false;
@@ -1370,6 +1934,9 @@ const toLocalInput = t => { const d = new Date(t - new Date(t).getTimezoneOffset
 $("btnSettings").onclick = () => {
   $("sNext").value = state.main.next ? toLocalInput(state.main.next) : "";
   $("sWho").closest(".field").classList.toggle("hidden", S.needsLogin);
+  renderPush();
+  $("sAccount").innerHTML = S.needsLogin ? `<label>Cuenta</label><div class="row" style="align-items:center"><span style="flex:1;font-size:14px">${esc(S.userEmail || "")}</span><button class="btn" id="sLogout">Cerrar sesión</button></div>` : "";
+  const lo = $("sLogout"); if (lo) lo.onclick = async () => { await S.logout(); ls.set("who", ""); location.reload(); };
   $("sWho").innerHTML = ["a", "b"].map(w => `<option value="${w}" ${w === who ? "selected" : ""}>${esc(name(w))}</option>`).join("");
   $("settings").showModal();
 };
@@ -1405,23 +1972,52 @@ function loginUI(err) {
   });
 }
 
+const APP_VERSION = "24";
+const ERR_HELP = {
+  "permission-denied": "sin permiso: revisa las reglas de Firestore",
+  "unavailable": "sin conexión a internet",
+  "failed-precondition": "falta crear la base de datos o un índice",
+  "not-found": "no encuentra la base de datos",
+  "unauthenticated": "no has iniciado sesión"
+};
+let connState = "";
+function setConn(st, code, where) {
+  const el = $("connPill");
+  if (st === "demo") { el.className = "conn demo"; el.textContent = "🟡 Modo prueba · v" + APP_VERSION; return; }
+  if (st === "ok") { if (connState === "err") return; connState = "ok"; el.className = "conn ok"; el.textContent = `🟢 Conectado como ${name(who)} · v${APP_VERSION}`; return; }
+  if (st === "error") {
+    connState = "err"; el.className = "conn err";
+    const c = String(code || "").replace(/^firestore\//, "");
+    el.textContent = `🔴 Error al ${where || "conectar"}: ${ERR_HELP[c] || c}`;
+    toast("⚠️ " + el.textContent, 5000);
+    setTimeout(() => { connState = ""; }, 8000);
+  }
+}
+S.onStatus(setConn);
+
 async function start() {
-  if (S.demo) $("demoBanner").classList.remove("hidden");
+  if (S.demo) { $("demoBanner").classList.remove("hidden"); setConn("demo"); }
   if (S.needsLogin) {
-    try { await S.init(loginUI); } catch (e) { console.error(e); toast("No se pudo conectar. Revisa config.js", 5000); return; }
+    try { await S.init(loginUI); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); return; }
     $("loginView").classList.add("hidden");
     who = S.userEmail === (CONFIG.emails.a || "").toLowerCase() ? "a" : "b"; ls.set("who", who);
   } else if (who !== "a" && who !== "b") await pickWho();
   if (who === "b" && !ls.get("introSeen")) openIntro();
   const t = ls.get("tab"); if (TABS.includes(t)) showTab(t);
-  tick(); renderQuestion(); renderPet(); renderQuiz(); renderTTT(); renderMoods([]); drawWheel(); fgInfo(); renderLetters([]); renderCaps([]); renderDates([]);
-  if (!S.needsLogin) { try { await S.init(); } catch (e) { console.error(e); toast("No se pudo conectar. Revisa config.js", 5000); return; } }
+  tick(); renderQuestion(); renderPet(); renderQuiz(); renderTTT(); renderMoods([]); drawWheel(); fgInfo(); renderLetters([]); renderCaps([]); renderDates([]); renderGameMenu();
+  if (!S.needsLogin) { try { await S.init(); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); return; } }
   S.merge("state/main", { tz: { [who]: myTz } });
   S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); });
   S.watchDoc("state/pet", d => { state.pet = d; renderPet(); fgInfo(); });
   S.watchDoc("quiz/main", d => { state.quiz = d; renderQuiz(); });
-  S.watchDoc("state/ttt", d => { state.ttt = d; renderTTT(); renderQuiz(); });
+  S.watchDoc("state/ttt", d => { state.ttt = d; renderTTT(); renderQuiz(); renderGameMenu(); });
   S.watchDoc("state/wheel", drawWheel);
+  ["c4", "bs", "wordle", "wyr", "tod", "memory", "scratch", "shop"].forEach(k => S.watchDoc("games/" + k, d => { G[k] = d; gRefresh(k); }));
+  S.watchCol("drawings", l => { drawings = l; gRefresh("draw"); }, 30);
+  S.watchCol("vouchers", l => { vouchers = l; gRefresh("scratch"); gRefresh("shop"); }, 200);
+  S.watchDoc("state/pet", () => { if (curGame === "shop") renderShop2(); });
+  if (!S.demo) S.watchDoc("push/" + other(), d => { otherSub = d && d.sub; renderPush(); });
+  renderPush(); refreshPushSub();
   S.watchCol("messages", l => { state.msgs = l; renderChat(l); }, 40);
   S.watchCol("memories", renderMem, 100);
   S.watchCol("plans", renderPlans, 200);
