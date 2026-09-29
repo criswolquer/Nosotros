@@ -574,6 +574,69 @@ nav button i{font-size:22px}
 .frame span{display:block;width:100%;height:100%;background-size:cover;background-position:center;background-color:#fff}
 .frame .nop{display:flex;align-items:center;justify-content:center;font-size:22px}
 .roomnight{position:absolute;inset:0;background:rgba(10,10,40,.45);z-index:1;pointer-events:none}
+
+/* ================= POLLITO v4 ================= */
+.chick .wag{transform-box:fill-box;transform-origin:0% 100%;animation:wag 1s ease-in-out infinite}
+@keyframes wag{50%{transform:rotate(12deg)}}
+.dream{position:absolute;right:10%;top:52px;background:#fff;color:#3a2330;border-radius:18px;padding:7px 12px;font-size:15px;font-weight:700;z-index:3;max-width:60%;box-shadow:0 4px 14px rgba(0,0,0,.2);animation:pop .3s ease-out}
+.dream:before{content:"";position:absolute;left:14px;bottom:-12px;width:10px;height:10px;border-radius:50%;background:#fff}
+.dream:after{content:"";position:absolute;left:6px;bottom:-20px;width:6px;height:6px;border-radius:50%;background:#fff}
+.wxpill{position:absolute;left:12px;top:84px;background:rgba(0,0,0,.35);color:#fff;font-weight:800;font-size:13px;padding:4px 10px;border-radius:99px;z-index:3}
+.postbtn{position:absolute;left:12px;top:118px;z-index:4;border:0;background:#fff;border-radius:50%;width:48px;height:48px;font-size:26px;box-shadow:0 4px 14px rgba(0,0,0,.25);animation:postb 1.2s ease-in-out infinite}
+@keyframes postb{50%{transform:translateY(-6px) rotate(-8deg)}}
+.drop{position:absolute;top:-20px;width:2px;height:16px;background:rgba(200,225,255,.85);border-radius:2px;animation:rain .7s linear infinite}
+@keyframes rain{to{transform:translateY(330px)}}
+.sky .umbrella{position:absolute;left:calc(50% + 40px);bottom:170px;font-size:54px;z-index:3;transform:rotate(-12deg)}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;animation:flash 6s linear infinite}
+@keyframes flash{0%,92%,96%,100%{opacity:0}93%,95%{opacity:.7}}
+.fog{position:absolute;inset:0;background:linear-gradient(transparent,rgba(235,240,245,.65) 60%,rgba(235,240,245,.4));animation:fog 8s ease-in-out infinite}
+@keyframes fog{50%{opacity:.6}}
+.treasure{position:absolute;bottom:22px;z-index:5;pointer-events:auto;border:0;background:radial-gradient(#fff6c2,#ffd23f 60%,transparent 70%);width:46px;height:46px;border-radius:50%;font-size:24px;animation:tre 1.4s ease-in-out infinite}
+@keyframes tre{50%{transform:scale(1.18) rotate(10deg)}}
+.famfig{position:absolute;bottom:6px;width:78px;height:78px;z-index:1;pointer-events:none}
+.famfig svg{width:100%;height:100%;overflow:visible}
+.awaynote{position:absolute;inset:auto 0 40px 0;display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.4);font-size:60px;line-height:1.1}
+.awaynote b{font-size:17px}
+.awaynote small{font-size:13px;opacity:.9}
+.pool{position:absolute;width:150px;height:44px;border-radius:50%;background:radial-gradient(#8fe3ff,#3fb5e8 70%);box-shadow:inset 0 0 0 6px #e8f7ff;z-index:0;pointer-events:none}
+.scene.room.garden{background:linear-gradient(#8fd3ff 0 55%,#7cc95b 55% 100%)}
+.scene.room.garden::before,.scene.room.garden::after{display:none}
+.scene.room.f_cesped{--floor:#7cc95b}
+.scene.editing .furn,.scene.editing .frame,.scene.editing .pool{pointer-events:auto;outline:2px dashed rgba(255,255,255,.85);outline-offset:2px;border-radius:8px;cursor:grab;touch-action:none;z-index:4}
+.scene.editing .petbox{pointer-events:none;opacity:.45}
+.furn.dragging{opacity:.8;transform:scale(1.12)}
+.roombar{display:flex;gap:6px;overflow-x:auto;padding:10px 12px 0;scrollbar-width:none}
+.roombar::-webkit-scrollbar{display:none}
+.roombar button{flex:none;background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:7px 11px;font-size:13px;font-weight:700}
+.roombar button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.mis{display:flex;align-items:center;gap:10px;background:var(--card2);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.mis>i{font-style:normal;font-size:26px}
+.mis .mtx{flex:1;min-width:0}
+.mis .mtx b{font-size:14px;font-weight:600}
+.mis .mtx small{font-size:12px;color:var(--muted)}
+.mis .btn{padding:8px 12px;font-size:14px}
+.mis .btn:disabled{opacity:.5}
+.mis.ok{opacity:.6}
+.mis .chk{font-size:22px}
+.bar.sm{height:6px;margin:5px 0 3px}
+.advrow,.mgrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.advrow:last-child,.mgrow:last-of-type{border-bottom:0}
+.advrow>i,.mgrow>i{font-style:normal;font-size:28px;width:34px;text-align:center}
+.advrow>div{flex:1;min-width:0}
+.advrow b{font-size:15px}
+.advrow small{display:block;font-size:12.5px;color:var(--muted);line-height:1.35}
+.advrow small a{color:var(--accent2)}
+.advrow .btn,.mgrow .btn{padding:9px 13px;font-size:14px;flex:none}
+.coll{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pcard{background:linear-gradient(135deg,#f7e7c6,#efd2a0);color:#4a3320;border:0;border-radius:12px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.pcard i{font-style:normal;font-size:26px}
+.pcard b{font-size:10.5px;line-height:1.1;text-align:center}
+.pcard.lock{background:var(--card2);color:var(--muted);box-shadow:none}
+.coll.stks{grid-template-columns:repeat(6,1fr)}
+.stk{position:relative;aspect-ratio:1;background:var(--card2);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.stk i{font-style:normal;font-size:22px;color:var(--muted)}
+.stk.on{background:#fff;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.stk small{position:absolute;right:-2px;bottom:-4px;font-size:9px;background:var(--accent);color:#fff;border-radius:99px;padding:0 4px}
 </style>
 </head>
 <body>
@@ -676,8 +739,12 @@ nav button i{font-size:22px}
       <div class="petbox" id="petBox"></div>
       <div class="zzz hidden" id="petZzz"><span>z</span><span>z</span><span>z</span></div>
       <div class="flies hidden" id="petFlies"><i>🪰</i><i>🪰</i></div>
+      <div class="dream hidden" id="petDream"></div>
+      <div class="wxpill hidden" id="petWx"></div>
+      <button class="postbtn hidden" id="petPost">✉️</button>
       <div class="ground" id="petGround"></div>
     </div>
+    <div class="roombar hidden" id="roomBar"></div>
     <div style="padding:14px 18px 18px">
       <div style="text-align:center">
         <button class="pet-name" id="petName">Pollito</button> <span style="color:var(--muted);font-size:13px">✏️</span>
@@ -699,11 +766,30 @@ nav button i{font-size:22px}
   </section>
 
   <section class="card">
-    <div class="label">Minijuego 🍓</div>
-    <div class="row" style="align-items:center">
-      <div style="flex:1"><b>Atrapa fresas</b><div class="sub" style="margin-top:2px;font-size:13px" id="fgInfo">30 segundos · gana monedas</div></div>
-      <button class="btn primary" id="fgPlay">Jugar ▶</button>
+    <div class="label">Misiones de hoy 🎯</div>
+    <div id="petMissions"></div>
+  </section>
+
+  <section class="card">
+    <div class="label">Aventuras 🧭</div>
+    <div id="petAdv"></div>
+  </section>
+
+  <section class="card">
+    <div class="label">Minijuegos 🎮</div>
+    <div class="mgrow">
+      <i>🍓</i><div style="flex:1"><b>Atrapa fresas</b><div class="sub" style="margin-top:2px;font-size:12px" id="fgInfo">30 segundos · gana monedas</div></div>
+      <button class="btn primary" id="fgPlay">▶</button>
     </div>
+    <div class="mgrow">
+      <i>🪽</i><div style="flex:1"><b>Vuelo</b><div class="sub" style="margin-top:2px;font-size:12px" id="mgInfo_vuelo">Toca para aletear entre las nubes</div></div>
+      <button class="btn primary" id="vlPlay">▶</button>
+    </div>
+    <div class="mgrow">
+      <i>🎵</i><div style="flex:1"><b>Canta conmigo</b><div class="sub" style="margin-top:2px;font-size:12px" id="mgInfo_simon">Repite la canción</div></div>
+      <button class="btn primary" id="smPlay">▶</button>
+    </div>
+    <div class="sub" style="font-size:12px;margin-top:8px">🏆 Carrera de récords: si superas el de tu pareja, le llega un aviso.</div>
   </section>
 
   <section class="card">
@@ -739,16 +825,35 @@ nav button i{font-size:22px}
   </section>
 
   <section class="card">
+    <div class="label">Colecciones 📮🌟</div>
+    <div id="petColl"></div>
+  </section>
+
+  <section class="card">
+    <div class="label">Familia 👨‍👩‍👧</div>
+    <div id="petFam"></div>
+  </section>
+
+  <section class="card">
     <div class="label">Cómo funciona</div>
     <div class="sub" style="margin:0;line-height:1.55">🍓 <b>Comer</b>: cada día los <b>dos</b> tenéis que darle de comer. Solo crece de fase los días que le cuidáis los dos 💞 (tarda meses en ser legendario).<br>
     ⏳ Su <b>hambre, cariño, diversión, limpieza y energía</b> bajan con las horas, aunque no abráis la app.<br>
     🤒 Si descuidáis dos cosas a la vez, <b>se pone malito</b> y necesita medicina 💊.<br>
     ⭐ Cada cuidado da <b>experiencia</b>: al subir de nivel gana 20 🪙 y se desbloquean cosas en la tienda.<br>
-    🎂 Celebra su <b>cumplemés</b> cada mes desde que nació (con regalo).<br><br>
+    🎂 Celebra su <b>cumplemés</b> cada mes desde que nació (con regalo).<br>
+    🎯 <b>Misiones</b>: cada uno tiene 3 al día (+ premio y pegatina si hacéis las 3).<br>
+    ✨ Cada 3 horas esconde un <b>tesoro</b> en la escena: búscalo y tócalo.<br>
+    🧳 <b>Excursiones</b> de 3 horas por el mundo: vuelve con una postal 📮.<br>
+    🕊️ <b>Mensajero</b>: escribe una carta y él se la lleva a tu pareja.<br>
+    🌦️ <b>Tiempo real</b>: si lo activas, en la escena llueve, nieva o hace calor como donde estás.<br>
+    🎃 Hay ropa de <b>temporada</b> (Halloween, Navidad, San Valentín, primavera, verano).<br>
+    🏠 La casita tiene <b>salón, cocina, dormitorio y jardín</b>; pulsa ✏️ Mover para colocar los muebles con el dedo.<br>
+    🥚 Al llegar a <b>legendario</b> podéis adoptar un huevo nuevo (pollito, gatito, perrito, conejito o pingüino) y el anterior se queda en la familia.<br><br>
     <b>Monedas del pollito 🪙</b> (solo para su tienda):<br>
     🍓 Darle de comer: +10 · si ya comió del otro: +15 extra · 🔥 cada 7 días de racha: +50<br>
     🤗 Mimos: +1 (hasta 10 al día) · ⚽ Jugar: +3 (hasta 5) · 🛁 Baño: +5 · ⭐ subir de nivel: +20<br>
-    🍓 Minijuego Atrapa fresas: hasta +30 al día<br><br>
+    🍓 Atrapa fresas: hasta +30 al día · 🪽 Vuelo y 🎵 Canta conmigo: hasta +20 cada uno<br>
+    🎯 Misiones: +10 a +20 cada una · ✨ Tesoros · 📮 Postales: +25<br><br>
     <b>Corazones de pareja 💖</b> (para la Tienda de vales) se ganan en <b>Juegos</b>, con la pregunta del día y cumpliendo planes.</div>
   </section>
 </main>
