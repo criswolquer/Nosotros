@@ -1,4 +1,4 @@
-const CACHE = "nosotros-v4";
+const CACHE = "nosotros-v7";
 const FILES = ["./", "index.html", "app.js", "store.js", "config.js", "manifest.json", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
@@ -9,7 +9,7 @@ self.addEventListener("fetch", e => {
   const u = new URL(e.request.url);
   if (e.request.method !== "GET") return;
   const own = u.origin === location.origin;
-  const sdk = u.hostname === "www.gstatic.com" && u.pathname.startsWith("/firebasejs/");
+  const sdk = (u.hostname === "www.gstatic.com" && u.pathname.startsWith("/firebasejs/")) || u.hostname === "cdnjs.cloudflare.com";
   if (!own && !sdk) return; // Firestore y login van siempre por red
   // Primero red (para recibir actualizaciones), si no hay conexión, caché
   e.respondWith(fetch(e.request).then(res => {

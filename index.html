@@ -235,6 +235,49 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 .buybar{display:flex;align-items:center;gap:8px;background:#3a2240;border:1px solid var(--accent);border-radius:14px;padding:8px 8px 8px 12px}
 .buybar span{flex:1;font-size:15px}
 .buybar .btn{padding:10px 12px;font-size:14px}
+
+/* ---- Mapa ---- */
+.map{height:340px;border-radius:16px;overflow:hidden;background:#2a2230;position:relative;z-index:0}
+.mapmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:15px}
+.mapstats{display:flex;justify-content:center;gap:18px;margin-top:10px;font-size:14px;color:var(--muted);text-align:center}
+.mapstats b{color:var(--text)}
+.pin{width:52px;height:52px;border-radius:50%;border:3px solid #fff;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.35);position:relative}
+.pin:after{content:"";position:absolute;left:50%;bottom:-9px;margin-left:-7px;border:7px solid transparent;border-bottom:0;border-top-color:#fff}
+.pin img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.pin.a{border-color:#7fb7ff} .pin.a:after{border-top-color:#7fb7ff}
+.pin.b{border-color:#ff6b8b} .pin.b:after{border-top-color:#ff6b8b}
+.pin.nophoto{display:flex;align-items:center;justify-content:center;font-size:24px}
+.pop img{width:100%;border-radius:10px;margin-bottom:6px;display:block}
+.pop b{display:block;font-size:14px;color:#3a2330}
+.pop p{margin:4px 0;font-size:14px;color:#3a2330}
+.pop small{color:#8a7080}
+.leaflet-popup-content{margin:10px 12px}
+.leaflet-popup-content-wrapper{border-radius:16px}
+.placerow{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--card2);border-radius:14px;padding:8px 8px 8px 12px}
+.placerow span{flex:1;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.placerow .btn{padding:9px 12px;font-size:14px}
+.memplace{background:var(--card2);border:0;color:var(--accent2);border-radius:99px;padding:6px 12px;font-size:14px;margin-top:8px}
+.memplace.add{color:var(--muted)}
+.picker{width:min(96vw,520px);padding:14px}
+.pk-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:18px}
+.pkres{display:block;width:100%;text-align:left;background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:12px;padding:10px 12px;margin-top:6px;font-size:14px}
+.mapmode{position:absolute;right:10px;top:10px;z-index:500;background:#fff;color:#3a2330;border:0;border-radius:99px;padding:8px 12px;font-size:13px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+
+/* ---- Foto de ver una vez ---- */
+.snapbtn{padding:12px 13px;font-size:18px}
+.snapview{position:fixed;inset:0;z-index:90;background:#000;display:flex;flex-direction:column;
+  padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 14px);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.snaptop{color:#fff;font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;padding:6px 2px 12px}
+.snaptop .one{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;border:2px dashed #fff;font-size:12px}
+.snapimg{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
+.snapimg img{max-width:100%;max-height:100%;border-radius:12px;object-fit:contain;pointer-events:none}
+.snapbot{display:flex;gap:10px;padding-top:12px}
+.snapbot .btn{flex:1;padding:15px;font-size:16px}
+.snapbot .note{color:#aaa;font-size:13px;text-align:center;width:100%}
+.bub.snap{display:flex;align-items:center;gap:8px;font-weight:600}
+.bub.snap .one{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:2px dashed currentColor;font-size:11px;flex:none}
+.bub.snap.new{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;cursor:pointer}
+.bub.snap.gone{opacity:.6;font-style:italic;font-weight:500}
 </style>
 </head>
 <body>
@@ -298,6 +341,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     <div class="label">Buzón</div>
     <div class="chat" id="chat"></div>
     <div class="sendrow">
+      <label class="btn snapbtn" title="Foto de ver una vez">📸<input id="snapInput" type="file" accept="image/*" hidden></label>
       <input id="msgInput" placeholder="Escribe algo bonito…" enterkeyhint="send">
       <button class="btn primary" id="msgSend">➤</button>
     </div>
@@ -418,6 +462,12 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 
 <!-- ============ RECUERDOS ============ -->
 <main id="tab-mem" class="hidden">
+  <section class="card" style="padding:14px">
+    <div class="label" style="margin:4px 4px 8px">Nuestro mapa 🗺️</div>
+    <div id="memMap" class="map"><div class="mapmsg">Cargando mapa…</div></div>
+    <div class="mapstats" id="mapStats"></div>
+  </section>
+
   <section class="card">
     <div class="label">Nuevo recuerdo</div>
     <textarea id="memText" placeholder="Algo que no quieres olvidar…"></textarea>
@@ -426,12 +476,42 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
       <button class="btn primary" style="flex:1" id="memSave">Guardar</button>
     </div>
     <div class="sub" id="photoName"></div>
+    <div class="placerow">
+      <span id="placeTxt">📍 Sin lugar</span>
+      <button class="btn" id="placeEdit">Elegir lugar</button>
+    </div>
   </section>
+
   <section class="card">
     <div class="label">Nuestros recuerdos</div>
     <div id="memories"></div>
   </section>
 </main>
+
+<dialog id="picker" class="picker">
+  <div class="pk-head">
+    <b>¿Dónde fue?</b>
+    <button class="icon-btn" id="pkClose" style="width:36px;height:36px;font-size:16px">✕</button>
+  </div>
+  <div class="sendrow" style="margin-top:0">
+    <input id="pkSearch" placeholder="Busca un sitio: Roma, Playa de…" enterkeyhint="search">
+    <button class="btn" id="pkGo">🔍</button>
+  </div>
+  <div id="pkResults"></div>
+  <div id="pkMap" class="map" style="height:300px;margin-top:10px"></div>
+  <div class="sub" style="font-size:13px">Toca el mapa para poner la chincheta 📍</div>
+  <div class="row mt">
+    <button class="btn" style="flex:1" id="pkHere">📡 Estoy aquí</button>
+    <button class="btn primary" style="flex:1" id="pkOk" disabled>Usar este lugar</button>
+  </div>
+</dialog>
+
+<!-- Foto de ver una vez -->
+<div id="snapView" class="snapview hidden">
+  <div class="snaptop" id="snapTop"></div>
+  <div class="snapimg"><img id="snapImg" alt="" draggable="false"></div>
+  <div class="snapbot" id="snapBot"></div>
+</div>
 
 <nav>
   <button class="on" data-tab="home"><i>🏠</i>Inicio<span class="dot hidden" id="dotHome"></span></button>

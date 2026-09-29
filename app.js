@@ -25,6 +25,7 @@ function showTab(t) {
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
   ls.set("tab", t); window.scrollTo(0, 0);
   if (t === "home") $("dotHome").classList.add("hidden");
+  if (t === "mem") initMemMap();
   if (t === "pet") setTimeout(() => { renderPet(); if (stageOf((state.pet || {}).xp || 0) > 0) say(phrase()); }, 350);
 }
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
@@ -81,6 +82,44 @@ $("msgSend").onclick = () => { const t = $("msgInput").value.trim(); if (!t) ret
 $("msgInput").onkeydown = e => { if (e.key === "Enter") $("msgSend").click(); };
 
 let msgsLoaded = false;
+
+// ---- Foto de ver una vez (como la "1" de WhatsApp) ----
+let snapDraft = null, snapOpenId = null;
+function snapShow(src, top, bot) {
+  $("snapImg").src = src; $("snapTop").innerHTML = top; $("snapBot").innerHTML = bot;
+  $("snapView").classList.remove("hidden"); document.body.style.overflow = "hidden";
+}
+function snapHide() { $("snapView").classList.add("hidden"); $("snapImg").src = ""; document.body.style.overflow = ""; }
+$("snapView").addEventListener("contextmenu", e => e.preventDefault());
+$("snapInput").addEventListener("change", e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  const img = new Image(), url = URL.createObjectURL(f);
+  img.onload = () => {
+    const max = 1280, s = Math.min(1, max / Math.max(img.width, img.height));
+    const c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+    snapDraft = c.toDataURL("image/jpeg", 0.72);
+    snapShow(snapDraft, `<span class="one">1</span> Foto de ver una vez para ${esc(name(other()))}`,
+      `<button class="btn" id="snapCancel">Cancelar</button><button class="btn primary" id="snapSend">Enviar 📸</button>`);
+    $("snapCancel").onclick = () => { snapDraft = null; snapHide(); };
+    $("snapSend").onclick = () => {
+      S.add("messages", { from: who, kind: "snap", text: "📸 Te he enviado una foto (ver una vez)", photo: snapDraft, opened: false, at: Date.now() });
+      snapDraft = null; snapHide(); buzz(); toast("Foto enviada 📸 Solo podrá verla una vez");
+    };
+  };
+  img.src = url;
+});
+function openSnap(id) {
+  const m = (state.msgs || []).find(x => x.id === id);
+  if (!m || !m.photo || m.opened) return toast("Esta foto ya se ha abierto");
+  snapOpenId = id;
+  snapShow(m.photo, `<span class="one">1</span> Foto de ${esc(name(m.from))}`,
+    `<div style="width:100%"><button class="btn primary" style="width:100%" id="snapDone">Cerrar · se borrará</button><div class="note mt">Solo puedes verla ahora 👀</div></div>`);
+  // se marca como abierta al momento (como WhatsApp) y se borra la foto de la base de datos
+  S.merge("messages/" + id, { opened: true, openedAt: Date.now(), photo: null });
+  $("snapDone").onclick = () => { snapOpenId = null; snapHide(); };
+}
+
 function renderChat(list) {
   const seen = +(ls.get("seenMsg") || 0);
   if (msgsLoaded) {
@@ -93,9 +132,18 @@ function renderChat(list) {
   msgsLoaded = true;
   const top = list.find(m => m.from === other()); if (top) ls.set("seenMsg", Math.max(seen, top.at));
   const items = list.slice(0, 30).reverse();
-  $("chat").innerHTML = items.length ? items.map(m => `<div class="bub ${m.from === who ? "me" : "them"}">${esc(m.text)}<span class="t">${new Date(m.at).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span></div>`).join("")
+  const tm = m => `<span class="t">${new Date(m.at).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>`;
+  const bub = m => {
+    const side = m.from === who ? "me" : "them";
+    if (m.kind !== "snap") return `<div class="bub ${side}">${esc(m.text)}${tm(m)}</div>`;
+    if (m.from === who) return `<div class="bub me snap"><span class="one">1</span><span>Foto · ${m.opened ? "Abierta ✓✓" : "Enviada ✓"}${tm(m)}</span></div>`;
+    if (m.opened || !m.photo) return `<div class="bub them snap gone"><span class="one">1</span><span>Foto abierta${tm(m)}</span></div>`;
+    return `<div class="bub them snap new" data-snap="${esc(m.id)}"><span class="one">1</span><span>📸 Toca para ver la foto${tm(m)}</span></div>`;
+  };
+  $("chat").innerHTML = items.length ? items.map(bub).join("")
     : '<div class="empty">Aún no hay mensajes. Pulsa "Pienso en ti" ✨</div>';
   $("chat").scrollTop = $("chat").scrollHeight;
+  $("chat").querySelectorAll("[data-snap]").forEach(b => b.onclick = () => openSnap(b.dataset.snap));
 }
 
 // ================= Pregunta del día =================
@@ -595,10 +643,189 @@ function move(i) {
 $("tttAgain").onclick = () => S.tx("state/ttt", g => g && g.win ? newGame(g) : null).then(g => { if (g) sendMsg("🔁 ¡Revancha en el tres en raya!", "ttt"); }).catch(offline);
 $("tttBetSave").onclick = () => { S.merge("state/ttt", { bet: $("tttBet").value.trim() }); toast("Apuesta guardada 😏"); };
 
-// ================= Recuerdos =================
-let pendingPhoto = null;
-$("memPhoto").addEventListener("change", e => {
+// ================= Recuerdos + mapa =================
+let pendingPhoto = null, pendingPlace = null, pendingTaken = null, memList = [];
+
+// --- Leer ubicación y fecha guardadas dentro de la foto (EXIF) ---
+async function readExif(file) {
+  try {
+    const buf = await file.slice(0, 512 * 1024).arrayBuffer(), v = new DataView(buf);
+    if (v.getUint16(0) !== 0xFFD8) return null;
+    let o = 2;
+    while (o < v.byteLength - 10) {
+      const m = v.getUint16(o), len = v.getUint16(o + 2);
+      if (m === 0xFFE1 && v.getUint32(o + 4) === 0x45786966) return parseTiff(v, o + 10);
+      if ((m & 0xFF00) !== 0xFF00) break;
+      o += 2 + len;
+    }
+  } catch (e) { console.warn(e); }
+  return null;
+}
+function parseTiff(v, t) {
+  const le = v.getUint16(t) === 0x4949, u16 = o => v.getUint16(o, le), u32 = o => v.getUint32(o, le);
+  const ifd = off => { const n = u16(off), r = {}; for (let i = 0; i < n; i++) { const e = off + 2 + i * 12; r[u16(e)] = e; } return r; };
+  const i0 = ifd(t + u32(t + 4)), out = {};
+  if (i0[0x8769]) {
+    const ex = ifd(t + u32(i0[0x8769] + 8)), e = ex[0x9003];
+    if (e) { let s = ""; const p = t + u32(e + 8); for (let k = 0; k < 19; k++) s += String.fromCharCode(v.getUint8(p + k));
+      const mm = s.match(/(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d)/); if (mm) out.taken = new Date(+mm[1], mm[2] - 1, +mm[3], +mm[4], +mm[5]).getTime(); }
+  }
+  if (i0[0x8825]) {
+    const g = ifd(t + u32(i0[0x8825] + 8));
+    const ref = tag => g[tag] ? String.fromCharCode(v.getUint8(g[tag] + 8)) : "";
+    const deg = tag => { if (!g[tag]) return NaN; const p = t + u32(g[tag] + 8), r = k => u32(p + k * 8) / u32(p + k * 8 + 4); return r(0) + r(1) / 60 + r(2) / 3600; };
+    let lat = deg(2), lng = deg(4);
+    if (isFinite(lat) && isFinite(lng) && (lat || lng)) {
+      if (ref(1) === "S") lat = -lat; if (ref(3) === "W") lng = -lng;
+      out.lat = lat; out.lng = lng;
+    }
+  }
+  return out;
+}
+
+// --- Nombres de lugares (OpenStreetMap) ---
+async function placeName(lat, lng) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=12&accept-language=es`);
+    const j = await r.json(), a = j.address || {};
+    const city = a.city || a.town || a.village || a.municipality || a.county || a.state || "";
+    return { name: [city, a.country].filter(Boolean).join(", ") || "Lugar marcado", country: a.country || "" };
+  } catch (e) { return { name: "Lugar marcado", country: "" }; }
+}
+async function searchPlaces(q) {
+  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=6&addressdetails=1&accept-language=es&q=${encodeURIComponent(q)}`);
+  return (await r.json()).map(x => ({ lat: +x.lat, lng: +x.lon, name: x.display_name.split(",").slice(0, 3).join(","), country: (x.address || {}).country || "" }));
+}
+
+// --- Cargar Leaflet (mapas) solo cuando hace falta ---
+let leafletP = null;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  if (leafletP) return leafletP;
+  leafletP = new Promise((res, rej) => {
+    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"; document.head.appendChild(css);
+    const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    s.onload = () => res(window.L); s.onerror = () => { leafletP = null; rej(new Error("sin mapa")); }; document.head.appendChild(s);
+  });
+  return leafletP;
+}
+const TILES = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const ATTR = '© <a href="https://www.openstreetmap.org/copyright">OSM</a> · © <a href="https://carto.com/">CARTO</a>';
+const SAT = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+const SAT_LABELS = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png";
+function baseMap(el) {
+  const m = L.map(el, { zoomControl: false, attributionControl: true, worldCopyJump: true }).setView([45, 10], 3);
+  const street = L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19, subdomains: "abcd" });
+  const sat = L.layerGroup([
+    L.tileLayer(SAT, { attribution: "© Esri, Maxar, Earthstar Geographics", maxZoom: 19 }),
+    L.tileLayer(SAT_LABELS, { subdomains: "abcd", maxZoom: 19 })
+  ]);
+  let isSat = false; street.addTo(m);
+  const btn = document.createElement("button"); btn.className = "mapmode"; btn.textContent = "🛰️ Satélite";
+  btn.onclick = e => {
+    e.stopPropagation(); isSat = !isSat;
+    if (isSat) { m.removeLayer(street); sat.addTo(m); btn.textContent = "🗺️ Mapa"; }
+    else { m.removeLayer(sat); street.addTo(m); btn.textContent = "🛰️ Satélite"; }
+  };
+  L.DomEvent.disableClickPropagation(btn);
+  el.appendChild(btn);
+  return m;
+}
+
+// --- Mapa de recuerdos ---
+let memMap = null, memLayer = null, mapFitted = false;
+async function initMemMap() {
+  if (memMap) { setTimeout(() => memMap.invalidateSize(), 50); return; }
+  try { await loadLeaflet(); } catch (e) { $("memMap").innerHTML = '<div class="mapmsg">🗺️ El mapa necesita internet</div>'; return; }
+  $("memMap").innerHTML = "";
+  memMap = baseMap($("memMap")); memLayer = L.layerGroup().addTo(memMap);
+  drawMemMap();
+}
+function drawMemMap() {
+  const withLoc = memList.filter(m => typeof m.lat === "number");
+  const countries = new Set(withLoc.map(m => m.country).filter(Boolean));
+  $("mapStats").innerHTML = withLoc.length ? `<span>📍 <b>${withLoc.length}</b> ${withLoc.length === 1 ? "lugar" : "lugares"}</span><span>🌍 <b>${countries.size || 1}</b> ${countries.size === 1 ? "país" : "países"}</span>`
+    : `<span>Añadid lugares a vuestros recuerdos y aparecerán aquí 📍</span>`;
+  if (!memMap) return;
+  memLayer.clearLayers();
+  withLoc.forEach(m => {
+    const html = m.photo ? `<div class="pin ${m.from}"><img src="${m.photo}" alt=""></div>` : `<div class="pin ${m.from} nophoto">💗</div>`;
+    const icon = L.divIcon({ html, className: "", iconSize: [52, 60], iconAnchor: [26, 58], popupAnchor: [0, -54] });
+    const when = new Date(m.taken || m.at).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+    L.marker([m.lat, m.lng], { icon }).addTo(memLayer).bindPopup(
+      `<div class="pop">${m.photo ? `<img src="${m.photo}">` : ""}<b>📍 ${esc(m.place || "")}</b>${m.text ? `<p>${esc(m.text)}</p>` : ""}<small>${esc(name(m.from))} · ${when}</small></div>`, { maxWidth: 240, minWidth: 200 });
+  });
+  if (withLoc.length && !mapFitted) {
+    mapFitted = true;
+    const b = L.latLngBounds(withLoc.map(m => [m.lat, m.lng]));
+    memMap.fitBounds(b, { padding: [40, 40], maxZoom: 12 });
+  }
+}
+
+// --- Selector de lugar ---
+let pkMap = null, pkMarker = null, pkPick = null, pkDone = null;
+async function openPicker(start, cb) {
+  pkDone = cb; pkPick = start ? { ...start } : null;
+  $("pkResults").innerHTML = ""; $("pkSearch").value = ""; $("pkOk").disabled = !pkPick;
+  $("picker").showModal();
+  try { await loadLeaflet(); } catch (e) { $("pkMap").innerHTML = '<div class="mapmsg">🗺️ Necesitas internet para el mapa</div>'; return; }
+  if (!pkMap) {
+    pkMap = baseMap($("pkMap"));
+    pkMap.on("click", e => setPick(e.latlng.lat, e.latlng.lng, null));
+  }
+  setTimeout(() => {
+    pkMap.invalidateSize();
+    if (pkPick) { setPick(pkPick.lat, pkPick.lng, pkPick.place, pkPick.country); pkMap.setView([pkPick.lat, pkPick.lng], 11); }
+    else { if (pkMarker) { pkMarker.remove(); pkMarker = null; } pkMap.setView([45, 10], 3); }
+  }, 80);
+}
+async function setPick(lat, lng, place, country) {
+  if (!pkMarker) pkMarker = L.marker([lat, lng]).addTo(pkMap); else pkMarker.setLatLng([lat, lng]);
+  pkPick = { lat, lng, place: place || "…", country: country || "" }; $("pkOk").disabled = false;
+  pkMarker.bindTooltip(pkPick.place, { permanent: true, direction: "top", offset: [-15, -12] }).openTooltip();
+  if (!place) {
+    const my = pkPick, n = await placeName(lat, lng);
+    if (pkPick === my) { pkPick.place = n.name; pkPick.country = n.country; pkMarker.setTooltipContent(n.name); }
+  }
+}
+async function doSearch() {
+  const q = $("pkSearch").value.trim(); if (!q) return;
+  $("pkResults").innerHTML = '<div class="sub">Buscando…</div>';
+  try {
+    const r = await searchPlaces(q);
+    $("pkResults").innerHTML = r.length ? r.map((x, i) => `<button class="pkres" data-i="${i}">📍 ${esc(x.name)}</button>`).join("") : '<div class="sub">No encontré nada 🤔</div>';
+    $("pkResults").querySelectorAll(".pkres").forEach(b => b.onclick = () => {
+      const x = r[+b.dataset.i]; $("pkResults").innerHTML = "";
+      setPick(x.lat, x.lng, x.name, x.country); pkMap && pkMap.setView([x.lat, x.lng], 11);
+    });
+  } catch (e) { $("pkResults").innerHTML = '<div class="sub">Necesitas internet para buscar</div>'; }
+}
+$("pkGo").onclick = doSearch;
+$("pkSearch").onkeydown = e => { if (e.key === "Enter") doSearch(); };
+$("pkClose").onclick = () => $("picker").close();
+$("pkHere").onclick = () => {
+  if (!navigator.geolocation) return toast("Tu móvil no deja ver la ubicación");
+  toast("Buscando dónde estás… 📡");
+  navigator.geolocation.getCurrentPosition(p => { setPick(p.coords.latitude, p.coords.longitude, null); pkMap && pkMap.setView([p.coords.latitude, p.coords.longitude], 13); },
+    () => toast("No pude ver tu ubicación. Revisa los permisos 📍", 3500), { enableHighAccuracy: true, timeout: 12000 });
+};
+$("pkOk").onclick = () => { if (pkPick && pkDone) pkDone({ ...pkPick }); $("picker").close(); };
+
+// --- Nuevo recuerdo ---
+function showPending() {
+  $("placeTxt").textContent = pendingPlace ? "📍 " + pendingPlace.place : "📍 Sin lugar";
+  $("placeEdit").textContent = pendingPlace ? "Cambiar" : "Elegir lugar";
+}
+$("placeEdit").onclick = () => openPicker(pendingPlace, p => { pendingPlace = p; showPending(); });
+$("memPhoto").addEventListener("change", async e => {
   const f = e.target.files[0]; if (!f) return;
+  const ex = await readExif(f);
+  pendingTaken = ex && ex.taken || null;
+  if (ex && typeof ex.lat === "number") {
+    pendingPlace = { lat: ex.lat, lng: ex.lng, place: "…", country: "" }; showPending();
+    const n = await placeName(ex.lat, ex.lng); pendingPlace = { ...pendingPlace, place: n.name, country: n.country }; showPending();
+    toast("📍 He encontrado dónde hiciste la foto: " + n.name, 3500);
+  } else if (!pendingPlace) toast("La foto no dice dónde se hizo. Elige el lugar abajo 📍", 3500);
   const img = new Image(), url = URL.createObjectURL(f);
   img.onload = () => {
     const max = 900, s = Math.min(1, max / Math.max(img.width, img.height));
@@ -610,17 +837,34 @@ $("memPhoto").addEventListener("change", e => {
 });
 $("memSave").onclick = () => {
   const text = $("memText").value.trim(); if (!text && !pendingPhoto) return toast("Escribe algo o añade una foto");
-  S.add("memories", { from: who, text, photo: pendingPhoto, at: Date.now() });
-  sendMsg("📸 He guardado un recuerdo nuevo", "mem");
-  $("memText").value = ""; pendingPhoto = null; $("photoName").textContent = ""; $("memPhoto").value = ""; toast("Guardado 💕");
+  const d = { from: who, text, photo: pendingPhoto, at: Date.now() };
+  if (pendingTaken) d.taken = pendingTaken;
+  if (pendingPlace) Object.assign(d, { lat: pendingPlace.lat, lng: pendingPlace.lng, place: pendingPlace.place, country: pendingPlace.country });
+  S.add("memories", d);
+  sendMsg(pendingPlace ? "📸 He guardado un recuerdo en " + pendingPlace.place + " 📍" : "📸 He guardado un recuerdo nuevo", "mem");
+  $("memText").value = ""; pendingPhoto = null; pendingPlace = null; pendingTaken = null; showPending();
+  $("photoName").textContent = ""; $("memPhoto").value = ""; toast("Guardado 💕");
+  mapFitted = false;
 };
 function renderMem(list) {
+  memList = list;
   $("memories").innerHTML = list.length ? list.map(m => `<div class="mem">
     ${m.from === who ? `<button class="del" data-id="${esc(m.id)}">Borrar</button>` : ""}
-    <div class="date">${esc(name(m.from))} · ${new Date(m.at).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}</div>
+    <div class="date">${esc(name(m.from))} · ${new Date(m.taken || m.at).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}</div>
     ${m.photo ? `<img src="${m.photo}" alt="" loading="lazy">` : ""}
-    ${m.text ? `<div class="text">${esc(m.text)}</div>` : ""}</div>`).join("") : '<div class="empty">Aún no hay recuerdos. Guardad el primero ✨</div>';
+    ${m.text ? `<div class="text">${esc(m.text)}</div>` : ""}
+    ${typeof m.lat === "number" ? `<button class="memplace" data-go="${esc(m.id)}">📍 ${esc(m.place || "Ver en el mapa")}</button>` : `<button class="memplace add" data-add="${esc(m.id)}">📍 Añadir lugar</button>`}
+    </div>`).join("") : '<div class="empty">Aún no hay recuerdos. Guardad el primero ✨</div>';
   $("memories").querySelectorAll(".del").forEach(b => b.onclick = () => { if (confirm("¿Borrar este recuerdo?")) S.del("memories/" + b.dataset.id); });
+  $("memories").querySelectorAll("[data-add]").forEach(b => b.onclick = () => openPicker(null, p => {
+    S.merge("memories/" + b.dataset.add, { lat: p.lat, lng: p.lng, place: p.place, country: p.country }); mapFitted = false; toast("📍 Lugar añadido");
+  }));
+  $("memories").querySelectorAll("[data-go]").forEach(b => b.onclick = () => {
+    const m = memList.find(x => x.id === b.dataset.go); if (!m || !memMap) return;
+    window.scrollTo({ top: 0, behavior: "smooth" }); memMap.setView([m.lat, m.lng], 12);
+    memLayer.eachLayer(l => { const ll = l.getLatLng(); if (ll.lat === m.lat && ll.lng === m.lng) setTimeout(() => l.openPopup(), 400); });
+  });
+  drawMemMap();
 }
 
 // ================= Carta y ajustes =================
