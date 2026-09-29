@@ -473,6 +473,107 @@ nav button i{font-size:22px}
 .heartbar{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#4a2140,#3b2a55);border:1px solid #7a3d6a;border-radius:16px;padding:12px 16px;margin-bottom:12px;font-size:15px}
 .heartbar b{font-size:20px}
 .heartbar small{color:var(--muted)}
+
+/* ================= POLLITO v3 ================= */
+.lvlpill{position:absolute;left:12px;top:48px;background:rgba(123,97,255,.75);color:#fff;font-weight:800;font-size:13px;padding:4px 10px;border-radius:99px;z-index:3}
+.viewbtn{position:absolute;right:10px;top:66px;z-index:4;background:rgba(255,255,255,.92);color:#3a2330;border:0;border-radius:99px;padding:8px 12px;font-size:13px;font-weight:800;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.trait{font-size:14px;margin-top:6px;color:var(--accent2);font-weight:700}
+.trait small{color:var(--muted);font-weight:500}
+.needs{grid-template-columns:1fr 1fr}
+.needs .need:last-child{grid-column:1/-1}
+.actions.six{grid-template-columns:repeat(3,1fr)}
+.stats.four{grid-template-columns:repeat(4,1fr)}
+.tabsx{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin:4px 0 10px;scrollbar-width:none}
+.tabsx::-webkit-scrollbar{display:none}
+.tabsx button{flex:none;background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:99px;padding:8px 12px;font-size:13px;font-weight:700}
+.tabsx button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.shopit.locked{opacity:.5}
+.shopit.locked span{color:var(--muted)}
+.shopit.sale{border-color:#ffc300}
+.shopit i.sw.sq{border-radius:8px}
+.buybar small{display:block;font-size:12px;color:var(--muted);font-weight:500}
+.offers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.offer{background:linear-gradient(135deg,#4a3a12,#3b2a12);border:1px solid #c9a227;border-radius:14px;color:var(--text);padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.offer i{font-style:normal;font-size:26px}
+.offer b{font-size:11px;font-weight:600;text-align:center;line-height:1.2}
+.offer span{font-size:12px;font-weight:800;color:#ffd166}
+.offer s{color:var(--muted);font-weight:500}
+.album{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.alb{background:var(--card2);border-radius:14px;padding:6px 4px 8px;text-align:center}
+.alb svg{width:100%;height:auto;display:block}
+.alb b{display:block;font-size:10.5px;line-height:1.15}
+.alb small{display:block;font-size:10px;color:var(--muted)}
+.alb.lock span{display:flex;align-items:center;justify-content:center;aspect-ratio:1;font-size:26px;color:var(--muted)}
+/* hoja inferior (mochila, juguetes) */
+.sheet{position:fixed;inset:0;z-index:85;background:rgba(0,0,0,.55);display:flex;align-items:flex-end}
+.sheetbox{width:100%;max-height:75vh;overflow:auto;background:var(--card);border-radius:22px 22px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom) + 18px);animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(40%)}}
+/* expresiones y vida */
+.chick.sick{filter:saturate(.7) hue-rotate(28deg)}
+.chick.tired .bodyg{animation:breathe 4.5s ease-in-out infinite}
+.chick .drool{animation:tear 2.6s ease-in infinite}
+.petbox.lookl .eyesg{transform:translateX(-5px);transition:transform .25s}
+.petbox.lookr .eyesg{transform:translateX(5px);transition:transform .25s}
+.petbox.hopsm svg{animation:hopsm .6s ease-out}
+@keyframes hopsm{40%{transform:translateY(-12px)}}
+.petbox.flap .wl{animation:flapL .3s ease-in-out 3}
+.petbox.flap .wr{animation:flapR .3s ease-in-out 3}
+.petbox.yawn .beak-low{animation:yawnb 1.4s ease-in-out}
+@keyframes yawnb{40%,70%{transform:translateY(8px)}}
+.flies{position:absolute;left:50%;bottom:120px;width:0;height:0;z-index:3;pointer-events:none}
+.flies i{position:absolute;font-style:normal;font-size:16px;animation:orbit 2.4s linear infinite}
+.flies i:nth-child(2){animation-duration:3.1s;animation-direction:reverse}
+@keyframes orbit{from{transform:rotate(0) translateX(70px) rotate(0)}to{transform:rotate(360deg) translateX(70px) rotate(-360deg)}}
+.fx.yoyo{left:58%;top:30%;animation:yoyo 1.5s ease-in-out}
+@keyframes yoyo{25%,75%{transform:translateY(90px)}50%{transform:translateY(0)}100%{transform:translateY(90px);opacity:0}}
+.fx.kite{left:20%;top:60%;font-size:40px;animation:kite 2.5s ease-out forwards}
+@keyframes kite{to{transform:translate(160px,-150px) rotate(20deg);opacity:0}}
+.fx.note{bottom:150px;font-size:24px;animation:bub 1.6s ease-out forwards}
+.fx.game{left:50%;top:40%;margin-left:-17px;animation:pop2 1.5s ease-out forwards}
+@keyframes pop2{30%{transform:scale(1.4)}to{transform:scale(1);opacity:0}}
+/* escenarios exteriores */
+.scene .deco{position:absolute;z-index:1;pointer-events:none}
+.scene .deco.flutter{animation:flut 3s ease-in-out infinite}
+@keyframes flut{50%{transform:translate(12px,-10px)}}
+.scene .deco.swim{animation:swim 6s ease-in-out infinite}
+@keyframes swim{50%{transform:translateX(40px) scaleX(-1)}}
+.flake{position:absolute;top:-10px;color:#fff;font-style:normal;font-size:14px;animation:snow linear infinite}
+@keyframes snow{to{transform:translateY(320px) translateX(20px)}}
+.bubbleup{position:absolute;bottom:-10px;color:rgba(255,255,255,.7);font-style:normal;font-size:14px;animation:bubup 5s linear infinite}
+@keyframes bubup{to{transform:translateY(-320px);opacity:0}}
+.scene.sc-playa{background:linear-gradient(#6ec6ff 0,#bfe9ff 45%,#3fa7d6 46%,#6cc4e8 60%)}
+.scene.sc-playa .ground{background:#f2d49b;box-shadow:inset 0 8px 0 #f7e2b5}
+.scene.sc-bosque{background:linear-gradient(#9ed8a0,#d8f3c9)}
+.scene.sc-bosque .ground{background:#4f8f3a;box-shadow:inset 0 8px 0 #63a94b}
+.scene.sc-nieve{background:linear-gradient(#b9d7f0,#eef6fd)}
+.scene.sc-nieve .ground{background:#fff;box-shadow:inset 0 8px 0 #e6f0f8}
+.scene.sc-montana{background:linear-gradient(#7fb8e6,#d6ecfa)}
+.scene.sc-montana .ground{background:#8c9f6b;box-shadow:inset 0 8px 0 #a4b87f}
+.scene.sc-ciudad{background:linear-gradient(#2a2d5c,#6b5b95)}
+.scene.sc-ciudad .ground{background:#4a4a55;box-shadow:inset 0 8px 0 #5c5c68}
+.scene.sc-mar{background:linear-gradient(#1f7fb3,#0c3d66)}
+.scene.sc-mar .ground{background:#e0c48a;box-shadow:inset 0 8px 0 #ecd5a6}
+.scene.sc-espacio{background:radial-gradient(120% 90% at 50% 10%,#2b1f5c,#0a0820)}
+.scene.sc-espacio .ground{background:#8d8aa3;box-shadow:inset 0 8px 0 #a7a4bd}
+.scene.sc-amor{background:linear-gradient(#ffb3cf,#ffe0ec)}
+.scene.sc-amor .ground{background:#ff8fb8;box-shadow:inset 0 8px 0 #ffa8c8}
+.scene[class*="sc-"].night:not(.sc-espacio):not(.sc-mar){filter:brightness(.62) saturate(.8)}
+.scene[class*="sc-"].dawn:not(.sc-espacio):not(.sc-mar){filter:sepia(.25) saturate(1.2)}
+/* casita */
+.scene.room{background:linear-gradient(var(--wall) 0 62%,var(--floor) 62% 100%)}
+.scene.room .ground{display:none}
+.scene.room.w_estrellas{background:radial-gradient(#fff 1px,transparent 1.5px) 0 0/22px 22px,linear-gradient(var(--wall) 0 62%,var(--floor) 62% 100%)}
+.scene.room.w_corazones{background:linear-gradient(var(--wall) 0 62%,var(--floor) 62% 100%)}
+.scene.room.w_madera{background:repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 2px,transparent 2px 34px),linear-gradient(var(--wall) 0 62%,var(--floor) 62% 100%)}
+.scene.room.f_baldosa::after{content:"";position:absolute;left:0;right:0;bottom:0;height:38%;background:repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 2px,transparent 2px 40px),repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0 2px,transparent 2px 28px);pointer-events:none}
+.scene.room.f_madera::after{content:"";position:absolute;left:0;right:0;bottom:0;height:38%;background:repeating-linear-gradient(0deg,rgba(0,0,0,.1) 0 2px,transparent 2px 22px);pointer-events:none}
+.scene.room::before{content:"";position:absolute;left:0;right:0;top:62%;height:6px;background:rgba(0,0,0,.12);z-index:0}
+.furn{position:absolute;z-index:1;pointer-events:none;line-height:1}
+.rug{position:absolute;left:50%;bottom:6px;width:230px;height:46px;margin-left:-115px;border-radius:50%;background:radial-gradient(#b48be0,#8e6cc8);box-shadow:inset 0 0 0 5px rgba(255,255,255,.35);z-index:0}
+.frame{position:absolute;width:72px;height:58px;background:#8a5a38;padding:5px;border-radius:4px;box-shadow:0 4px 10px rgba(0,0,0,.25);z-index:1}
+.frame span{display:block;width:100%;height:100%;background-size:cover;background-position:center;background-color:#fff}
+.frame .nop{display:flex;align-items:center;justify-content:center;font-size:22px}
+.roomnight{position:absolute;inset:0;background:rgba(10,10,40,.45);z-index:1;pointer-events:none}
 </style>
 </head>
 <body>
@@ -569,24 +670,31 @@ nav button i{font-size:22px}
     <div class="scene" id="petScene">
       <div class="sky" id="petSky"></div>
       <div class="coins" id="petCoins">🪙 0</div>
+      <div class="lvlpill" id="petLvl">Nv. 1</div>
+      <button class="viewbtn" id="petView">🏠 Casita</button>
       <div class="say hidden" id="petSay"></div>
       <div class="petbox" id="petBox"></div>
       <div class="zzz hidden" id="petZzz"><span>z</span><span>z</span><span>z</span></div>
+      <div class="flies hidden" id="petFlies"><i>🪰</i><i>🪰</i></div>
       <div class="ground" id="petGround"></div>
     </div>
     <div style="padding:14px 18px 18px">
       <div style="text-align:center">
         <button class="pet-name" id="petName">Pollito</button> <span style="color:var(--muted);font-size:13px">✏️</span>
         <div class="mood" id="petMood"></div>
+        <div class="trait" id="petTrait"></div>
         <div class="today" id="petToday"></div>
       </div>
       <div class="needs" id="petNeeds"></div>
-      <div class="actions">
+      <div class="actions six">
         <button class="act" id="petFeed"><i>🍓</i><span>Comer</span></button>
+        <button class="act" id="petBag"><i>🎒</i><span>Mochila</span></button>
         <button class="act" id="petHug"><i>🤗</i><span>Mimos</span></button>
         <button class="act" id="petPlay"><i>⚽</i><span>Jugar</span></button>
         <button class="act" id="petBath"><i>🛁</i><span>Baño</span></button>
+        <button class="act" id="petSleep"><i>🌙</i><span>Siesta</span></button>
       </div>
+      <div class="sub" style="text-align:center;font-size:12px;margin-top:10px">Tócale para mimos · 5 toques = cosquillas · mantén pulsado para acariciarle</div>
     </div>
   </section>
 
@@ -603,32 +711,54 @@ nav button i{font-size:22px}
     <div class="stages" id="stages"></div>
     <div class="bar"><div id="petBar" style="width:0"></div></div>
     <div class="sub" style="font-size:14px" id="petNext"></div>
-    <div class="stats">
-      <div><b id="stDays">0</b><span>días juntos cuidándole</span></div>
+    <div class="label mt" style="margin-top:16px">Nivel ⭐</div>
+    <div class="bar"><div id="lvlBar" style="width:0;background:linear-gradient(90deg,#7b61ff,#4dd2ff)"></div></div>
+    <div class="sub" style="font-size:13px" id="lvlTxt"></div>
+    <div class="stats four">
+      <div><b id="stDays">0</b><span>días juntos</span></div>
       <div><b id="stStreak">0</b><span>racha 🔥</span></div>
       <div><b id="stHugs">0</b><span>mimos</span></div>
+      <div><b id="stAge">—</b><span>días de vida</span></div>
     </div>
   </section>
 
-  <section class="card">
-    <div class="label">Tienda 🛍️</div>
-    <div class="seg" id="shopTabs" style="margin-bottom:10px"><button data-s="ropa" class="on">👕 Ropa</button><button data-s="color">🎨 Colores</button></div>
+  <section class="card" id="shopCard">
+    <div class="label">Tienda del pollito 🛍️</div>
+    <div id="shopOffers"></div>
+    <div class="tabsx" id="shopTabs">
+      <button data-s="ropa" class="on">👒 Ropa</button><button data-s="color">🎨 Colores</button><button data-s="comida">🍰 Comida</button>
+      <button data-s="juguete">🧸 Juguetes</button><button data-s="casa">🏠 Casa</button><button data-s="lugar">🏞️ Lugares</button>
+    </div>
     <div id="shopBuy"></div>
     <div id="shopBody"></div>
   </section>
 
   <section class="card">
+    <div class="label">Álbum de fotos 📷</div>
+    <div class="album" id="petAlbum"></div>
+  </section>
+
+  <section class="card">
     <div class="label">Cómo funciona</div>
-    <div class="sub" style="margin:0;line-height:1.5">🍓 Cada día, los <b>dos</b> tenéis que darle de comer. Solo crece los días que le cuidáis los dos 💞, así que tardará meses en ser legendario.<br>
-    😢 Si pasáis más de un día sin darle de comer se pone triste y se pierde la racha.<br><br>
-    <b>Monedas del pollito 🪙</b> (solo para su ropa y colores):<br>
-    🍓 Darle de comer: +10 · si ya comió del otro: +15 extra<br>
-    🔥 Cada 7 días de racha: +50<br>
-    🤗 Mimos: +1 (hasta 10 al día) · ⚽ Jugar: +3 (hasta 5) · 🛁 Baño: +5<br>
+    <div class="sub" style="margin:0;line-height:1.55">🍓 <b>Comer</b>: cada día los <b>dos</b> tenéis que darle de comer. Solo crece de fase los días que le cuidáis los dos 💞 (tarda meses en ser legendario).<br>
+    ⏳ Su <b>hambre, cariño, diversión, limpieza y energía</b> bajan con las horas, aunque no abráis la app.<br>
+    🤒 Si descuidáis dos cosas a la vez, <b>se pone malito</b> y necesita medicina 💊.<br>
+    ⭐ Cada cuidado da <b>experiencia</b>: al subir de nivel gana 20 🪙 y se desbloquean cosas en la tienda.<br>
+    🎂 Celebra su <b>cumplemés</b> cada mes desde que nació (con regalo).<br><br>
+    <b>Monedas del pollito 🪙</b> (solo para su tienda):<br>
+    🍓 Darle de comer: +10 · si ya comió del otro: +15 extra · 🔥 cada 7 días de racha: +50<br>
+    🤗 Mimos: +1 (hasta 10 al día) · ⚽ Jugar: +3 (hasta 5) · 🛁 Baño: +5 · ⭐ subir de nivel: +20<br>
     🍓 Minijuego Atrapa fresas: hasta +30 al día<br><br>
     <b>Corazones de pareja 💖</b> (para la Tienda de vales) se ganan en <b>Juegos</b>, con la pregunta del día y cumpliendo planes.</div>
   </section>
 </main>
+
+<div id="petSheet" class="sheet hidden">
+  <div class="sheetbox">
+    <div class="pk-head"><b id="sheetTitle"></b><button class="icon-btn" id="sheetX" style="width:36px;height:36px;font-size:16px">✕</button></div>
+    <div id="sheetBody"></div>
+  </div>
+</div>
 
 <!-- ============ JUEGOS ============ -->
 <main id="tab-games" class="hidden">

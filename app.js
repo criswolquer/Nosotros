@@ -188,74 +188,277 @@ function watchAnswers() {
 }
 
 // ================= Mascota =================
-// Crece despacio: días cuidándole LOS DOS el mismo día
+// Crece por fases con los DÍAS que le cuidáis los dos; sube de NIVEL con la experiencia de cada cuidado.
 const STAGES = [
   { xp: 0, n: "Huevo" }, { xp: 2, n: "Recién nacido" }, { xp: 7, n: "Pollito" }, { xp: 21, n: "Pollito travieso" },
   { xp: 45, n: "Pollo joven" }, { xp: 90, n: "Gran pollo" }, { xp: 180, n: "Pollo legendario ✨" }
 ];
-const ITEMS = [
-  { id: "lazo", slot: "head", e: "🎀", n: "Lazo", c: 40 },
-  { id: "flor", slot: "head", e: "🌸", n: "Flor", c: 60 },
-  { id: "gorrolana", slot: "head", e: "🧶", n: "Gorro de lana", c: 90 },
-  { id: "gorro", slot: "head", e: "🥳", n: "Gorro fiesta", c: 120 },
-  { id: "vaquero", slot: "head", e: "🤠", n: "Vaquero", c: 180 },
-  { id: "corona", slot: "head", e: "👑", n: "Corona", c: 500 },
-  { id: "bigote", slot: "face", e: "🥸", n: "Bigote", c: 70 },
-  { id: "gafas", slot: "face", e: "😎", n: "Gafas de sol", c: 110 },
-  { id: "gafascor", slot: "face", e: "😍", n: "Gafas corazón", c: 150 },
-  { id: "pajarita", slot: "neck", e: "🎩", n: "Pajarita", c: 50 },
-  { id: "bufanda", slot: "neck", e: "🧣", n: "Bufanda", c: 80 },
-  { id: "collar", slot: "neck", e: "📿", n: "Collar perlas", c: 200 }
+const STAGE_E = ["🥚", "🐣", "🐥", "🐤", "🐔", "🐓", "✨"];
+const TRAITS = {
+  gloton: { e: "🍰", n: "Glotón", d: "Siempre tiene hambre, pero la comida le pone muy contento", mul: { food: 1.35 } },
+  dormilon: { e: "😴", n: "Dormilón", d: "Se cansa antes y le encanta la siesta", mul: { energy: 1.4 } },
+  jugueton: { e: "⚽", n: "Juguetón", d: "Se aburre rápido, pero jugar le da más experiencia", mul: { fun: 1.35 } },
+  mimoso: { e: "🥰", n: "Mimoso", d: "Necesita cariño a menudo; los mimos valen el doble", mul: { love: 1.35 } }
+};
+const RATE = { food: 3.2, love: 2.5, fun: 3, clean: 1.6, energy: 2.2 };   // puntos que bajan por hora
+const NEEDS = [["food", "🍗", "Hambre"], ["love", "💗", "Cariño"], ["fun", "🎈", "Diversión"], ["clean", "🫧", "Limpieza"], ["energy", "⚡", "Energía"]];
+
+// ---------- Catálogo de la tienda ----------
+// cat: ropa | color | comida | juguete | casa | lugar ; lvl = nivel mínimo ; req = logro necesario
+const CATALOG = [
+  // Ropa · cabeza
+  { id: "lazo", cat: "ropa", slot: "head", e: "🎀", n: "Lazo", c: 40, lvl: 1 },
+  { id: "flor", cat: "ropa", slot: "head", e: "🌸", n: "Flor", c: 60, lvl: 1 },
+  { id: "gorrolana", cat: "ropa", slot: "head", e: "🧶", n: "Gorro de lana", c: 90, lvl: 2 },
+  { id: "gorro", cat: "ropa", slot: "head", e: "🥳", n: "Gorro de fiesta", c: 120, lvl: 3 },
+  { id: "chef", cat: "ropa", slot: "head", e: "👨‍🍳", n: "Gorro de chef", c: 150, lvl: 4 },
+  { id: "conejo", cat: "ropa", slot: "head", e: "🐰", n: "Orejas de conejo", c: 160, lvl: 4 },
+  { id: "vaquero", cat: "ropa", slot: "head", e: "🤠", n: "Vaquero", c: 180, lvl: 5 },
+  { id: "cascos", cat: "ropa", slot: "head", e: "🎧", n: "Auriculares", c: 180, lvl: 5 },
+  { id: "pirata", cat: "ropa", slot: "head", e: "🏴‍☠️", n: "Pirata", c: 220, lvl: 6 },
+  { id: "cuernos", cat: "ropa", slot: "head", e: "😈", n: "Cuernos", c: 200, lvl: 7 },
+  { id: "aureola", cat: "ropa", slot: "head", e: "😇", n: "Aureola", c: 300, lvl: 1, req: { k: "best", v: 30, t: "Racha de 30 días" } },
+  { id: "corona", cat: "ropa", slot: "head", e: "👑", n: "Corona", c: 500, lvl: 12 },
+  // Ropa · cara
+  { id: "bigote", cat: "ropa", slot: "face", e: "🥸", n: "Bigote", c: 70, lvl: 1 },
+  { id: "gafas", cat: "ropa", slot: "face", e: "😎", n: "Gafas de sol", c: 110, lvl: 2 },
+  { id: "gafascor", cat: "ropa", slot: "face", e: "😍", n: "Gafas corazón", c: 150, lvl: 3 },
+  { id: "monoculo", cat: "ropa", slot: "face", e: "🧐", n: "Monóculo", c: 200, lvl: 6 },
+  // Ropa · cuello
+  { id: "pajarita", cat: "ropa", slot: "neck", e: "🎩", n: "Pajarita", c: 50, lvl: 1 },
+  { id: "bufanda", cat: "ropa", slot: "neck", e: "🧣", n: "Bufanda", c: 80, lvl: 1 },
+  { id: "corbata", cat: "ropa", slot: "neck", e: "👔", n: "Corbata", c: 90, lvl: 2 },
+  { id: "collar", cat: "ropa", slot: "neck", e: "📿", n: "Collar de perlas", c: 200, lvl: 5 },
+  { id: "medalla", cat: "ropa", slot: "neck", e: "🥇", n: "Medalla", c: 150, lvl: 1, req: { k: "best", v: 7, t: "Racha de 7 días" } },
+  // Ropa · espalda
+  { id: "mochila", cat: "ropa", slot: "back", e: "🎒", n: "Mochila", c: 150, lvl: 4 },
+  { id: "capa", cat: "ropa", slot: "back", e: "🦸", n: "Capa de héroe", c: 250, lvl: 1, req: { k: "hugs", v: 100, t: "100 mimos" } },
+  { id: "alasmar", cat: "ropa", slot: "back", e: "🦋", n: "Alas de mariposa", c: 300, lvl: 8 },
+  { id: "alasang", cat: "ropa", slot: "back", e: "🪽", n: "Alas de ángel", c: 400, lvl: 10 },
+  // Colores y estampados
+  { id: "amarillo", cat: "color", n: "Amarillo", c: 0, lvl: 1, body: "#ffd93b", belly: "#ffec9e", dark: "#f2b705" },
+  { id: "rosa", cat: "color", n: "Rosa", c: 60, lvl: 1, body: "#ffb3cf", belly: "#ffe0ec", dark: "#f28bb0" },
+  { id: "azul", cat: "color", n: "Azul", c: 60, lvl: 1, body: "#9fd3ff", belly: "#dff1ff", dark: "#6fb4ec" },
+  { id: "menta", cat: "color", n: "Menta", c: 60, lvl: 1, body: "#9ff0cf", belly: "#e0fbef", dark: "#5fcfa2" },
+  { id: "naranja", cat: "color", n: "Naranja", c: 60, lvl: 2, body: "#ffb361", belly: "#ffe0bd", dark: "#f08c2a" },
+  { id: "lila", cat: "color", n: "Lila", c: 80, lvl: 2, body: "#cdb4ff", belly: "#ece3ff", dark: "#a88af0" },
+  { id: "blanco", cat: "color", n: "Blanco", c: 100, lvl: 3, body: "#ffffff", belly: "#f3efe8", dark: "#ddd5c8" },
+  { id: "choco", cat: "color", n: "Chocolate", c: 100, lvl: 3, body: "#b98158", belly: "#ecd0b4", dark: "#8a5a38" },
+  { id: "vaca", cat: "color", n: "Vaquita", c: 200, lvl: 4, body: "#ffffff", belly: "#f6efe6", dark: "#3a3230", pat: "spots" },
+  { id: "fresa", cat: "color", n: "Fresa", c: 250, lvl: 5, body: "#ff5a6e", belly: "#ffd1d8", dark: "#d63a50", pat: "seeds" },
+  { id: "galaxia", cat: "color", n: "Galaxia", c: 500, lvl: 9, body: "#3b2a7a", belly: "#6a4fc0", dark: "#241a52", pat: "stars" },
+  { id: "arcoiris", cat: "color", n: "Arcoíris", c: 600, lvl: 11, body: "#ffd93b", belly: "#fff3c4", dark: "#f28bb0", pat: "rainbow" },
+  { id: "dorado", cat: "color", n: "Dorado", c: 400, lvl: 1, body: "#ffc629", belly: "#ffe8a3", dark: "#e8a200", req: { k: "stage", v: 6, t: "Llegar a legendario (o comprarlo)" }, buyAnyway: true },
+  // Comida (se gasta)
+  { id: "manzana", cat: "comida", e: "🍎", n: "Manzana", c: 8, lvl: 1, eff: { food: 20 } },
+  { id: "galleta", cat: "comida", e: "🍪", n: "Galleta", c: 12, lvl: 1, eff: { food: 15, fun: 5 } },
+  { id: "fresas", cat: "comida", e: "🍓", n: "Fresas", c: 15, lvl: 1, eff: { food: 25, love: 5 } },
+  { id: "helado", cat: "comida", e: "🍦", n: "Helado", c: 20, lvl: 2, eff: { food: 20, fun: 15 } },
+  { id: "cafe", cat: "comida", e: "☕", n: "Café", c: 20, lvl: 2, eff: { energy: 35 } },
+  { id: "tarta", cat: "comida", e: "🍰", n: "Tarta", c: 25, lvl: 3, eff: { food: 35, love: 10 } },
+  { id: "sushi", cat: "comida", e: "🍣", n: "Sushi", c: 30, lvl: 4, eff: { food: 45 } },
+  { id: "hambur", cat: "comida", e: "🍔", n: "Hamburguesa", c: 35, lvl: 5, eff: { food: 55, clean: -10 } },
+  { id: "medicina", cat: "comida", e: "💊", n: "Medicina", c: 40, lvl: 1, eff: { cure: 1 } },
+  { id: "jabon", cat: "comida", e: "🧴", n: "Champú de lujo", c: 25, lvl: 2, eff: { clean: 100, love: 5 } },
+  // Juguetes (para siempre)
+  { id: "pelota", cat: "juguete", e: "⚽", n: "Pelota", c: 0, lvl: 1, fun: 25 },
+  { id: "yoyo", cat: "juguete", e: "🪀", n: "Yoyó", c: 60, lvl: 2, fun: 30 },
+  { id: "peluche", cat: "juguete", e: "🧸", n: "Peluche", c: 90, lvl: 3, fun: 25, love: 15 },
+  { id: "cometa", cat: "juguete", e: "🪁", n: "Cometa", c: 120, lvl: 4, fun: 40 },
+  { id: "guitarra", cat: "juguete", e: "🎸", n: "Guitarra", c: 200, lvl: 5, fun: 40, love: 5 },
+  { id: "consola", cat: "juguete", e: "🎮", n: "Videoconsola", c: 300, lvl: 7, fun: 55 },
+  // Casa: paredes, suelos y muebles
+  { id: "w_crema", cat: "casa", kind: "wall", n: "Pared crema", c: 0, lvl: 1, sw: "#f6ead8" },
+  { id: "w_rosa", cat: "casa", kind: "wall", n: "Pared rosa", c: 40, lvl: 1, sw: "#ffd6e2" },
+  { id: "w_azul", cat: "casa", kind: "wall", n: "Pared azul", c: 40, lvl: 1, sw: "#cfe6ff" },
+  { id: "w_menta", cat: "casa", kind: "wall", n: "Pared menta", c: 40, lvl: 2, sw: "#d4f5e6" },
+  { id: "w_madera", cat: "casa", kind: "wall", n: "Pared de madera", c: 70, lvl: 3, sw: "#c9955f" },
+  { id: "w_estrellas", cat: "casa", kind: "wall", n: "Papel de estrellas", c: 120, lvl: 5, sw: "#2c2a5a" },
+  { id: "w_corazones", cat: "casa", kind: "wall", n: "Papel de corazones", c: 150, lvl: 6, sw: "#ffc1d4" },
+  { id: "f_madera", cat: "casa", kind: "floor", n: "Suelo de madera", c: 0, lvl: 1, sw: "#b07a4a" },
+  { id: "f_baldosa", cat: "casa", kind: "floor", n: "Baldosas", c: 50, lvl: 2, sw: "#e8e2dc" },
+  { id: "f_moqueta", cat: "casa", kind: "floor", n: "Moqueta", c: 60, lvl: 2, sw: "#8e7cc3" },
+  { id: "f_cesped", cat: "casa", kind: "floor", n: "Césped", c: 90, lvl: 4, sw: "#7cc95b" },
+  { id: "alfombra", cat: "casa", kind: "furn", e: "🟣", n: "Alfombra", c: 50, lvl: 1 },
+  { id: "planta", cat: "casa", kind: "furn", e: "🪴", n: "Planta", c: 40, lvl: 1 },
+  { id: "cuadro", cat: "casa", kind: "furn", e: "🖼️", n: "Cuadro con vuestra foto", c: 60, lvl: 1 },
+  { id: "cama", cat: "casa", kind: "furn", e: "🛏️", n: "Cama", c: 80, lvl: 1 },
+  { id: "ventana", cat: "casa", kind: "furn", e: "🪟", n: "Ventana", c: 70, lvl: 2 },
+  { id: "reloj", cat: "casa", kind: "furn", e: "🕰️", n: "Reloj", c: 90, lvl: 3 },
+  { id: "velas", cat: "casa", kind: "furn", e: "🕯️", n: "Velas", c: 50, lvl: 2 },
+  { id: "globos", cat: "casa", kind: "furn", e: "🎈", n: "Globos", c: 60, lvl: 2 },
+  { id: "estanteria", cat: "casa", kind: "furn", e: "📚", n: "Estantería", c: 120, lvl: 3 },
+  { id: "sofa", cat: "casa", kind: "furn", e: "🛋️", n: "Sofá", c: 150, lvl: 4 },
+  { id: "pecera", cat: "casa", kind: "furn", e: "🐠", n: "Pecera", c: 180, lvl: 5 },
+  { id: "tele", cat: "casa", kind: "furn", e: "📺", n: "Tele", c: 200, lvl: 6 },
+  { id: "arbolnav", cat: "casa", kind: "furn", e: "🎄", n: "Árbol de Navidad", c: 100, lvl: 3 },
+  { id: "piano", cat: "casa", kind: "furn", e: "🎹", n: "Piano", c: 300, lvl: 8 },
+  // Lugares (fondo del exterior)
+  { id: "jardin", cat: "lugar", e: "🌳", n: "Jardín", c: 0, lvl: 1 },
+  { id: "playa", cat: "lugar", e: "🏖️", n: "Playa", c: 80, lvl: 2 },
+  { id: "bosque", cat: "lugar", e: "🌲", n: "Bosque", c: 120, lvl: 3 },
+  { id: "nieve", cat: "lugar", e: "❄️", n: "Nieve", c: 150, lvl: 4 },
+  { id: "montana", cat: "lugar", e: "⛰️", n: "Montaña", c: 180, lvl: 5 },
+  { id: "ciudad", cat: "lugar", e: "🌃", n: "Ciudad", c: 220, lvl: 6 },
+  { id: "mar", cat: "lugar", e: "🐠", n: "Fondo del mar", c: 260, lvl: 7 },
+  { id: "espacio", cat: "lugar", e: "🚀", n: "Espacio", c: 350, lvl: 9 },
+  { id: "amor", cat: "lugar", e: "💖", n: "Tierra del amor", c: 400, lvl: 10 }
 ];
-const COLORS = [
-  { id: "amarillo", n: "Amarillo", c: 0, body: "#ffd93b", belly: "#ffec9e", dark: "#f2b705" },
-  { id: "rosa", n: "Rosa", c: 60, body: "#ffb3cf", belly: "#ffe0ec", dark: "#f28bb0" },
-  { id: "azul", n: "Azul", c: 60, body: "#9fd3ff", belly: "#dff1ff", dark: "#6fb4ec" },
-  { id: "menta", n: "Menta", c: 60, body: "#9ff0cf", belly: "#e0fbef", dark: "#5fcfa2" },
-  { id: "naranja", n: "Naranja", c: 60, body: "#ffb361", belly: "#ffe0bd", dark: "#f08c2a" },
-  { id: "lila", n: "Lila", c: 80, body: "#cdb4ff", belly: "#ece3ff", dark: "#a88af0" },
-  { id: "blanco", n: "Blanco", c: 100, body: "#ffffff", belly: "#f3efe8", dark: "#ddd5c8" },
-  { id: "choco", n: "Chocolate", c: 100, body: "#b98158", belly: "#ecd0b4", dark: "#8a5a38" },
-  { id: "dorado", n: "Dorado", c: 400, body: "#ffc629", belly: "#ffe8a3", dark: "#e8a200" }
-];
+const CAT = Object.fromEntries(CATALOG.map(x => [x.id, x]));
+const ITEMS = CATALOG.filter(x => x.cat === "ropa");
+const COLORS = CATALOG.filter(x => x.cat === "color");
+const SHOP_TABS = [["ropa", "👒 Ropa"], ["color", "🎨 Colores"], ["comida", "🍰 Comida"], ["juguete", "🧸 Juguetes"], ["casa", "🏠 Casa"], ["lugar", "🏞️ Lugares"]];
+const FURN_POS = {   // posición de cada mueble en la casita (%)
+  alfombra: "", planta: "left:3%;bottom:34%;font-size:42px", cuadro: "left:27%;top:12%", cama: "left:2%;bottom:5%;font-size:64px",
+  ventana: "right:24%;top:8%;font-size:50px", reloj: "left:50%;top:5%;font-size:30px", velas: "left:30%;bottom:44%;font-size:26px",
+  globos: "left:4%;top:34%;font-size:38px", estanteria: "left:24%;bottom:36%;font-size:44px", sofa: "right:2%;bottom:5%;font-size:60px",
+  pecera: "right:25%;bottom:38%;font-size:38px", tele: "right:4%;bottom:34%;font-size:46px", arbolnav: "left:26%;bottom:30%;font-size:52px", piano: "right:26%;bottom:6%;font-size:46px"
+};
+
 const START_COINS = 100;   // regalo de aniversario 🎁
 const stageOf = xp => { let i = 0; STAGES.forEach((s, k) => { if (xp >= s.xp) i = k; }); return i; };
-function newPet() { return { name: CONFIG.petName || "Pollito", xp: 0, streak: 0, best: 0, lastBoth: null, care: {}, hugs: 0, born: Date.now(), lastBath: null, day: {}, coins: START_COINS, owned: {}, wear: {}, color: "amarillo" }; }
+const lvlNeed = l => 60 + l * 40;
+function levelOf(exp) { let l = 1, e = exp || 0; while (e >= lvlNeed(l)) { e -= lvlNeed(l); l++; } return { l, into: e, need: lvlNeed(l) }; }
+const clamp = v => Math.max(0, Math.min(100, v));
+function newPet() { return { name: CONFIG.petName || "Pollito", xp: 0, exp: 0, streak: 0, best: 0, lastBoth: null, care: {}, hugs: 0, born: Date.now(), lastBath: null, day: {}, coins: START_COINS, owned: {}, inv: {}, wear: {}, color: "amarillo", scene: "jardin", room: {}, album: { 0: Date.now() } }; }
 function ensureDay(p) {
   const t = dayKey(); if (!p.day || p.day.d !== t) p.day = { d: t, hugs: {}, play: {} };
-  if (p.coins === undefined) p.coins = START_COINS; p.owned = p.owned || {}; p.wear = p.wear || {};
+  if (p.coins === undefined) p.coins = START_COINS;
+  p.owned = p.owned || {}; p.wear = p.wear || {}; p.inv = p.inv || {}; p.room = p.room || {}; p.album = p.album || {}; p.bday = p.bday || {};
+  if (p.exp === undefined) p.exp = (p.xp || 0) * 30 + (p.hugs || 0) * 2;   // pollos anteriores: experiencia según lo ya cuidado
+  if (!p.n) { const now = Date.now(); p.n = {}; for (const [k] of NEEDS) p.n[k] = { v: 75, t: now }; }
+  if (stageOf(p.xp) > 0) {
+    if (!p.trait) p.trait = rnd(Object.keys(TRAITS));
+    if (!p.hatchedAt) p.hatchedAt = Date.now();
+    for (let s = 0; s <= stageOf(p.xp); s++) if (!p.album[s]) p.album[s] = 1;   // 1 = alcanzado antes de tener álbum
+  }
   return p;
 }
 const coinsOf = p => (p && p.coins !== undefined ? p.coins : START_COINS);
 
-// ---- Dibujo (SVG) ----
+// ---------- Necesidades que bajan con el tiempo ----------
+function needNow(p, k, now = Date.now()) {
+  const n = (p.n || {})[k]; if (!n) return 75;
+  const h = Math.max(0, (now - n.t) / 36e5), mul = ((TRAITS[p.trait] || {}).mul || {})[k] || 1;
+  if (k === "energy") {
+    const a = Math.max(n.t, p.napStart || 0), b = Math.min(now, p.nap || 0), sl = Math.max(0, (b - a) / 36e5);
+    return clamp(n.v - (h - sl) * RATE.energy * mul + sl * 16);
+  }
+  return clamp(n.v - h * RATE[k] * mul);
+}
+function setNeed(p, k, delta) { p.n = p.n || {}; p.n[k] = { v: Math.round(clamp(needNow(p, k) + delta)), t: Date.now() }; }
+function gainExp(p, n) { const b = levelOf(p.exp).l; p.exp = (p.exp || 0) + n; const a = levelOf(p.exp).l; if (a > b) { p.coins += 20 * (a - b); return a; } return 0; }
+const isNapping = p => (p.nap || 0) > Date.now();
+
+// ---------- Estado ----------
+function petInfo() {
+  const p = state.pet ? ensureDay(JSON.parse(JSON.stringify(state.pet))) : ensureDay(newPet()), today = dayKey();
+  const meT = p.care?.[who] === today, otT = p.care?.[other()] === today;
+  const last = [p.care?.a, p.care?.b].filter(Boolean).sort().pop();
+  const gap = last ? daysBetween(last, today) : 0;
+  const nv = Object.fromEntries(NEEDS.map(([k]) => [k, Math.round(needNow(p, k))]));
+  const low = NEEDS.filter(([k]) => nv[k] < 15).length;
+  const si = stageOf(p.xp), L = levelOf(p.exp);
+  const bd = bdayInfo(p);
+  return { p, today, meT, otT, last, gap, nv, low, si, L, bd, sad: (!!last && gap >= 2) || nv.love < 20, sick: !!p.sick };
+}
+function bdayInfo(p) {
+  if (!p.hatchedAt || p.hatchedAt < 1e12) return null;
+  const h = new Date(p.hatchedAt), n = new Date();
+  const months = (n.getFullYear() - h.getFullYear()) * 12 + (n.getMonth() - h.getMonth());
+  if (months < 1 || n.getDate() !== h.getDate()) return null;
+  return { months, years: months % 12 === 0 ? months / 12 : 0, key: localKey(n) };
+}
+function currentExpr(I) {
+  if (Date.now() < tempUntil) return tempExpr;
+  if (isNapping(I.p)) return "sleep";
+  const h = hourIn(myTz);
+  if (h >= 23 || h < 7) return "sleep";
+  if (I.sick) return "sick";
+  if (I.sad) return "sad";
+  if (I.nv.energy < 20) return "tired";
+  if (I.nv.food < 30) return "hungry";
+  if (I.nv.fun < 25) return "bored";
+  if (I.bd) return "happy";
+  if (NEEDS.every(([k]) => I.nv[k] >= 60)) return "happy";
+  return "normal";
+}
+function moodText(I) {
+  const o = name(other()), p = I.p;
+  if (I.si === 0) return I.meT && I.otT ? "Hoy le habéis dado calor los dos 🥚✨" : I.meT ? `Se mueve… falta que ${o} le dé calor 🔥` : I.otT ? `${o} ya le ha dado calor. ¡Te toca!` : "Dadle calor los dos el mismo día para que se abra 🥚";
+  if (isNapping(p)) return `Durmiendo la siesta hasta las ${new Date(p.nap).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })} 💤`;
+  if (I.bd) return I.bd.years ? `¡Hoy cumple ${I.bd.years} año${I.bd.years > 1 ? "s" : ""}! 🎂🎉` : `¡Hoy cumple ${I.bd.months} mes${I.bd.months > 1 ? "es" : ""}! 🎂`;
+  if (I.sick) return "Está malito 🤒 Necesita medicina 💊 (en la tienda, sección Comida)";
+  if (I.sad && I.gap >= 2) return `Está triste, hace ${I.gap} días que no le cuidáis 😢`;
+  if (I.nv.love < 20) return "Se siente solo… ¡necesita mimos! 🥺";
+  if (I.nv.energy < 20) return "Está agotado. Déjale dormir una siesta 😴";
+  if (I.nv.food < 30) return "Tiene mucha hambre 🍽️";
+  if (I.nv.clean < 30) return "Está sucio y huele un poco… 🛁";
+  if (I.nv.fun < 25) return "Se aburre… ¿jugáis con él? 🎈";
+  if (I.meT && I.otT) return "¡Súper feliz! Hoy le habéis cuidado los dos 💞";
+  if (I.meT) return `Contento. Esperando a que ${o} le dé de comer…`;
+  if (I.otT) return `${o} ya le ha dado de comer. ¡Te toca! 🍓`;
+  return "Tiene hambre 🥺 ¡Dale de comer!";
+}
+
+// ---------- Dibujo (SVG) ----------
 function itemSVG(id) {
   switch (id) {
     case "lazo": return `<g transform="translate(130 76) rotate(18)"><path d="M0 0 L-15 -10 L-15 10 Z M0 0 L15 -10 L15 10 Z" fill="#ff5c8a"/><circle r="4.5" fill="#e8336b"/></g>`;
     case "flor": return `<g transform="translate(72 76)">${[0, 72, 144, 216, 288].map(a => `<circle cx="${(8 * Math.cos(a * Math.PI / 180)).toFixed(1)}" cy="${(8 * Math.sin(a * Math.PI / 180)).toFixed(1)}" r="6.5" fill="#ffb3d1"/>`).join("")}<circle r="5" fill="#ffd93b"/></g>`;
     case "gorrolana": return `<g transform="translate(100 78)"><path d="M-38 2 Q-40 -42 0 -44 Q40 -42 38 2 Z" fill="#4d7cff"/><path d="M-20 -38 L-20 -2 M-6 -43 L-6 -2 M8 -43 L8 -2 M22 -37 L22 -2" stroke="#3a63d6" stroke-width="3"/><rect x="-41" y="-6" width="82" height="14" rx="7" fill="#3a63d6"/><circle cy="-46" r="9" fill="#fff"/></g>`;
-    case "gorro": return `<g transform="translate(106 72) rotate(12)"><path d="M-17 0 L0 -44 L17 0 Z" fill="#7b61ff"/><path d="M-12 -12 L12 -12 M-7 -27 L7 -27" stroke="#ffd93b" stroke-width="3.5"/><circle cy="-46" r="6" fill="#ff5c8a"/></g>`;
+    case "gorro": case "_party": return `<g transform="translate(106 72) rotate(12)"><path d="M-17 0 L0 -44 L17 0 Z" fill="#7b61ff"/><path d="M-12 -12 L12 -12 M-7 -27 L7 -27" stroke="#ffd93b" stroke-width="3.5"/><circle cy="-46" r="6" fill="#ff5c8a"/></g>`;
+    case "chef": return `<g transform="translate(100 70)"><rect x="-24" y="-10" width="48" height="14" rx="3" fill="#f4f1ec" stroke="#ddd6cc" stroke-width="2"/><circle cx="-16" cy="-22" r="14" fill="#fff"/><circle cx="0" cy="-30" r="16" fill="#fff"/><circle cx="16" cy="-22" r="14" fill="#fff"/></g>`;
+    case "conejo": return `<g><ellipse cx="82" cy="46" rx="9" ry="28" fill="#fff" stroke="#eee" transform="rotate(-12 82 46)"/><ellipse cx="82" cy="48" rx="4.5" ry="20" fill="#ffb3cf" transform="rotate(-12 82 48)"/><ellipse cx="118" cy="46" rx="9" ry="28" fill="#fff" stroke="#eee" transform="rotate(12 118 46)"/><ellipse cx="118" cy="48" rx="4.5" ry="20" fill="#ffb3cf" transform="rotate(12 118 48)"/><path d="M78 72 Q100 60 122 72" stroke="#ff8fb8" stroke-width="5" fill="none" stroke-linecap="round"/></g>`;
     case "vaquero": return `<g transform="translate(100 70)"><path d="M-24 2 Q-27 -32 -9 -28 Q0 -21 9 -28 Q27 -32 24 2 Z" fill="#b87945"/><rect x="-24" y="-8" width="48" height="7" fill="#6b3f1f"/><path d="M-50 2 Q-48 -8 -30 0 Q0 10 30 0 Q48 -8 50 2 Q46 12 0 12 Q-46 12 -50 2 Z" fill="#a0673a"/></g>`;
+    case "cascos": return `<g><path d="M54 110 Q54 52 100 50 Q146 52 146 110" stroke="#2b2d42" stroke-width="7" fill="none"/><rect x="42" y="98" width="18" height="30" rx="8" fill="#ef476f"/><rect x="140" y="98" width="18" height="30" rx="8" fill="#ef476f"/></g>`;
+    case "pirata": return `<g transform="translate(100 70)"><path d="M-44 4 Q-30 -30 0 -32 Q30 -30 44 4 Q0 -6 -44 4 Z" fill="#1d1d24"/><circle cx="0" cy="-14" r="6" fill="#fff"/><path d="M-5 -6 L5 -6" stroke="#fff" stroke-width="3"/></g>`;
+    case "cuernos": return `<g><path d="M76 72 Q66 50 78 40 Q80 56 88 66 Z" fill="#e63946"/><path d="M124 72 Q134 50 122 40 Q120 56 112 66 Z" fill="#e63946"/></g>`;
+    case "aureola": return `<ellipse cx="100" cy="46" rx="28" ry="7" fill="none" stroke="#ffd23f" stroke-width="5"/>`;
     case "corona": return `<g transform="translate(100 64)"><path d="M-21 0 L-21 -19 L-10 -8 L0 -26 L10 -8 L21 -19 L21 0 Z" fill="#ffc300" stroke="#e0a100" stroke-width="2" stroke-linejoin="round"/><circle cx="0" cy="-11" r="3.5" fill="#ff4d5a"/><circle cx="-13" cy="-6" r="2.5" fill="#4dd2ff"/><circle cx="13" cy="-6" r="2.5" fill="#4dd2ff"/></g>`;
     case "bigote": return `<path d="M100 129 Q92 122 80 127 Q76 131 82 134 Q92 136 100 131 Q108 136 118 134 Q124 131 120 127 Q108 122 100 129 Z" fill="#5a3a22"/>`;
     case "gafas": return `<g><rect x="66" y="99" width="28" height="17" rx="7" fill="#15131a"/><rect x="106" y="99" width="28" height="17" rx="7" fill="#15131a"/><path d="M94 105 L106 105" stroke="#15131a" stroke-width="3.5"/><path d="M71 103 L80 103 M111 103 L120 103" stroke="#fff" stroke-width="2.5" opacity=".55" stroke-linecap="round"/></g>`;
     case "gafascor": { const H = "M0 7 C-15 -3 -15 -15 -6 -15 C-2 -15 0 -11 0 -9 C0 -11 2 -15 6 -15 C15 -15 15 -3 0 7Z"; return `<g><path d="${H}" transform="translate(80 112) scale(1.15)" fill="#ff3d7f" opacity=".92"/><path d="${H}" transform="translate(120 112) scale(1.15)" fill="#ff3d7f" opacity=".92"/><path d="M92 104 Q100 99 108 104" stroke="#d6205f" stroke-width="3" fill="none"/></g>`; }
+    case "monoculo": return `<g><circle cx="120" cy="107" r="13" fill="rgba(200,230,255,.35)" stroke="#c9a227" stroke-width="3"/><path d="M132 113 Q140 130 136 150" stroke="#c9a227" stroke-width="1.5" fill="none"/></g>`;
     case "pajarita": return `<g transform="translate(100 152)"><path d="M0 0 L-17 -10 L-17 10 Z M0 0 L17 -10 L17 10 Z" fill="#2b3bd9"/><circle r="4.5" fill="#1b27a0"/></g>`;
     case "bufanda": return `<path d="M58 140 Q100 160 142 140 L143 152 Q100 172 57 152 Z" fill="#e63946"/><path d="M66 146 L70 156 M82 150 L85 160 M100 152 L100 162 M118 150 L115 160 M134 146 L130 156" stroke="#fff" stroke-width="3" opacity=".7"/><path d="M118 150 L128 150 L132 178 L120 178 Z" fill="#e63946"/>`;
+    case "corbata": return `<g><path d="M92 146 L108 146 L104 154 L96 154 Z" fill="#1d3557"/><path d="M96 154 L104 154 L110 178 L100 186 L90 178 Z" fill="#457b9d"/></g>`;
     case "collar": { let s = ""; for (let k = 0; k <= 11; k++) { const t = k / 11, x = 62 + 76 * t, y = 144 + 16 * Math.sin(Math.PI * t); s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.2" fill="#fbf7f0" stroke="#e4dccd" stroke-width="1"/>`; } return s + `<circle cx="100" cy="166" r="6" fill="#ff8fb8" stroke="#e46a98" stroke-width="1.5"/>`; }
+    case "medalla": return `<g><path d="M86 140 L100 160 L114 140" stroke="#e63946" stroke-width="6" fill="none"/><circle cx="100" cy="166" r="10" fill="#ffc300" stroke="#e0a100" stroke-width="2"/><text x="100" y="170" font-size="10" text-anchor="middle" fill="#8a5a00" font-weight="700">1</text></g>`;
+    // espalda (se dibuja detrás del cuerpo)
+    case "mochila": return `<g><rect x="136" y="104" width="30" height="44" rx="10" fill="#8a5a38"/><rect x="140" y="116" width="22" height="14" rx="4" fill="#a86f45"/></g>`;
+    case "capa": return `<path d="M62 112 Q100 100 138 112 L160 184 Q100 196 40 184 Z" fill="#d62839"/>`;
+    case "alasmar": return `<g opacity=".95"><path d="M60 110 Q10 70 22 130 Q30 160 62 140 Z" fill="#9b5de5"/><path d="M140 110 Q190 70 178 130 Q170 160 138 140 Z" fill="#9b5de5"/><circle cx="34" cy="112" r="6" fill="#ffd93b"/><circle cx="166" cy="112" r="6" fill="#ffd93b"/></g>`;
+    case "alasang": return `<g fill="#fff" stroke="#e6e6f0" stroke-width="2"><path d="M60 112 Q14 88 18 128 Q26 150 60 140 Z"/><path d="M58 122 Q26 112 28 140 Q40 152 60 146 Z"/><path d="M140 112 Q186 88 182 128 Q174 150 140 140 Z"/><path d="M142 122 Q174 112 172 140 Q160 152 140 146 Z"/></g>`;
   }
   return "";
 }
 function eyesSVG(expr) {
   const ink = "#2b1a10";
-  if (expr === "happy") return `<path d="M71 110 Q80 98 89 110 M111 110 Q120 98 129 110" stroke="${ink}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
+  if (expr === "happy" || expr === "laugh") return `<path d="M71 110 Q80 98 89 110 M111 110 Q120 98 129 110" stroke="${ink}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`;
   if (expr === "sleep") return `<path d="M71 106 Q80 114 89 106 M111 106 Q120 114 129 106" stroke="${ink}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
-  let s = `<g class="eyes"><circle cx="80" cy="107" r="7.5" fill="${ink}"/><circle cx="120" cy="107" r="7.5" fill="${ink}"/><circle cx="82.6" cy="104.2" r="2.6" fill="#fff"/><circle cx="122.6" cy="104.2" r="2.6" fill="#fff"/></g>`;
+  if (expr === "love") { const H = "M0 6 C-12 -2 -12 -12 -5 -12 C-2 -12 0 -9 0 -7 C0 -9 2 -12 5 -12 C12 -12 12 -2 0 6Z"; return `<path d="${H}" transform="translate(80 110)" fill="#ff3d7f"/><path d="${H}" transform="translate(120 110)" fill="#ff3d7f"/>`; }
+  if (expr === "bored") return `<g class="eyesg"><path d="M71 106 L89 106 M111 106 L129 106" stroke="${ink}" stroke-width="4" stroke-linecap="round"/><path d="M74 107 Q80 113 86 107 M114 107 Q120 113 126 107" fill="${ink}"/></g>`;
+  if (expr === "tired") return `<g class="eyesg"><path d="M72 104 Q80 110 88 104 M112 104 Q120 110 128 104" stroke="${ink}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M73 114 Q80 118 87 114 M113 114 Q120 118 127 114" stroke="#8a6f90" stroke-width="2.5" fill="none" opacity=".7"/></g>`;
+  if (expr === "sick") return `<g class="eyesg"><path d="M72 102 L88 110 M72 110 L88 102 M112 102 L128 110 M112 110 L128 102" stroke="${ink}" stroke-width="3.5" stroke-linecap="round"/></g>`;
+  const r = expr === "surprised" ? 9.5 : 7.5;
+  let s = `<g class="eyesg"><g class="eyes"><circle cx="80" cy="107" r="${r}" fill="${ink}"/><circle cx="120" cy="107" r="${r}" fill="${ink}"/><circle cx="82.6" cy="104.2" r="2.8" fill="#fff"/><circle cx="122.6" cy="104.2" r="2.8" fill="#fff"/></g></g>`;
   if (expr === "sad") s += `<path d="M68 100 L88 93 M132 100 L112 93" stroke="${ink}" stroke-width="3.5" stroke-linecap="round"/><path class="tear" d="M73 118 Q70 124 73 127 Q76 124 73 118 Z" fill="#6cc3ff"/>`;
-  if (expr === "hungry") s += `<path d="M71 96 Q79 90 88 93 M129 96 Q121 90 112 93" stroke="${ink}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  if (expr === "hungry") s += `<path d="M71 96 Q79 90 88 93 M129 96 Q121 90 112 93" stroke="${ink}" stroke-width="3" fill="none" stroke-linecap="round"/><path class="drool" d="M108 130 Q106 138 109 141 Q112 138 108 130Z" fill="#9fd3ff"/>`;
   return s;
 }
-function chickSVG(si, expr, wear, crackLevel, colorId) {
+function bodyFill(C) {
+  if (C.pat === "rainbow") return { defs: `<linearGradient id="rbw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b8b"/><stop offset=".25" stop-color="#ffb361"/><stop offset=".5" stop-color="#ffd93b"/><stop offset=".75" stop-color="#6fdc9a"/><stop offset="1" stop-color="#7fb7ff"/></linearGradient>`, fill: "url(#rbw)" };
+  if (C.pat === "stars") return { defs: `<radialGradient id="glx" cx=".35" cy=".35"><stop offset="0" stop-color="#7a5cc7"/><stop offset=".6" stop-color="#3b2a7a"/><stop offset="1" stop-color="#1b1440"/></radialGradient>`, fill: "url(#glx)" };
+  return { defs: "", fill: C.body };
+}
+function patternSVG(C) {
+  if (C.pat === "spots") return `<g fill="#2b2522"><ellipse cx="72" cy="92" rx="11" ry="8"/><ellipse cx="132" cy="138" rx="12" ry="9"/><ellipse cx="128" cy="84" rx="7" ry="6"/><ellipse cx="66" cy="140" rx="8" ry="6"/></g>`;
+  if (C.pat === "seeds") return `<g fill="#ffe16b">${[[70, 90], [90, 78], [112, 80], [132, 92], [62, 118], [140, 118], [74, 146], [128, 148]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="2.2" ry="3.4"/>`).join("")}</g>`;
+  if (C.pat === "stars") return `<g fill="#fff">${[[70, 86], [126, 80], [138, 130], [66, 140], [96, 72], [112, 150]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 1.6 : 2.4}"/>`).join("")}</g>`;
+  return "";
+}
+function chickSVG(si, expr, wear, crackLevel, colorId, extra = {}) {
   const shadow = `<ellipse cx="100" cy="182" rx="${si ? 38 + si * 3 : 40}" ry="7" fill="rgba(0,0,0,.18)"/>`;
   if (si === 0) {
     const cracks = crackLevel ? `<path d="M64 112 L76 102 L84 114 L96 100 L106 114 L118 102 L128 112" stroke="#a88a60" stroke-width="3" fill="none" stroke-linejoin="round"/>` : "";
@@ -265,197 +468,267 @@ function chickSVG(si, expr, wear, crackLevel, colorId) {
       <ellipse cx="82" cy="84" rx="10" ry="16" fill="#fff" opacity=".6" transform="rotate(25 82 84)"/>${cracks}</g></svg>`;
   }
   const sc = [0, .74, .84, .94, 1.0, 1.06, 1.1][si];
-  const C = COLORS.find(c => c.id === colorId) || COLORS[0];
-  const { body, belly, dark } = C;
-  const cls = expr === "happy" ? "happy" : expr === "sad" ? "sad" : "";
+  const C = CAT[colorId] || CAT.amarillo, { belly, dark } = C, BF = bodyFill(C);
+  const cls = { happy: "happy", laugh: "happy", love: "happy", sad: "sad", sick: "sick", tired: "tired" }[expr] || "";
   const feet = si === 1 ? "" : `<path d="M86 166 L86 180 M79 180 L93 180 M114 166 L114 180 M107 180 L121 180" stroke="#ff9f1c" stroke-width="4.5" stroke-linecap="round"/>`;
   const tail = si >= 5 ? `<g fill="${dark}"><ellipse cx="146" cy="96" rx="10" ry="26" transform="rotate(20 146 96)"/><ellipse cx="156" cy="106" rx="10" ry="26" transform="rotate(45 156 106)"/><ellipse cx="160" cy="120" rx="9" ry="22" transform="rotate(70 160 120)"/></g>` : "";
   const head = si >= 4
     ? `<path d="M84 72 Q84 54 94 62 Q98 46 106 62 Q116 54 116 72 Z" fill="#ff4d5a"/>`
     : si >= 3 ? `<path d="M100 70 Q95 56 101 48 M100 70 Q107 58 114 58 M100 70 Q92 60 86 62" stroke="${dark}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`
     : si >= 2 ? `<path d="M100 70 Q96 58 102 52" stroke="${dark}" stroke-width="4" fill="none" stroke-linecap="round"/>` : "";
-  const beakOpen = expr === "happy" ? 4 : 0;
-  const beak = `<path d="M89 118 Q100 111 111 118 L100 127 Z" fill="#ff9f1c"/><g class="beak-low" style="transform-box:fill-box"><path d="M93 ${126 + beakOpen} L107 ${126 + beakOpen} L100 ${133 + beakOpen} Z" fill="#f08400"/></g>` +
-    (beakOpen ? `<path d="M95 125 L105 125 L100 ${128 + beakOpen} Z" fill="#c2413d"/>` : "");
+  const open = (expr === "happy" || expr === "laugh" || expr === "love") ? 4 : expr === "surprised" ? 3 : 0;
+  const beak = `<path d="M89 118 Q100 111 111 118 L100 127 Z" fill="#ff9f1c"/><g class="beak-low" style="transform-box:fill-box"><path d="M93 ${126 + open} L107 ${126 + open} L100 ${133 + open} Z" fill="#f08400"/></g>` +
+    (open ? `<path d="M95 125 L105 125 L100 ${128 + open} Z" fill="#c2413d"/>` : "");
   const shellFront = si === 1 ? `<path d="M38 132 L50 118 L62 134 L76 116 L90 134 L104 116 L118 134 L132 116 L146 134 L162 118 L162 150 Q162 186 100 186 Q38 186 38 150 Z" fill="#fff6e6" stroke="#e8d9bf" stroke-width="3" stroke-linejoin="round"/>` : "";
-  const shellHat = si === 1 && !wear.head ? `<path d="M74 78 Q100 44 126 78 L118 70 L110 80 L100 68 L90 80 L82 70 Z" fill="#fff6e6" stroke="#e8d9bf" stroke-width="3" stroke-linejoin="round"/>` : "";
-  const bodyStroke = colorId === "blanco" ? ` stroke="#e6ded2" stroke-width="2"` : "";
-  return `<svg viewBox="0 0 200 200" class="chick ${cls}">${shadow}
+  const headItem = extra.party ? "_party" : wear.head;
+  const shellHat = si === 1 && !headItem ? `<path d="M74 78 Q100 44 126 78 L118 70 L110 80 L100 68 L90 80 L82 70 Z" fill="#fff6e6" stroke="#e8d9bf" stroke-width="3" stroke-linejoin="round"/>` : "";
+  const bodyStroke = (colorId === "blanco" || colorId === "vaca") ? ` stroke="#e6ded2" stroke-width="2"` : "";
+  const dirt = extra.dirty ? `<g fill="#8a6a45" opacity=".55"><ellipse cx="70" cy="132" rx="8" ry="5"/><ellipse cx="128" cy="96" rx="6" ry="4"/><ellipse cx="118" cy="150" rx="9" ry="5"/><circle cx="82" cy="80" r="3.5"/></g>` : "";
+  const sick = expr === "sick" ? `<g><rect x="118" y="124" width="26" height="6" rx="3" fill="#fff" stroke="#ccc" transform="rotate(-20 118 124)"/><circle cx="143" cy="117" r="4" fill="#e63946"/></g>` : "";
+  const cheekOp = expr === "sad" || expr === "sick" ? .3 : .75, cheekCol = expr === "sick" ? "#a8d88a" : "#ff8fa3";
+  return `<svg viewBox="0 0 200 200" class="chick ${cls}"><defs>${BF.defs}<clipPath id="bodyclip"><circle cx="100" cy="116" r="52"/></clipPath></defs>${shadow}
    <g transform="translate(100 182) scale(${sc}) translate(-100 -182)">
-    ${feet}${tail}
+    ${itemSVG(wear.back)}${feet}${tail}
     <g class="bodyg">
       <g class="wing wl"><ellipse cx="54" cy="128" rx="13" ry="24" fill="${dark}" transform="rotate(22 54 128)"/></g>
       <g class="wing wr"><ellipse cx="146" cy="128" rx="13" ry="24" fill="${dark}" transform="rotate(-22 146 128)"/></g>
-      <circle cx="100" cy="116" r="52" fill="${body}"${bodyStroke}/>
+      <circle cx="100" cy="116" r="52" fill="${BF.fill}"${bodyStroke}/>
+      <g clip-path="url(#bodyclip)">${patternSVG(C)}</g>
       <ellipse cx="100" cy="136" rx="31" ry="25" fill="${belly}"/>
       <ellipse cx="80" cy="84" rx="12" ry="7" fill="#fff" opacity=".35" transform="rotate(-25 80 84)"/>
-      ${head}${itemSVG(wear.neck)}
+      ${dirt}${head}${itemSVG(wear.neck)}
       ${eyesSVG(expr)}
-      <ellipse cx="67" cy="123" rx="8.5" ry="5.5" fill="#ff8fa3" opacity="${expr === "sad" ? .3 : .75}"/>
-      <ellipse cx="133" cy="123" rx="8.5" ry="5.5" fill="#ff8fa3" opacity="${expr === "sad" ? .3 : .75}"/>
-      ${beak}${itemSVG(wear.face)}${itemSVG(wear.head)}${shellHat}
+      <ellipse cx="67" cy="123" rx="8.5" ry="5.5" fill="${cheekCol}" opacity="${cheekOp}"/>
+      <ellipse cx="133" cy="123" rx="8.5" ry="5.5" fill="${cheekCol}" opacity="${cheekOp}"/>
+      ${beak}${sick}${itemSVG(wear.face)}${itemSVG(headItem)}${shellHat}
     </g>${shellFront}
    </g></svg>`;
 }
 
-// ---- Escena según la hora ----
-let sceneSig = "";
-function renderScene() {
+// ---------- Escenario: exterior (lugares) o casita ----------
+let sceneSig = "", petView = ls.get("petView") || "out";
+const SCENE_DECO = {
+  jardin: [["🌷", "left:6%;bottom:12%;font-size:24px"], ["🌼", "right:8%;bottom:16%;font-size:22px"]],
+  playa: [["🌴", "left:2%;bottom:18%;font-size:64px"], ["🐚", "right:14%;bottom:8%;font-size:22px"], ["⛵", "right:10%;top:44%;font-size:26px"]],
+  bosque: [["🌲", "left:0%;bottom:22%;font-size:70px"], ["🌲", "right:2%;bottom:24%;font-size:60px"], ["🍄", "right:18%;bottom:8%;font-size:22px"], ["🦋", "left:24%;top:30%;font-size:22px", "flutter"]],
+  nieve: [["⛄", "right:6%;bottom:12%;font-size:50px"], ["🌲", "left:2%;bottom:22%;font-size:54px"]],
+  montana: [["🏔️", "left:-4%;bottom:30%;font-size:110px"], ["🦅", "right:18%;top:26%;font-size:24px", "flutter"]],
+  ciudad: [["🏙️", "left:-2%;bottom:24%;font-size:96px"], ["🏢", "right:-2%;bottom:24%;font-size:84px"]],
+  mar: [["🐠", "left:10%;top:40%;font-size:26px", "swim"], ["🐟", "right:12%;top:30%;font-size:22px", "swim"], ["🪸", "left:4%;bottom:10%;font-size:40px"], ["🐙", "right:6%;bottom:10%;font-size:34px"]],
+  espacio: [["🪐", "left:8%;top:16%;font-size:44px"], ["🌎", "right:10%;top:30%;font-size:36px"], ["🚀", "right:24%;top:10%;font-size:24px", "flutter"]],
+  amor: [["💖", "left:8%;top:24%;font-size:28px", "flutter"], ["💕", "right:12%;top:36%;font-size:24px", "flutter"], ["🌹", "left:10%;bottom:10%;font-size:28px"], ["🌹", "right:10%;bottom:12%;font-size:24px"]]
+};
+function renderScene(I, pvScene, pvRoom) {
   const h = hourIn(myTz), mode = (h >= 21 || h < 6) ? "night" : (h < 8 || h >= 19) ? "dawn" : "day";
-  if (mode === sceneSig) return; sceneSig = mode;
-  $("petScene").className = "scene " + (mode === "day" ? "" : mode);
+  const p = I.p, scene = pvScene || p.scene || "jardin", room = { wall: "w_crema", floor: "f_madera", items: {}, ...(p.room || {}), ...(pvRoom || {}) };
+  const photo = (memList.find(m => m.photo) || {}).photo || "";
+  const sig = [petView, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0].join("|");
+  if (sig === sceneSig) return; sceneSig = sig;
+  const S0 = $("petScene");
   let sky = "";
-  if (mode === "night") {
-    for (let i = 0; i < 28; i++) sky += `<i class="star" style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 55).toFixed(1)}%;animation-delay:${(Math.random() * 2.4).toFixed(2)}s"></i>`;
-    sky += `<span class="sun">🌙</span>`;
+  if (petView === "in") {
+    const wall = CAT[room.wall] || CAT.w_crema, floor = CAT[room.floor] || CAT.f_madera;
+    S0.className = "scene room " + room.wall + " " + room.floor;
+    S0.style.setProperty("--wall", wall.sw); S0.style.setProperty("--floor", floor.sw);
+    if (room.items.alfombra) sky += `<div class="rug"></div>`;
+    for (const id of Object.keys(room.items).filter(k => room.items[k] && k !== "alfombra")) {
+      if (id === "cuadro") sky += `<div class="frame" style="${FURN_POS.cuadro}">${photo ? `<span style="background-image:url('${photo}')"></span>` : `<span class="nop">💕</span>`}</div>`;
+      else if (CAT[id]) sky += `<span class="furn" style="${FURN_POS[id] || ""}">${CAT[id].e}</span>`;
+    }
+    if (mode === "night") sky += `<div class="roomnight"></div>`;
   } else {
-    sky += `<span class="sun">${mode === "dawn" ? "🌅" : "☀️"}</span><span class="cloud" style="top:40px;animation-delay:-8s">☁️</span><span class="cloud" style="top:90px;animation-delay:-24s;font-size:26px">☁️</span>`;
+    S0.className = "scene sc-" + scene + " " + (mode === "day" ? "" : mode);
+    S0.style.removeProperty("--wall"); S0.style.removeProperty("--floor");
+    if (scene === "espacio" || mode === "night") for (let i = 0; i < 26; i++) sky += `<i class="star" style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 55).toFixed(1)}%;animation-delay:${(Math.random() * 2.4).toFixed(2)}s"></i>`;
+    if (scene !== "espacio" && scene !== "mar") {
+      sky += `<span class="sun">${mode === "night" ? "🌙" : mode === "dawn" ? "🌅" : "☀️"}</span>`;
+      if (mode !== "night" && scene !== "ciudad") sky += `<span class="cloud" style="top:40px;animation-delay:-8s">☁️</span><span class="cloud" style="top:90px;animation-delay:-24s;font-size:26px">☁️</span>`;
+    }
+    if (scene === "nieve") for (let i = 0; i < 16; i++) sky += `<i class="flake" style="left:${(Math.random() * 100).toFixed(0)}%;animation-delay:${(Math.random() * 6).toFixed(1)}s;animation-duration:${(5 + Math.random() * 4).toFixed(1)}s">❄</i>`;
+    if (scene === "mar") for (let i = 0; i < 8; i++) sky += `<i class="bubbleup" style="left:${(10 + Math.random() * 80).toFixed(0)}%;animation-delay:${(Math.random() * 5).toFixed(1)}s">○</i>`;
+    for (const [e, st, cl] of (SCENE_DECO[scene] || [])) sky += `<span class="deco ${cl || ""}" style="${st}">${e}</span>`;
   }
+  if (I.bd) sky += `<span class="deco" style="left:6%;bottom:8%;font-size:40px">🎂</span><span class="deco flutter" style="right:8%;top:20%;font-size:34px">🎈</span>`;
   $("petSky").innerHTML = sky;
+  $("petView").textContent = petView === "in" ? "🌳 Salir" : "🏠 Casita";
 }
+$("petView").onclick = () => { petView = petView === "in" ? "out" : "in"; ls.set("petView", petView); sceneSig = ""; renderPet(); say(petView === "in" ? "¡Mi casita! 🏠" : "¡Qué buen día hace fuera! 🌳"); };
 
-// ---- Estado y necesidades ----
-let tempExpr = null, tempUntil = 0, petSig = "", preview = null, shopTab = "ropa";
-function petInfo() {
-  const p = state.pet || newPet(), today = dayKey();
-  const day = p.day && p.day.d === today ? p.day : { hugs: {}, play: {} };
-  const meT = p.care?.[who] === today, otT = p.care?.[other()] === today;
-  const last = [p.care?.a, p.care?.b].filter(Boolean).sort().pop();
-  const gap = last ? daysBetween(last, today) : 0;
-  const hugsToday = (day.hugs.a || 0) + (day.hugs.b || 0), playToday = (day.play.a || 0) + (day.play.b || 0);
-  const bathGap = p.lastBath ? daysBetween(p.lastBath, today) : 2;
-  const food = meT && otT ? 100 : (meT || otT) ? 60 : gap <= 1 && last ? 25 : 8;
-  const love = Math.min(100, 15 + hugsToday * 9);
-  const fun = Math.min(100, 10 + playToday * 25);
-  const clean = Math.max(5, 100 - bathGap * 30);
-  const sad = !!last && gap >= 2;
-  return { p, today, day, meT, otT, last, gap, food, love, fun, clean, sad };
-}
-function currentExpr(I) {
-  if (Date.now() < tempUntil) return tempExpr;
-  if ((I.p.nap || 0) > Date.now()) return "sleep";
-  const h = hourIn(myTz);
-  if (h >= 23 || h < 7) return "sleep";
-  if (I.sad) return "sad";
-  if (!I.meT && !I.otT) return "hungry";
-  if (I.meT && I.otT) return "happy";
-  return "normal";
-}
-const owns = (p, id) => !!(p.owned && p.owned[id]);
-const colorOwned = (p, c) => c.c === 0 || owns(p, "color:" + c.id) || (c.id === "dorado" && stageOf(p.xp) === 6);
+// ---------- Pintar todo ----------
+let tempExpr = null, tempUntil = 0, petSig = "", preview = null, shopTab = ls.get("shopTab") || "ropa", sickChecked = "", bdayChecked = "";
 function renderPet() {
-  renderScene();
-  const I = petInfo(), p = I.p;
-  const si = stageOf(p.xp), st = STAGES[si], nx = STAGES[si + 1];
+  const I = petInfo(), p = I.p, si = I.si, st = STAGES[si], nx = STAGES[si + 1];
   const expr = si === 0 ? "egg" : currentExpr(I);
-  const wear = { ...(p.wear || {}) }; let color = p.color || "amarillo";
-  if (preview && preview.kind === "item") { const it = ITEMS.find(x => x.id === preview.id); wear[it.slot] = it.id; }
-  if (preview && preview.kind === "color") color = preview.id;
+  const wear = { ...(p.wear || {}) }; let color = p.color || "amarillo", pvScene = null, pvRoom = null;
+  if (preview) {
+    const it = CAT[preview.id];
+    if (it.cat === "ropa") wear[it.slot] = it.id; else if (it.cat === "color") color = it.id;
+    else if (it.cat === "lugar") { pvScene = it.id; if (petView !== "out") { petView = "out"; sceneSig = ""; } }
+    else if (it.cat === "casa") { if (petView !== "in") { petView = "in"; sceneSig = ""; } pvRoom = it.kind === "wall" ? { wall: it.id } : it.kind === "floor" ? { floor: it.id } : { items: { ...((p.room || {}).items || {}), [it.id]: true } }; }
+  }
+  renderScene(I, pvScene, pvRoom);
   const crack = si === 0 && (I.meT || I.otT) ? 1 : 0;
-  const sig = [si, expr, JSON.stringify(wear), crack, color].join("|");
-  if (sig !== petSig) { petSig = sig; $("petBox").innerHTML = chickSVG(si, expr, wear, crack, color); }
+  const extra = { dirty: si > 0 && I.nv.clean < 30, party: !!I.bd && !wear.head };
+  const sig = [si, expr, JSON.stringify(wear), crack, color, extra.dirty, extra.party].join("|");
+  if (sig !== petSig) { petSig = sig; $("petBox").innerHTML = chickSVG(si, expr, wear, crack, color, extra); }
   $("petZzz").classList.toggle("hidden", expr !== "sleep");
+  $("petFlies").classList.toggle("hidden", !extra.dirty);
   $("petCoins").textContent = "🪙 " + coinsOf(p);
+  $("petLvl").textContent = "Nv. " + I.L.l;
 
-  let m;
-  if (si === 0) m = I.meT && I.otT ? "Hoy le habéis dado calor los dos 🥚✨" : I.meT ? `Se mueve… falta que ${name(other())} le dé calor 🔥` : I.otT ? `${name(other())} ya le ha dado calor. ¡Te toca!` : "Dadle calor los dos el mismo día para que se abra 🥚";
-  else if (I.meT && I.otT) m = "¡Súper feliz! Hoy le habéis cuidado los dos 💞";
-  else if (I.meT) m = `Contento. Esperando a que ${name(other())} le dé de comer…`;
-  else if (I.otT) m = `${name(other())} ya le ha dado de comer. ¡Te toca! 🍓`;
-  else if (I.sad) m = `Está triste, hace ${I.gap} días que no come 😢`;
-  else m = "Tiene hambre 🥺";
   $("petName").textContent = p.name;
-  $("petMood").textContent = st.n + " · " + m;
+  $("petMood").textContent = st.n + " · " + moodText(I);
+  const tr = TRAITS[p.trait];
+  $("petTrait").innerHTML = si > 0 && tr ? `${tr.e} ${tr.n} <small>· ${esc(tr.d)}</small>` : "";
   $("petToday").innerHTML = `<span>${esc(name(who))} ${I.meT ? "✅" : "⏳"}</span><span>${esc(name(other()))} ${I.otT ? "✅" : "⏳"}</span>`;
 
   const col = v => v >= 60 ? "#6fdc9a" : v >= 30 ? "#ffc85c" : "#ff7a7a";
-  $("petNeeds").innerHTML = [["🍓 Comida", I.food], ["💗 Cariño", I.love], ["⚽ Diversión", I.fun], ["🫧 Limpieza", I.clean]]
-    .map(([n, v]) => `<div class="need"><div class="nl"><span>${n}</span><span>${v}%</span></div><div class="nb"><div style="width:${v}%;background:${col(v)}"></div></div></div>`).join("");
+  $("petNeeds").innerHTML = si === 0 ? "" : NEEDS.map(([k, e, n]) => `<div class="need"><div class="nl"><span>${e} ${n}</span><span>${I.nv[k]}%</span></div><div class="nb"><div style="width:${I.nv[k]}%;background:${col(I.nv[k])}"></div></div></div>`).join("");
 
+  // botones
   $("petFeed").classList.toggle("done", I.meT); $("petFeed").classList.toggle("need", !I.meT);
   $("petFeed").querySelector("span").textContent = I.meT ? "Hecho ✅" : (si === 0 ? "Dar calor" : "Comer");
   $("petFeed").querySelector("i").textContent = si === 0 ? "🔥" : "🍓";
+  const nInv = Object.values(p.inv || {}).reduce((a, b) => a + (b || 0), 0);
+  $("petBag").querySelector("span").textContent = "Mochila" + (nInv ? ` (${nInv})` : "");
+  $("petBag").classList.toggle("need", I.sick && (p.inv || {}).medicina > 0);
+  $("petSleep").querySelector("span").textContent = isNapping(p) ? "Despertar" : "Siesta";
+  $("petSleep").querySelector("i").textContent = isNapping(p) ? "☀️" : "🌙";
+  $("petBath").classList.toggle("need", si > 0 && I.nv.clean < 30);
+  $("petPlay").classList.toggle("need", si > 0 && I.nv.fun < 25);
+  $("petHug").classList.toggle("need", si > 0 && I.nv.love < 30);
 
+  // crecimiento, nivel, álbum
   $("petBar").style.width = nx ? Math.round((p.xp - st.xp) / (nx.xp - st.xp) * 100) + "%" : "100%";
-  $("petNext").textContent = nx ? `${p.xp} días cuidándole juntos · faltan ${nx.xp - p.xp} para: ${nx.n}` : "¡Nivel máximo! 👑";
+  $("petNext").textContent = nx ? `${p.xp} días cuidándole juntos · faltan ${nx.xp - p.xp} para: ${nx.n}` : "¡Fase máxima! 👑";
+  $("lvlBar").style.width = Math.round(I.L.into / I.L.need * 100) + "%";
+  $("lvlTxt").textContent = `Nivel ${I.L.l} · ${I.L.into}/${I.L.need} de experiencia · cada nivel +20 🪙 y cosas nuevas en la tienda`;
   const streakAlive = p.lastBoth && daysBetween(p.lastBoth, I.today) <= 1;
-  $("stDays").textContent = p.xp; $("stStreak").textContent = streakAlive ? p.streak : 0; $("stHugs").textContent = p.hugs || 0;
-  $("stages").innerHTML = STAGES.map((s, k) => `<span class="${k <= si ? "on" : ""}" title="${esc(s.n)}">${k <= si ? ["🥚", "🐣", "🐥", "🐤", "🐔", "🐓", "✨"][k] : "?"}<small>${s.xp}</small></span>`).join("");
+  const age = p.hatchedAt > 1e12 ? Math.floor((Date.now() - p.hatchedAt) / DAY) : null;
+  $("stDays").textContent = p.xp; $("stStreak").textContent = streakAlive ? p.streak : 0; $("stHugs").textContent = p.hugs || 0; $("stAge").textContent = age === null ? "—" : age;
+  $("stages").innerHTML = STAGES.map((s, k) => `<span class="${k <= si ? "on" : ""}" title="${esc(s.n)}">${k <= si ? STAGE_E[k] : "?"}<small>${s.xp}</small></span>`).join("");
+  renderAlbum(p, color, wear);
 
-  renderShop(p, si);
-  $("dotPet").classList.toggle("hidden", I.meT);
+  renderShop(p, I);
+  $("dotPet").classList.toggle("hidden", I.meT && !I.sick && I.nv.food >= 30);
+
+  // enfermedad y cumpleaños (una sola vez)
+  if (si > 0 && !p.sick && I.low >= 2 && sickChecked !== I.today && Date.now() - (p.curedAt || 0) > 12 * 36e5) { sickChecked = I.today; petTx(q => { if (q.sick) return null; q.sick = true; q.sickAt = Date.now(); return q; }).then(r => { if (r) sendMsg(`🤒 ${r.name || "El pollito"} se ha puesto malito. Necesita medicina 💊`, "pet"); }).catch(() => {}); }
+  if (I.bd && !(p.bday || {})[I.bd.key] && bdayChecked !== I.bd.key) {
+    bdayChecked = I.bd.key; const gift = I.bd.years ? 200 : 30;
+    petTx(q => { q.bday = q.bday || {}; if (q.bday[I.bd.key]) return null; q.bday[I.bd.key] = true; q.coins += gift; return q; })
+      .then(r => { if (r) { confetti(); say(I.bd.years ? `¡Hoy cumplo ${I.bd.years} año${I.bd.years > 1 ? "s" : ""}! 🎂 +${gift} 🪙` : `¡Hoy cumplo ${I.bd.months} mes${I.bd.months > 1 ? "es" : ""}! 🎂 +${gift} 🪙`, 5000); sendMsg(`🎂 ¡Hoy ${r.name || "nuestro pollito"} cumple ${I.bd.years ? I.bd.years + " año(s)" : I.bd.months + " mes(es)"}!`, "pet"); } }).catch(() => {});
+  }
+}
+function renderAlbum(p, color, wear) {
+  const al = p.album || {};
+  $("petAlbum").innerHTML = STAGES.map((s, k) => {
+    const got = al[k];
+    return `<div class="alb ${got ? "" : "lock"}">${got ? chickSVG(k, k ? "happy" : "egg", k ? {} : {}, 0, color) : `<span>?</span>`}<b>${esc(s.n)}</b><small>${got ? (got > 1e12 ? fmtDate(got, { day: "numeric", month: "short", year: "numeric" }) : "✓") : s.xp + " días"}</small></div>`;
+  }).join("");
 }
 
-// ---- Tienda ----
-function renderShop(p, si) {
+// ---------- Tienda ----------
+function itemLock(it, p, I) {
+  if (it.req) {
+    const v = it.req.k === "best" ? (p.best || 0) : it.req.k === "hugs" ? (p.hugs || 0) : it.req.k === "stage" ? I.si : 0;
+    if (v < it.req.v) return it.buyAnyway ? null : "🔒 " + it.req.t;
+  }
+  if (I.L.l < (it.lvl || 1)) return "🔒 Nivel " + it.lvl;
+  return null;
+}
+const isOwned = (p, it) => it.c === 0 || (it.cat === "color" ? !!(p.owned || {})["color:" + it.id] || (it.id === "dorado" && stageOf(p.xp) === 6) : !!(p.owned || {})[it.id]);
+function isOn(p, it) {
+  if (it.cat === "ropa") return (p.wear || {})[it.slot] === it.id;
+  if (it.cat === "color") return (p.color || "amarillo") === it.id;
+  if (it.cat === "lugar") return (p.scene || "jardin") === it.id;
+  if (it.cat === "casa") { const r = p.room || {}; return it.kind === "wall" ? (r.wall || "w_crema") === it.id : it.kind === "floor" ? (r.floor || "f_madera") === it.id : !!(r.items || {})[it.id]; }
+  return false;
+}
+function hashStr(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function dailyOffers(p, I) {
+  const pool = CATALOG.filter(it => it.c > 0 && it.cat !== "comida" && !isOwned(p, it) && !itemLock(it, p, I));
+  const seed = hashStr(dayKey()); return pool.map((it, i) => ({ it, k: hashStr(it.id + seed) })).sort((a, b) => a.k - b.k).slice(0, 3).map(x => x.it.id);
+}
+const priceOf = (it, offers) => offers.includes(it.id) ? Math.round(it.c * 0.7) : it.c;
+function renderShop(p, I) {
   document.querySelectorAll("#shopTabs button").forEach(b => b.classList.toggle("on", b.dataset.s === shopTab));
-  const coins = coinsOf(p);
+  const coins = coinsOf(p), offers = dailyOffers(p, I);
+  $("shopOffers").innerHTML = offers.length ? `<div class="label" style="margin:0 0 6px">⭐ Ofertas de hoy · −30%</div><div class="offers">` + offers.map(id => { const it = CAT[id];
+    return `<button class="offer" data-id="${id}"><i>${it.e || "🎨"}</i><b>${esc(it.n)}</b><span><s>${it.c}</s> ${priceOf(it, offers)} 🪙</span></button>`; }).join("") + `</div>` : "";
+  $("shopOffers").querySelectorAll("[data-id]").forEach(b => b.onclick = () => { shopTab = CAT[b.dataset.id].cat; ls.set("shopTab", shopTab); shopTap(b.dataset.id); });
+  const cell = it => {
+    const own = isOwned(p, it), on = isOn(p, it), lock = !own && itemLock(it, p, I), pv = preview && preview.id === it.id;
+    const icon = it.cat === "color" ? `<i class="sw" style="background:${it.pat === "rainbow" ? "linear-gradient(135deg,#ff6b8b,#ffd93b,#6fdc9a,#7fb7ff)" : `linear-gradient(135deg,${it.body} 55%,${it.dark} 55%)`}"></i>`
+      : it.sw ? `<i class="sw sq" style="background:${it.sw}"></i>` : `<i>${it.e}</i>`;
+    let tag;
+    if (it.cat === "comida") tag = lock || `${priceOf(it, offers)} 🪙${(p.inv || {})[it.id] ? ` · tienes ${p.inv[it.id]}` : ""}`;
+    else if (it.cat === "juguete") tag = own ? "Tuyo ✓" : lock || priceOf(it, offers) + " 🪙";
+    else tag = on ? "Puesto ✓" : own ? (it.cat === "casa" && it.kind === "furn" ? "Colocar" : "Usar") : lock || priceOf(it, offers) + " 🪙";
+    return `<button class="shopit ${on ? "on" : ""} ${pv ? "pv" : ""} ${lock ? "locked" : ""} ${offers.includes(it.id) && !own ? "sale" : ""}" data-id="${it.id}">${icon}<b>${esc(it.n)}</b><span>${esc(tag)}</span></button>`;
+  };
   let h = "";
-  if (shopTab === "ropa") {
-    const slots = [["head", "Cabeza"], ["face", "Cara"], ["neck", "Cuello"]];
-    h = slots.map(([sl, sn]) => `<div class="slotname">${sn}</div><div class="shopgrid">` + ITEMS.filter(i => i.slot === sl).map(i => {
-      const own = owns(p, i.id), on = p.wear && p.wear[sl] === i.id, pv = preview && preview.id === i.id;
-      return `<button class="shopit ${on ? "on" : ""} ${pv ? "pv" : ""}" data-k="item" data-id="${i.id}"><i>${i.e}</i><b>${i.n}</b><span>${on ? "Puesto ✓" : own ? "Ponérselo" : i.c + " 🪙"}</span></button>`;
-    }).join("") + `</div>`).join("");
-  } else {
-    h = `<div class="shopgrid">` + COLORS.map(c => {
-      const own = colorOwned(p, c), on = (p.color || "amarillo") === c.id, pv = preview && preview.id === c.id;
-      const lockGold = c.id === "dorado" && !own;
-      return `<button class="shopit ${on ? "on" : ""} ${pv ? "pv" : ""}" data-k="color" data-id="${c.id}"><i class="sw" style="background:linear-gradient(135deg,${c.body} 55%,${c.dark} 55%)"></i><b>${c.n}</b><span>${on ? "Puesto ✓" : own ? "Usar" : c.c + " 🪙"}</span></button>`;
-    }).join("") + `</div><div class="sub" style="font-size:12px">✨ El dorado es gratis cuando llegue a legendario.</div>`;
-  }
+  const list = CATALOG.filter(it => it.cat === shopTab);
+  if (shopTab === "ropa") h = [["head", "Cabeza"], ["face", "Cara"], ["neck", "Cuello"], ["back", "Espalda"]].map(([sl, sn]) => `<div class="slotname">${sn}</div><div class="shopgrid">${list.filter(i => i.slot === sl).map(cell).join("")}</div>`).join("");
+  else if (shopTab === "casa") h = [["wall", "Paredes"], ["floor", "Suelos"], ["furn", "Muebles (se colocan y se quitan con un toque)"]].map(([k, n]) => `<div class="slotname">${n}</div><div class="shopgrid">${list.filter(i => i.kind === k).map(cell).join("")}</div>`).join("") + `<div class="sub" style="font-size:12px">Pulsa 🏠 Casita en la escena para verla. El cuadro enseña vuestra última foto de Recuerdos 📸</div>`;
+  else if (shopTab === "comida") h = `<div class="shopgrid">${list.map(cell).join("")}</div><div class="sub" style="font-size:12px">La comida va a la 🎒 Mochila. Dásela cuando quieras.</div>`;
+  else if (shopTab === "juguete") h = `<div class="shopgrid">${list.map(cell).join("")}</div><div class="sub" style="font-size:12px">Cada juguete le divierte distinto. Elígelo al pulsar ⚽ Jugar.</div>`;
+  else h = `<div class="shopgrid">${list.map(cell).join("")}</div>${shopTab === "color" ? `<div class="sub" style="font-size:12px">✨ El dorado es gratis al llegar a legendario.</div>` : ""}`;
   $("shopBody").innerHTML = h;
-  $("shopBody").querySelectorAll(".shopit").forEach(b => b.onclick = () => shopTap(b.dataset.k, b.dataset.id));
+  $("shopBody").querySelectorAll(".shopit").forEach(b => b.onclick = () => shopTap(b.dataset.id));
 
-  // Barra de compra (vista previa)
   if (preview) {
-    const it = preview.kind === "item" ? ITEMS.find(x => x.id === preview.id) : COLORS.find(x => x.id === preview.id);
-    const can = coins >= it.c;
-    $("shopBuy").innerHTML = `<div class="buybar"><span>${preview.kind === "item" ? it.e : "🎨"} <b>${esc(it.n)}</b></span>
-      <button class="btn primary" id="buyGo" ${can ? "" : "disabled"}>${can ? "Comprar · " + it.c + " 🪙" : "Te faltan " + (it.c - coins) + " 🪙"}</button>
+    const it = CAT[preview.id], price = priceOf(it, offers), lock = itemLock(it, p, I), can = coins >= price && !lock;
+    $("shopBuy").innerHTML = `<div class="buybar"><span>${it.e || "🎨"} <b>${esc(it.n)}</b>${it.eff ? `<small>${effText(it.eff)}</small>` : it.fun ? `<small>+${it.fun} diversión${it.love ? `, +${it.love} cariño` : ""}</small>` : ""}</span>
+      <button class="btn primary" id="buyGo" ${can ? "" : "disabled"}>${lock ? lock : can ? "Comprar · " + price + " 🪙" : "Te faltan " + (price - coins) + " 🪙"}</button>
       <button class="btn" id="buyX">✕</button></div>`;
-    $("buyGo").onclick = buy; $("buyX").onclick = () => { preview = null; renderPet(); };
-  } else $("shopBuy").innerHTML = `<div class="sub" style="font-size:13px;text-align:center">Toca algo para probárselo 👀</div>`;
+    $("buyGo").onclick = buy; $("buyX").onclick = () => { preview = null; sceneSig = ""; renderPet(); };
+  } else $("shopBuy").innerHTML = `<div class="sub" style="font-size:13px;text-align:center">Toca algo para verlo puesto 👀</div>`;
 }
-function shopTap(kind, id) {
-  const p = state.pet || newPet(), si = stageOf(p.xp);
-  if (kind === "item") {
-    const it = ITEMS.find(x => x.id === id);
-    if (owns(p, id)) {
-      preview = null;
-      const on = p.wear && p.wear[it.slot] === id;
-      petTx(q => { q.wear[it.slot] = on ? null : id; return q; }).then(() => { if (si) { react("happy", 2000); say(on ? "¡Así también estoy guapo!" : "¡Me encanta! 😍"); } }).catch(offline);
-    } else { preview = preview && preview.id === id ? null : { kind, id }; if (!si) toast("La ropa se verá cuando nazca 🥚"); renderPet(); }
-  } else {
-    const c = COLORS.find(x => x.id === id);
-    if (colorOwned(p, c)) {
-      preview = null;
-      petTx(q => { q.color = id; return q; }).then(() => { if (si) { react("happy", 2000); say("¡Nuevo look! 🎨"); } }).catch(offline);
-    } else { preview = preview && preview.id === id ? null : { kind, id }; if (!si) toast("El color se verá cuando nazca 🥚"); renderPet(); }
-  }
+const effText = e => Object.entries(e).map(([k, v]) => k === "cure" ? "cura la enfermedad" : `${v > 0 ? "+" : ""}${v} ${({ food: "hambre", love: "cariño", fun: "diversión", clean: "limpieza", energy: "energía" })[k]}`).join(", ");
+function shopTap(id) {
+  const p = state.pet || newPet(), it = CAT[id], si = stageOf(p.xp);
+  if (it.cat === "comida") { preview = preview && preview.id === id ? null : { id }; renderPet(); return; }
+  if (isOwned(p, it)) {
+    preview = null;
+    if (it.cat === "juguete") { toast(`${it.e} Ya lo tiene. Úsalo con ⚽ Jugar`); renderPet(); return; }
+    const on = isOn(p, it);
+    petTx(q => {
+      if (it.cat === "ropa") q.wear[it.slot] = on ? null : it.id;
+      else if (it.cat === "color") q.color = it.id;
+      else if (it.cat === "lugar") q.scene = it.id;
+      else if (it.cat === "casa") { q.room = q.room || {}; q.room.items = q.room.items || {}; if (it.kind === "wall") q.room.wall = it.id; else if (it.kind === "floor") q.room.floor = it.id; else q.room.items[it.id] = !on; }
+      return q;
+    }).then(() => { sceneSig = ""; if (it.cat === "casa" && petView !== "in") { petView = "in"; ls.set("petView", "in"); } if (it.cat === "lugar" && petView !== "out") { petView = "out"; ls.set("petView", "out"); } if (si) { react("happy", 2000); say(on && it.cat === "ropa" ? "¡Así también estoy guapo!" : rnd(["¡Me encanta! 😍", "¡Qué bonito! ✨", "¡Gracias! 💛"])); } renderPet(); }).catch(offline);
+  } else { preview = preview && preview.id === id ? null : { id }; sceneSig = ""; if (!si && (it.cat === "ropa" || it.cat === "color")) toast("Se verá cuando nazca 🥚"); renderPet(); }
 }
 function buy() {
   if (!preview) return;
-  const pv = preview, it = pv.kind === "item" ? ITEMS.find(x => x.id === pv.id) : COLORS.find(x => x.id === pv.id);
-  const key = pv.kind === "item" ? it.id : "color:" + it.id;
+  const it = CAT[preview.id], p0 = state.pet || newPet(), I = petInfo(), price = priceOf(it, dailyOffers(p0, I));
+  if (itemLock(it, p0, I)) return toast(itemLock(it, p0, I));
   let fail = false;
   petTx(p => {
-    if (p.coins < it.c) { fail = true; return null; }
-    if (p.owned[key]) return null;
-    p.coins -= it.c; p.owned[key] = true;
-    if (pv.kind === "item") p.wear[it.slot] = it.id; else p.color = it.id;
-    return p;
+    if (p.coins < price) { fail = true; return null; }
+    if (it.cat === "comida") { p.inv[it.id] = (p.inv[it.id] || 0) + 1; }
+    else {
+      const key = it.cat === "color" ? "color:" + it.id : it.id; if (p.owned[key]) return null; p.owned[key] = true;
+      if (it.cat === "ropa") p.wear[it.slot] = it.id; else if (it.cat === "color") p.color = it.id; else if (it.cat === "lugar") p.scene = it.id;
+      else if (it.cat === "casa") { p.room = p.room || {}; p.room.items = p.room.items || {}; if (it.kind === "wall") p.room.wall = it.id; else if (it.kind === "floor") p.room.floor = it.id; else p.room.items[it.id] = true; }
+    }
+    p.coins -= price; return p;
   }).then(r => {
     if (fail) return toast("No tenéis suficientes monedas 🪙");
     if (!r) return;
-    preview = null; buzz([30, 40, 30]); hearts($("petBox"), "✨");
-    react("happy", 2500); say(pv.kind === "item" ? "¡Gracias! ¡Me encanta! 😍" : "¡Qué color tan bonito! 🎨");
-    sendMsg(`🛍️ Le he comprado ${pv.kind === "item" ? it.e + " " + it.n.toLowerCase() : "el color " + it.n.toLowerCase()} a ${r.name || "la mascota"}`, "pet");
+    if (it.cat !== "comida") preview = null;
+    sceneSig = ""; buzz([30, 40, 30]); hearts($("petBox"), "✨");
+    react("happy", 2500); say(it.cat === "comida" ? `¡${it.e} a la mochila! ¡Ñam!` : rnd(["¡Gracias! ¡Me encanta! 😍", "¡Qué regalo tan bonito! 💛", "¡Sois los mejores! ✨"]));
+    if (it.cat !== "comida") sendMsg(`🛍️ Le he comprado ${it.e || "🎨"} ${it.n.toLowerCase()} a ${r.name || "la mascota"}`, "pet");
+    renderPet();
   }).catch(offline);
 }
-document.querySelectorAll("#shopTabs button").forEach(b => b.onclick = () => { shopTab = b.dataset.s; preview = null; renderPet(); });
+document.querySelectorAll("#shopTabs button").forEach(b => b.onclick = () => { shopTab = b.dataset.s; ls.set("shopTab", shopTab); preview = null; sceneSig = ""; renderPet(); });
 
-// ---- Monedas ----
+// ---------- Monedas ----------
 function coinFx(n) { if (n > 0) fx("coinfx", "+" + n + " 🪙", "", 1300); }
 function addCoins(n) { return petTx(p => { p.coins += n; return p; }).then(() => { toast("+" + n + " 🪙 para el pollito"); }).catch(() => {}); }
 // 💖 Corazones de pareja: cada uno tiene los suyos (juegos, pregunta del día, planes) y se gastan en la Tienda de vales
@@ -471,26 +744,39 @@ function renderHearts() {
   if (typeof curGame !== "undefined" && curGame === "shop") renderShop2();
 }
 
-// ---- Reacciones ----
+// ---------- Reacciones y vida ----------
 function react(expr, ms) { tempExpr = expr; tempUntil = Date.now() + ms; renderPet(); setTimeout(renderPet, ms + 50); }
 function anim(cls, ms) { const b = $("petBox"); b.classList.remove(cls); void b.offsetWidth; b.classList.add(cls); setTimeout(() => b.classList.remove(cls), ms); }
 function fx(cls, e, style = "", ms = 1800) { const s = document.createElement("span"); s.className = "fx " + cls; s.textContent = e; s.style.cssText = style; $("petScene").appendChild(s); setTimeout(() => s.remove(), ms); }
 function say(t, ms = 3200) { const b = $("petSay"); b.textContent = t; b.classList.remove("hidden"); b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; clearTimeout(say.t); say.t = setTimeout(() => b.classList.add("hidden"), ms); }
 function phrase() {
-  const I = petInfo(), o = name(other()), h = hourIn(myTz);
-  const L = ["¡Pío pío! 🐤", "¡Os quiero a los dos! 💛", `Dile a ${o} que le echo de menos`, "Me encantan los mimos 🥰", "¿Jugamos? ⚽", "Cuando os veáis, ¡llevadme! 🧳", "¿Me compráis algo bonito? 🛍️"];
-  if (h >= 23 || h < 7) L.push("Zzz… estaba soñando con vosotros 💤");
+  const I = petInfo(), o = name(other()), me = name(who), h = hourIn(myTz), p = I.p, tr = p.trait;
+  const L = ["¡Pío pío! 🐤", "¡Os quiero a los dos! 💛", `Dile a ${o} que le echo de menos`, "Me encantan los mimos 🥰", "¿Jugamos? ⚽", "Cuando os veáis, ¡llevadme! 🧳", "¿Me compráis algo bonito? 🛍️", `${me}, ¡eres mi favorito! 🤫 (no se lo digas a ${o})`];
+  if (h >= 6 && h < 11) L.push(`¡Buenos días, ${me}! ☀️`, "¿Desayunamos? 🥐");
+  if (h >= 13 && h < 16) L.push("¡Hora de comer! 🍽️", "Qué sueñito después de comer… 😪");
+  if (h >= 20 && h < 23) L.push("Ya casi es hora de dormir 🌙", `¿Le has dado las buenas noches a ${o}?`);
+  if (h >= 23 || h < 7) L.push("Zzz… estaba soñando con vosotros 💤", "¿Qué haces despierto? 🌙");
   if (!I.meT) L.push("Tengo hambre… 🍓");
   if (I.otT) L.push(`Hoy ${o} ya ha venido a verme 💕`);
-  if (I.clean < 40) L.push("Huelo un poco a pollo… ¿un bañito? 🛁");
+  if (I.nv.clean < 40) L.push("Huelo un poco a pollo… ¿un bañito? 🛁");
+  if (I.nv.fun < 35) L.push("Me aburroooo… 🥱");
+  if (I.nv.energy < 30) L.push("Estoy muy cansado… 😴");
+  if (I.sick) L.push("No me encuentro bien… 🤒", "¿Tenéis medicina? 💊");
+  if (tr === "gloton") L.push("¿Hay tarta? 🍰", "Podría comerme una hamburguesa entera 🍔");
+  if (tr === "mimoso") L.push("¡Abrázame! 🤗", "Un mimito más, porfa 🥺");
+  if (tr === "jugueton") L.push("¡Vamos a jugar! 🎈", "¿Me tiras la pelota? ⚽");
+  if (tr === "dormilon") L.push("Cinco minutitos más… 😴", "Me echaría una siesta 🌙");
+  if (p.streak >= 3) L.push(`¡Llevamos ${p.streak} días seguidos juntos! 🔥`);
   if (state.main.next && state.main.next > Date.now()) { const d = Math.ceil((state.main.next - Date.now()) / DAY); L.push(`¡Faltan ${d} día${d === 1 ? "" : "s"} para que os veáis! ✈️`); }
-  return L[Math.floor(Math.random() * L.length)];
+  return rnd(L);
 }
 const petTx = fn => S.tx("state/pet", p => fn(ensureDay(p || newPet())));
 const hatched = () => stageOf((state.pet || {}).xp || 0) > 0;
+let lvlToast = l => { if (l) { setTimeout(() => { confetti(); say(`¡He subido a nivel ${l}! 🎉 +20 🪙`, 4000); }, 900); sendMsg(`⭐ ¡${(state.pet || {}).name || "El pollito"} ha subido a nivel ${l}!`, "pet"); } };
 
+// Comer (el cuidado diario de cada uno: hace crecer al pollito)
 $("petFeed").onclick = () => {
-  const today = dayKey(); let evolved = false, both = false, wasEgg = false, gain = 0;
+  const today = dayKey(); let evolved = false, both = false, wasEgg = false, gain = 0, lvl = 0, newStage = 0;
   petTx(p => {
     p.care = p.care || {};
     if (p.care[who] === today) return null;
@@ -499,42 +785,130 @@ $("petFeed").onclick = () => {
       const before = stageOf(p.xp);
       p.streak = p.lastBoth && daysBetween(p.lastBoth, today) === 1 ? (p.streak || 0) + 1 : 1;
       p.best = Math.max(p.best || 0, p.streak); p.xp += 1; p.lastBoth = today; both = true; gain += 15;
-      if (p.streak % 7 === 0) gain += 50;   // premio por racha semanal
-      evolved = stageOf(p.xp) > before;
+      if (p.streak % 7 === 0) gain += 50;
+      newStage = stageOf(p.xp); evolved = newStage > before;
+      if (evolved) { p.album[newStage] = Date.now(); if (before === 0) { p.hatchedAt = Date.now(); p.trait = p.trait || rnd(Object.keys(TRAITS)); } }
     }
+    if (!wasEgg) { setNeed(p, "food", 45 + (p.trait === "gloton" ? 5 : 0)); if (p.trait === "gloton") setNeed(p, "love", 8); }
+    lvl = gainExp(p, 20);
     p.coins += gain;
     return p;
   }).then(r => {
-    if (!r) return toast("Hoy ya le has dado de comer 🍓"); buzz();
+    if (!r) return toast("Hoy ya le has dado de comer 🍓 Usa la 🎒 Mochila para darle más"); buzz();
     if (!wasEgg) { fx("fall", "🍓", "", 900); setTimeout(() => { anim("eat", 1400); react("happy", 2600); }, 700); }
     else anim("wiggle", 1100);
     setTimeout(() => coinFx(gain), 800);
-    if (evolved) { setTimeout(() => { hearts($("petBox"), "✨"); say(wasEgg ? "¡Hola papás! ¡He nacido! 🐣" : "¡Mirad cuánto he crecido! ✨", 4500); }, 900); toast("✨ ¡Ha evolucionado! ✨", 3500); sendMsg(wasEgg ? "🐣 ¡Nuestro huevo se ha abierto! Ven a verle" : "✨ Nuestra mascota ha evolucionado", "pet"); }
+    if (evolved) { setTimeout(() => { hearts($("petBox"), "✨"); say(wasEgg ? `¡Hola papás! ¡He nacido! 🐣 Soy ${TRAITS[r.trait].n.toLowerCase()} ${TRAITS[r.trait].e}` : `¡Mirad cuánto he crecido! Ahora soy ${STAGES[newStage].n} ✨`, 5000); confetti(); }, 900); toast("✨ ¡Ha evolucionado! ✨", 3500); sendMsg(wasEgg ? "🐣 ¡Nuestro huevo se ha abierto! Ven a verle" : `✨ Nuestra mascota ha evolucionado a ${STAGES[newStage].n}`, "pet"); }
     else if (both) { setTimeout(() => say(r.streak % 7 === 0 ? `¡${r.streak} días seguidos! +50 🪙 🔥` : "¡Hoy me habéis cuidado los dos! 💞"), 900); }
     else { setTimeout(() => say(wasEgg ? "*se mueve un poquito*" : "¡Ñam! Gracias 🥰"), 900); sendMsg((wasEgg ? "🔥 Ya le he dado calor al huevo" : "🍓 Ya le he dado de comer a " + (r.name || "la mascota")) + ", ¡te toca!", "pet"); }
+    lvlToast(lvl);
   }).catch(offline);
 };
-$("petHug").onclick = () => {
-  hearts($("petBox"), "💗"); buzz(20);
-  if (hatched()) { react("happy", 1800); say(phrase()); } else anim("wiggle", 600);
-  let g = 0;
-  petTx(p => { p.hugs = (p.hugs || 0) + 1; p.day.hugs[who] = (p.day.hugs[who] || 0) + 1; g = p.day.hugs[who] <= 10 ? 1 : 0; p.coins += g; return p; }).then(() => coinFx(g)).catch(offline);
+
+// Mochila: comida y medicina compradas
+function openSheet(title, html) { $("sheetTitle").textContent = title; $("sheetBody").innerHTML = html; $("petSheet").classList.remove("hidden"); }
+function closeSheet() { $("petSheet").classList.add("hidden"); }
+$("sheetX").onclick = closeSheet; $("petSheet").onclick = e => { if (e.target.id === "petSheet") closeSheet(); };
+$("petBag").onclick = () => {
+  if (!hatched()) return toast("Primero tiene que nacer 🥚");
+  const p = state.pet || {}, inv = p.inv || {}, items = CATALOG.filter(it => it.cat === "comida" && inv[it.id] > 0);
+  openSheet("🎒 Mochila", items.length ? `<div class="shopgrid">${items.map(it => `<button class="shopit" data-use="${it.id}"><i>${it.e}</i><b>${esc(it.n)}</b><span>x${inv[it.id]} · ${esc(effText(it.eff))}</span></button>`).join("")}</div>`
+    : `<div class="empty">La mochila está vacía. Compra comida, café, champú o medicina en la tienda 🍰💊</div><button class="btn primary mt" style="width:100%" id="goShop">Ir a la tienda</button>`);
+  const gs = $("goShop"); if (gs) gs.onclick = () => { closeSheet(); shopTab = "comida"; ls.set("shopTab", "comida"); renderPet(); $("shopCard").scrollIntoView({ behavior: "smooth" }); };
+  $("sheetBody").querySelectorAll("[data-use]").forEach(b => b.onclick = () => useItem(b.dataset.use));
 };
+function useItem(id) {
+  const it = CAT[id]; let lvl = 0, ok = false, cured = false;
+  if (isNapping(state.pet || {}) && !it.eff.cure) { closeSheet(); return say("Zzz… déjame dormir 😴"); }
+  petTx(p => {
+    if (!(p.inv[id] > 0)) return null; p.inv[id]--; ok = true;
+    for (const [k, v] of Object.entries(it.eff)) { if (k === "cure") { if (p.sick) cured = true; p.sick = false; p.curedAt = Date.now(); for (const [nk] of NEEDS) if (needNow(p, nk) < 25) setNeed(p, nk, 15); } else setNeed(p, k, v); }
+    lvl = gainExp(p, 5); return p;
+  }).then(r => {
+    closeSheet(); if (!ok) return;
+    fx("fall", it.e, "", 900); setTimeout(() => { anim("eat", 1200); react(cured ? "happy" : "love", 2200); say(cured ? "¡Ya me encuentro mejor! 💪" : rnd(["¡Ñam ñam! 😋", "¡Qué rico! 🥰", "¡Más, más! 🤤"])); }, 700);
+    if (cured) sendMsg(`💊 He curado a ${r.name || "la mascota"}, ya está bien`, "pet");
+    lvlToast(lvl);
+  }).catch(offline);
+}
+
+// Mimos (también tocándole; 5 toques = cosquillas; mantener pulsado = caricia)
+function doHug(kind) {
+  if (!hatched()) { anim("wiggle", 600); return; }
+  if (isNapping(state.pet || {})) return say(rnd(["Zzz… 😴", "Mmm… cinco minutos más…", "*ronca suavecito*"]));
+  const tickle = kind === "tickle", pet = kind === "pet";
+  hearts($("petBox"), tickle ? "😂" : pet ? "💕" : "💗"); buzz(tickle ? [20, 30, 20, 30] : 20);
+  react(tickle ? "laugh" : pet ? "love" : "happy", 1800); say(tickle ? rnd(["¡Jajaja, cosquillas no! 🤭", "¡Para, para! 😂", "¡Jijiji! 🤣"]) : pet ? rnd(["Mmmm… qué gustito 🥰", "Así, así… 💕", "*ronronea como un gato*"]) : phrase());
+  if (tickle) anim("wiggle", 900);
+  let g = 0, lvl = 0;
+  petTx(p => { p.hugs = (p.hugs || 0) + 1; p.day.hugs[who] = (p.day.hugs[who] || 0) + 1; const first = p.day.hugs[who] <= 10;
+    g = first ? 1 : 0; p.coins += g; setNeed(p, "love", (pet ? 12 : 8) * (p.trait === "mimoso" ? 2 : 1)); if (tickle) setNeed(p, "fun", 6); if (first) lvl = gainExp(p, 2); return p; })
+    .then(() => { coinFx(g); lvlToast(lvl); }).catch(offline);
+}
+$("petHug").onclick = () => doHug("hug");
+(() => {
+  let taps = [], pressT = null, pressed = false;
+  const box = $("petBox");
+  box.addEventListener("pointerdown", () => { pressed = false; pressT = setTimeout(() => { pressed = true; doHug("pet"); }, 550); });
+  box.addEventListener("pointerup", () => {
+    clearTimeout(pressT); if (pressed) return;
+    const now = Date.now(); taps = taps.filter(t => now - t < 1600); taps.push(now);
+    if (taps.length >= 5) { taps = []; doHug("tickle"); } else if (taps.length === 1) setTimeout(() => { if (taps.length === 1) { taps = []; doHug("hug"); } }, 380);
+  });
+  box.addEventListener("pointerleave", () => clearTimeout(pressT));
+  box.addEventListener("contextmenu", e => e.preventDefault());
+})();
+
+// Jugar: elegir juguete
 $("petPlay").onclick = () => {
   if (!hatched()) return toast("Primero tiene que nacer 🥚");
-  fx("ball", "⚽", "", 1400); setTimeout(() => { anim("jump", 1200); react("happy", 2000); }, 450); buzz(30);
-  setTimeout(() => say(["¡Gol! ⚽", "¡Otra, otra!", "¡Qué divertido! 🤸"][Math.floor(Math.random() * 3)]), 900);
-  let g = 0;
-  petTx(p => { p.day.play[who] = (p.day.play[who] || 0) + 1; g = p.day.play[who] <= 5 ? 3 : 0; p.coins += g; return p; }).then(() => setTimeout(() => coinFx(g), 900)).catch(offline);
+  const p = state.pet || {}, I = petInfo();
+  if (isNapping(p)) return say("Zzz… ahora estoy durmiendo 😴");
+  if (p.sick) return say("Estoy malito, no puedo jugar 🤒");
+  if (I.nv.energy < 15) return say("Estoy agotado… mejor una siesta 😴");
+  const toys = CATALOG.filter(it => it.cat === "juguete" && isOwned(p, it));
+  openSheet("🧸 ¿A qué jugamos?", `<div class="shopgrid">${toys.map(it => `<button class="shopit" data-toy="${it.id}"><i>${it.e}</i><b>${esc(it.n)}</b><span>+${it.fun} diversión</span></button>`).join("")}</div><div class="sub" style="font-size:12px">Más juguetes en la tienda 🧸</div>`);
+  $("sheetBody").querySelectorAll("[data-toy]").forEach(b => b.onclick = () => { closeSheet(); playWith(b.dataset.toy); });
 };
+function playWith(id) {
+  const it = CAT[id];
+  const A = {
+    pelota: () => { fx("ball", "⚽", "", 1400); setTimeout(() => anim("jump", 1200), 450); },
+    yoyo: () => { fx("yoyo", "🪀", "", 1600); anim("wiggle", 1200); },
+    peluche: () => { hearts($("petBox"), "🧸"); react("love", 2000); },
+    cometa: () => { fx("kite", "🪁", "", 2600); anim("jump", 1200); },
+    guitarra: () => { for (let i = 0; i < 6; i++) setTimeout(() => fx("note", rnd(["🎵", "🎶"]), `left:${30 + Math.random() * 40}%`), i * 200); anim("wiggle", 1400); },
+    consola: () => { fx("game", "🎮", "", 1600); for (let i = 0; i < 5; i++) setTimeout(() => fx("note", "✨", `left:${30 + Math.random() * 40}%`), i * 220); }
+  };
+  (A[id] || A.pelota)(); buzz(30);
+  setTimeout(() => { if (id !== "peluche") react("happy", 2000); say(rnd({ pelota: ["¡Gol! ⚽", "¡Otra, otra!"], yoyo: ["¡Mira qué truco! 🪀"], peluche: ["¡Mi peluchito! 🧸💕"], cometa: ["¡Vuela alto! 🪁"], guitarra: ["🎵 Pío, pío, te quiero, pío 🎵"], consola: ["¡He ganado! 🏆", "¡Una partida más! 🎮"] }[id] || ["¡Qué divertido!"])); }, 800);
+  let g = 0, lvl = 0;
+  petTx(p => {
+    p.day.play[who] = (p.day.play[who] || 0) + 1; const first = p.day.play[who] <= 5; g = first ? 3 : 0; p.coins += g;
+    setNeed(p, "fun", it.fun); if (it.love) setNeed(p, "love", it.love); setNeed(p, "energy", -12); setNeed(p, "clean", -4);
+    if (first) lvl = gainExp(p, p.trait === "jugueton" ? 9 : 6); return p;
+  }).then(() => { setTimeout(() => coinFx(g), 900); lvlToast(lvl); }).catch(offline);
+}
+
+// Baño
 $("petBath").onclick = () => {
   if (!hatched()) return toast("Primero tiene que nacer 🥚");
+  if (isNapping(state.pet || {})) return say("Zzz… luego me baño 😴");
   for (let i = 0; i < 9; i++) setTimeout(() => fx("bub", "🫧", `left:${30 + Math.random() * 40}%`), i * 120);
-  anim("wiggle", 1100); setTimeout(() => { react("happy", 2000); say("¡Qué limpito! ✨"); }, 700); buzz(30);
-  let g = 0;
-  petTx(p => { g = p.lastBath === dayKey() ? 0 : 5; p.lastBath = dayKey(); p.coins += g; return p; }).then(() => setTimeout(() => coinFx(g), 900)).catch(offline);
+  anim("wiggle", 1100); setTimeout(() => { react("happy", 2000); say(rnd(["¡Qué limpito! ✨", "¡Huelo a rosas! 🌹", "¡Splash! 💦"])); }, 700); buzz(30);
+  let g = 0, lvl = 0;
+  petTx(p => { const first = p.lastBath !== dayKey(); g = first ? 5 : 0; p.lastBath = dayKey(); p.coins += g; setNeed(p, "clean", 100); if (first) lvl = gainExp(p, 10); return p; })
+    .then(() => { setTimeout(() => coinFx(g), 900); lvlToast(lvl); }).catch(offline);
 };
-$("petBox").onclick = () => $("petHug").click();
+
+// Siesta / despertar
+$("petSleep").onclick = () => {
+  if (!hatched()) return toast("Primero tiene que nacer 🥚");
+  const napping = isNapping(state.pet || {});
+  petTx(p => { if (napping) { setNeed(p, "energy", 0); p.nap = Date.now(); } else { setNeed(p, "energy", 0); p.napStart = Date.now(); p.nap = Date.now() + 2 * 36e5; } return p; })
+    .then(() => { if (napping) { react("surprised", 1500); say("¡Buenos días! ☀️ Ya estoy despierto"); } else say("Buenas noches… 😴💤"); }).catch(offline);
+};
+
 $("petName").onclick = () => {
   const n = prompt("¿Cómo se llama vuestra mascota?", (state.pet && state.pet.name) || CONFIG.petName); if (!n || !n.trim()) return;
   petTx(p => { p.name = n.trim().slice(0, 24); return p; }).catch(offline);
@@ -547,6 +921,20 @@ function hearts(el, e) {
     h.style.animationDelay = (i * 0.08) + "s"; document.body.appendChild(h); setTimeout(() => h.remove(), 1500);
   }
 }
+// Vida propia: mira a los lados, salta, aletea, bosteza y habla de vez en cuando
+setInterval(() => {
+  if (document.hidden || $("tab-pet").classList.contains("hidden") || !hatched() || Date.now() < tempUntil) return;
+  const I = petInfo(), ex = currentExpr(I);
+  if (ex === "sleep") { if (Math.random() < .15) say(rnd(["Zzz…", "*ronquidito*", "💤"]), 1800); return; }
+  const r = Math.random();
+  if (r < .3) anim(Math.random() < .5 ? "lookl" : "lookr", 1400);
+  else if (r < .45) anim("hopsm", 700);
+  else if (r < .55) anim("flap", 900);
+  else if (r < .63 && (ex === "tired" || ex === "bored")) { say("*bosteza* 🥱", 2000); anim("yawn", 1500); }
+  else if (r < .73) say(phrase());
+  else if (r < .78 && ex === "hungry") say("Grrr… mi tripita 🍽️", 2000);
+}, 7000);
+setInterval(() => { if (!document.hidden) renderPet(); }, 60000);
 
 // ================= ¿Me conoces? =================
 const QZ = [
@@ -1105,7 +1493,7 @@ function renderMoods(list) {
 const NIGHT = ["Buenas noches, mi amor 🌙 Sueña conmigo", "Que descanses 💤 Te quiero", "Buenas noches ✨ Mañana te echo de menos otra vez", "Un beso de buenas noches 😘🌙", "Duerme bien, ojalá estuvieras aquí 🌙"];
 $("btnNight").onclick = () => {
   buzz(40); sendMsg(NIGHT[Math.floor(Math.random() * NIGHT.length)], "night");
-  petTx(p => { p.nap = Date.now() + 8 * 36e5; return p; }).catch(() => {});
+  petTx(p => { setNeed(p, "energy", 0); p.napStart = Date.now(); p.nap = Date.now() + 8 * 36e5; return p; }).catch(() => {});
   toast(`Beso de buenas noches enviado a ${name(other())} 🌙 ${(state.pet && state.pet.name) || "El pollito"} se va a dormir`, 3200);
 };
 
@@ -1985,7 +2373,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "26";
+const APP_VERSION = "27";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
