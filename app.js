@@ -1159,6 +1159,7 @@ const SLOT_VB = { head: "30 8 140 100", face: "55 80 90 50", neck: "45 125 110 6
 function shopIcon(it) {
   if (it.cat === "color") return `<i class="sw" style="background:${it.pat === "rainbow" ? "linear-gradient(135deg,#ff6b8b,#ffd93b,#6fdc9a,#7fb7ff)" : it.pat === "ice" ? "linear-gradient(135deg,#fff,#c9f0ff 50%,#8fd3ff)" : `linear-gradient(135deg,${it.body} 55%,${it.dark} 55%)`}"></i>`;
   if (it.sw) return `<i class="sw sq" style="background:${it.sw}"></i>`;
+  if (it.cat === "lugar") return `<i class="lsvg">${landscape(it.id, "day", "", -1)}</i>`;
   if (it.kind === "furn" && FA[it.id]) return `<i class="fsvg">${furnSVG(it.id, { mode: "day" })}</i>`;
   if (it.slot && SLOT_VB[it.slot]) return `<i class="isvg"><svg data-it="${it.id}" viewBox="${ICON_BB[it.id] || SLOT_VB[it.slot]}"><g class="ic">${it.slot === "body" ? `<defs><clipPath id="icClip"><circle cx="100" cy="116" r="52"/></clipPath></defs><circle cx="100" cy="116" r="52" fill="#ffd93b" opacity=".9"/><ellipse cx="100" cy="136" rx="31" ry="25" fill="#ffec9e"/><g clip-path="url(#icClip)">${itemSVG(it.id)}</g>` : itemSVG(it.id)}</g></svg></i>`;
   return `<i>${it.e || "🎁"}</i>`;
@@ -1449,6 +1450,83 @@ function furnStyle(id, pos) {
   const base = FURN_POS[id] || "", fs = (base.match(/font-size:[^;]+/) || ["font-size:40px"])[0];
   return pos ? `left:${pos.l}%;top:${pos.t}%;${fs}` : base;
 }
+// ---------- Paisajes dibujados (mismo estilo que la mascota) ----------
+// Lienzo 400×300; el suelo queda a la altura de los pies de la mascota (y≈245)
+const L_ = {
+  cloud: (x, y, k, c = "#fff") => `<g transform="translate(${x} ${y}) scale(${k})" fill="${c}"><ellipse cx="0" cy="0" rx="26" ry="13"/><ellipse cx="16" cy="-9" rx="17" ry="13"/><ellipse cx="-15" cy="-4" rx="14" ry="10"/><ellipse cx="32" cy="2" rx="14" ry="9"/></g>`,
+  tree: (x, y, k, c = "#4f9f3e") => `<g transform="translate(${x} ${y}) scale(${k})"><rect x="-6" y="-52" width="12" height="54" rx="4" fill="#8a5a38"/><circle cx="0" cy="-72" r="30" fill="${c}"/><circle cx="-21" cy="-56" r="20" fill="${c}"/><circle cx="21" cy="-56" r="20" fill="#5aab47"/><circle cx="-8" cy="-84" r="13" fill="#6cbd57" opacity=".8"/><ellipse cx="0" cy="2" rx="26" ry="4" fill="rgba(0,0,0,.15)"/></g>`,
+  pine: (x, y, k, c = "#2f6f3e", snow) => `<g transform="translate(${x} ${y}) scale(${k})"><ellipse cx="0" cy="1" rx="30" ry="4" fill="rgba(0,0,0,.15)"/><rect x="-5" y="-14" width="10" height="16" fill="#6b4a2f"/><path d="M0 -112 L30 -52 H17 L40 -14 H-40 L-17 -52 H-30Z" fill="${c}"/><path d="M0 -112 L30 -52 H17 L40 -14 H22 Z" fill="rgba(0,0,0,.12)"/>${snow ? `<path d="M0 -112 L10 -92 Q0 -86 -10 -92Z M-26 -54 Q0 -46 26 -54 M-37 -16 Q0 -8 37 -16" stroke="#fff" stroke-width="5" fill="#fff" stroke-linecap="round"/>` : ""}</g>`,
+  flower: (x, y, c) => `<g transform="translate(${x} ${y})"><path d="M0 0 V-11" stroke="#3d8a2e" stroke-width="2"/>${[0, 72, 144, 216, 288].map(a => `<circle cx="${(4 * Math.cos(a * Math.PI / 180)).toFixed(1)}" cy="${(-13 + 4 * Math.sin(a * Math.PI / 180)).toFixed(1)}" r="3.2" fill="${c}"/>`).join("")}<circle cy="-13" r="2.2" fill="#ffd93b"/></g>`,
+  heart: (x, y, k, c) => `<path d="M0 6 C-10 -2 -10 -11 -4 -11 C-1 -11 0 -8 0 -6 C0 -8 1 -11 4 -11 C10 -11 10 -2 0 6Z" transform="translate(${x} ${y}) scale(${k})" fill="${c}"/>`,
+  ground: (c, top, y = 246, d = 22) => `<path d="M0 ${y} Q200 ${y - d} 400 ${y} V300 H0Z" fill="${c}"/><path d="M0 ${y} Q200 ${y - d} 400 ${y}" stroke="${top}" stroke-width="5" fill="none"/>`,
+  snowman: (x, y, k) => `<g transform="translate(${x} ${y}) scale(${k})"><ellipse cx="0" cy="0" rx="22" ry="4" fill="rgba(0,0,0,.12)"/><circle cy="-18" r="19" fill="#fff" stroke="#dbe8f4" stroke-width="2"/><circle cy="-46" r="14" fill="#fff" stroke="#dbe8f4" stroke-width="2"/><circle cy="-67" r="10" fill="#fff" stroke="#dbe8f4" stroke-width="2"/><path d="M-10 -56 Q0 -50 10 -56 L12 -50 Q0 -44 -12 -50Z" fill="#e63946"/><circle cx="-3.5" cy="-69" r="1.6" fill="#222"/><circle cx="3.5" cy="-69" r="1.6" fill="#222"/><path d="M0 -66 L10 -64 L0 -63Z" fill="#ff8c1a"/><rect x="-9" y="-80" width="18" height="4" fill="#222"/><rect x="-6" y="-92" width="12" height="13" fill="#222"/><circle cy="-40" r="1.8" fill="#222"/><circle cy="-30" r="1.8" fill="#222"/></g>`
+};
+function starsSVG(n, seed, maxY = 200) { let s = ""; for (let i = 0; i < n; i++) { const h = hashStr(seed + i); s += `<circle class="tw" style="animation-delay:${(h % 24) / 10}s" cx="${h % 400}" cy="${(h >> 9) % maxY}" r="${(h >> 5) % 3 ? 1 : 1.7}" fill="#fff"/>`; } return s; }
+const SCN = {
+  jardin: () => `<ellipse cx="70" cy="252" rx="170" ry="58" fill="#9ad97a"/><ellipse cx="340" cy="256" rx="180" ry="62" fill="#8ccf6c"/>${L_.tree(42, 240, 1)}<g fill="#58ad3f"><circle cx="362" cy="238" r="16"/><circle cx="384" cy="236" r="19"/><circle cx="346" cy="244" r="12"/></g>` +
+    L_.ground("#6fbf4f", "#8ad86a") + [[110, 264, "#ff8fb8"], [128, 272, "#fff"], [72, 278, "#ffd93b"], [290, 266, "#ff6b6b"], [318, 274, "#cdb4ff"], [352, 264, "#ffd93b"], [376, 280, "#ff8fb8"]].map(f => L_.flower(...f)).join(""),
+  playa: () => `<rect x="0" y="172" width="400" height="70" fill="#3fa7d6"/><rect x="0" y="172" width="400" height="7" fill="#8fd6f5" opacity=".75"/><path d="M20 195 q10 -5 20 0 M120 206 q10 -5 20 0 M240 190 q10 -5 20 0 M330 212 q10 -5 20 0 M60 222 q10 -5 20 0" stroke="#fff" stroke-width="2" fill="none" opacity=".6"/>` +
+    `<g transform="translate(318 186)"><path d="M-18 0 H18 L12 8 H-12Z" fill="#8a5a38"/><path d="M1 -2 V-30 L17 -4Z" fill="#fff"/><path d="M-1 -4 V-24 L-14 -4Z" fill="#ff6b6b"/></g>` +
+    `<path d="M0 236 Q110 220 220 232 T400 228 V300 H0Z" fill="#f2d49b"/><path d="M0 236 Q110 220 220 232 T400 228" stroke="#fff" stroke-width="4" fill="none" opacity=".6"/>` +
+    `<path d="M52 256 Q38 206 64 150" stroke="#a0703f" stroke-width="11" fill="none" stroke-linecap="round"/><path d="M47 236 l10 -2 M44 216 l10 -1 M46 196 l10 0 M52 176 l10 1" stroke="#7d5530" stroke-width="2.5"/>` +
+    `<g fill="#3fa34d"><path d="M64 150 Q30 128 4 150 Q34 138 64 154Z"/><path d="M64 150 Q98 126 124 146 Q94 138 64 154Z"/><path d="M64 150 Q44 116 20 112 Q48 124 62 152Z"/><path d="M64 150 Q86 114 112 110 Q84 124 66 152Z"/><path d="M64 150 Q70 118 60 98 Q76 120 68 152Z" fill="#52b95f"/></g><circle cx="60" cy="156" r="5" fill="#7d5530"/><circle cx="69" cy="157" r="5" fill="#7d5530"/>` +
+    `<path d="${starP(336, 268, 8)}" fill="#ff8c42"/><path d="M366 280 a8 8 0 0 1 16 0Z" fill="#ffb3cf"/><path d="M370 280 v-6 M374 280 v-8 M378 280 v-6" stroke="#ff8fb8" stroke-width="1.5"/>`,
+  bosque: () => { let far = ""; for (let i = 0; i < 13; i++) { const x = i * 32 - 10, t = 150 + (i % 3) * 14; far += `<path d="M${x} 232 L${x + 18} ${t} L${x + 36} 232Z" fill="#7fb58a"/>`; }
+    return far + L_.ground("#4f8f3a", "#63a94b", 246, 18) + L_.pine(36, 254, 1.25) + L_.pine(372, 256, 1.15) + L_.pine(320, 244, .8, "#3d7f4a") +
+      `<g transform="translate(300 272)"><rect x="-3" y="-8" width="6" height="9" rx="2" fill="#fff"/><path d="M-10 -7 Q0 -21 10 -7Z" fill="#e63946"/><circle cx="-3" cy="-12" r="1.6" fill="#fff"/><circle cx="4" cy="-11" r="1.4" fill="#fff"/></g><g transform="translate(96 276) scale(.8)"><rect x="-3" y="-8" width="6" height="9" rx="2" fill="#fff"/><path d="M-10 -7 Q0 -21 10 -7Z" fill="#e63946"/><circle cx="-3" cy="-12" r="1.6" fill="#fff"/></g>` +
+      `<g class="bfly"><g transform="translate(110 150)"><ellipse cx="-5" cy="0" rx="6" ry="8" fill="#ffb3d1"/><ellipse cx="5" cy="0" rx="6" ry="8" fill="#ff8fb8"/><rect x="-1" y="-6" width="2" height="12" fill="#3a2330"/></g></g>`; },
+  nieve: () => `<path d="M0 222 L70 142 L130 200 L200 118 L280 210 L340 150 L400 200 V246 H0Z" fill="#b8cbe2"/><path d="M70 142 L55 160 L70 154 L85 162Z M200 118 L181 142 L200 135 L217 146Z M340 150 L325 167 L340 162 L354 169Z" fill="#fff"/>` +
+    L_.ground("#fdfeff", "#dbe8f4") + `<path d="M40 272 q30 -6 60 0 M280 282 q30 -6 60 0" stroke="#dbe8f4" stroke-width="3" fill="none"/>` + L_.pine(40, 250, 1.05, "#2f5f4a", 1) + L_.pine(88, 244, .6, "#3a6d57", 1) + L_.snowman(350, 262, 1),
+  montana: () => `<path d="M0 212 L60 150 L110 188 L170 112 L230 180 L290 130 L350 188 L400 160 V250 H0Z" fill="#a8bcdb"/><path d="M-20 244 L112 88 L182 160 L232 118 L336 244Z" fill="#7189a8"/><path d="M112 88 L182 160 L160 244 L130 244Z" fill="#5f7896"/><path d="M232 118 L336 244 L300 244 L256 170Z" fill="#5f7896"/>` +
+    `<path d="M112 88 L90 115 L102 110 L112 122 L124 108 L136 117Z M232 118 L217 136 L229 132 L240 141 L247 133Z" fill="#fff"/>` + L_.ground("#8cbf5f", "#a4d07a") +
+    `<ellipse cx="62" cy="266" rx="42" ry="7" fill="#7fc4ee"/><ellipse cx="52" cy="264" rx="18" ry="2" fill="#fff" opacity=".5"/>` + L_.pine(334, 250, .55, "#3d7f4a") + L_.pine(358, 256, .7, "#2f6f3e") + L_.pine(382, 250, .5, "#3d7f4a") + L_.flower(120, 276, "#fff") + L_.flower(300, 274, "#ffd93b"),
+  ciudad: N => { const back = [[0, 120], [36, 92], [70, 142], [104, 100], [140, 130], [176, 86], [210, 150], [246, 110], [282, 136], [318, 96], [352, 126], [386, 104]];
+    let s = back.map(([x, h]) => `<rect x="${x}" y="${238 - h}" width="36" height="${h}" fill="${N ? "#353a63" : "#aeb9d6"}"/>`).join("");
+    const front = [[-6, 78, 58], [48, 104, 46], [276, 94, 50], [330, 124, 56], [384, 84, 40]];
+    for (const [x, h, w] of front) { s += `<rect x="${x}" y="${240 - h}" width="${w}" height="${h}" fill="${N ? "#262b4b" : "#6d7c9b"}"/><rect x="${x}" y="${240 - h}" width="${w}" height="5" fill="${N ? "#1d2140" : "#5b6886"}"/>`;
+      for (let yy = 240 - h + 12; yy < 228; yy += 16) for (let xx = x + 7; xx < x + w - 8; xx += 12) { const lit = N ? hashStr(xx + ":" + yy) % 3 !== 0 : false; s += `<rect x="${xx}" y="${yy}" width="6" height="8" rx="1" fill="${N ? (lit ? "#ffd966" : "#1a1e3a") : "#d6ebff"}"/>`; } }
+    s += `<rect y="236" width="400" height="10" fill="#a2a2ad"/><rect y="244" width="400" height="56" fill="#56565f"/><path d="M0 274 H400" stroke="#fff" stroke-width="3" stroke-dasharray="18 14" opacity=".7"/>`;
+    for (const x of [30, 372]) s += `${N ? `<circle cx="${x + 10}" cy="178" r="26" fill="#ffe8a0" opacity=".25"/>` : ""}<rect x="${x - 2}" y="178" width="4" height="62" fill="#3a3a44"/><path d="M${x} 178 q0 -8 10 -8 h4" stroke="#3a3a44" stroke-width="4" fill="none"/><rect x="${x + 8}" y="172" width="12" height="8" rx="2" fill="${N ? "#ffe066" : "#e8e8ef"}"/>`;
+    return s + L_.tree(98, 240, .5) + `<rect x="84" y="234" width="28" height="8" rx="2" fill="#8a5a38"/>`; },
+  mar: () => `<g fill="#fff" opacity=".08"><path d="M60 0 L100 0 L40 300 L10 300Z"/><path d="M180 0 L215 0 L190 300 L150 300Z"/><path d="M300 0 L330 0 L370 300 L335 300Z"/></g>` +
+    `<g class="swim1"><ellipse cx="80" cy="118" rx="14" ry="8" fill="#ff8c42"/><path d="M93 118 l11 -7 v14z" fill="#ff8c42"/><path d="M76 111 v14" stroke="#fff" stroke-width="3"/><circle cx="72" cy="116" r="2" fill="#222"/></g><g class="swim2"><ellipse cx="320" cy="84" rx="11" ry="6" fill="#4dd2ff"/><path d="M309 84 l-9 -6 v12z" fill="#4dd2ff"/><circle cx="326" cy="82" r="1.7" fill="#222"/></g>` +
+    L_.ground("#e0c48a", "#ecd5a6", 248, 16) + [[30, 250, "#2d8a3e"], [52, 252, "#3fa34d"], [368, 252, "#2d8a3e"]].map(([x, y, c]) => `<path class="sway" d="M${x} ${y} q-12 -22 0 -44 q12 -22 0 -44" stroke="${c}" stroke-width="7" fill="none" stroke-linecap="round"/>`).join("") +
+    `<g transform="translate(330 252)" stroke="#ff7aa2" stroke-width="7" stroke-linecap="round" fill="none"><path d="M0 0 V-32 M0 -18 L-15 -34 M0 -26 L12 -42 M-15 -34 V-46"/></g><g transform="translate(96 256)" stroke="#ffa94d" stroke-width="6" stroke-linecap="round" fill="none"><path d="M0 0 V-22 M0 -12 L10 -26 M0 -16 L-9 -28"/></g>` +
+    `<ellipse cx="270" cy="262" rx="16" ry="8" fill="#9aa3ae"/><ellipse cx="288" cy="266" rx="10" ry="6" fill="#b2bac4"/><path d="${starP(230, 278, 8)}" fill="#ff8c42"/>`,
+  espacio: () => starsSVG(60, "esp", 230) + `<g transform="translate(92 130)"><ellipse rx="48" ry="11" fill="none" stroke="#e8c98a" stroke-width="5" transform="rotate(-18)"/><circle r="24" fill="#f2b56b"/><path d="M-22 -8 Q0 -2 22 -8" stroke="#e39a4a" stroke-width="4" fill="none"/><path d="M-48 0 A48 11 0 0 0 48 0" stroke="#e8c98a" stroke-width="5" fill="none" transform="rotate(-18)"/></g>` +
+    `<g transform="translate(318 104)"><circle r="19" fill="#4d9dff"/><path d="M-12 -8 q6 -6 12 0 q4 6 -4 10 q-8 2 -8 -10z M4 6 q8 -2 10 6 q-6 6 -10 -6z" fill="#6fdc9a"/><circle r="19" fill="none" stroke="#bfe9ff" stroke-width="2" opacity=".6"/></g>` +
+    `<g class="fly2"><g transform="translate(240 60) rotate(35)"><path d="M0 -16 Q7 -8 7 6 H-7 Q-7 -8 0 -16Z" fill="#eef2f6"/><circle cy="-4" r="3" fill="#4dd2ff"/><path d="M-7 2 l-5 8 h5z M7 2 l5 8 h-5z" fill="#e63946"/><path d="M-4 7 q4 10 8 0z" fill="#ff9f1c"/></g></g>` +
+    L_.ground("#8d8aa3", "#a7a4bd", 244, 26) + `<g fill="#77748d"><ellipse cx="70" cy="270" rx="22" ry="6"/><ellipse cx="320" cy="262" rx="16" ry="4"/><ellipse cx="360" cy="282" rx="12" ry="3.5"/></g><path d="M300 240 v-26" stroke="#ccc" stroke-width="2"/><path d="M300 214 h16 v10 h-16z" fill="#e63946"/>`,
+  amor: () => `${L_.heart(120, 70, 2.4, "#fff")}${L_.heart(262, 108, 1.8, "#ffe0ec")}<ellipse cx="80" cy="254" rx="170" ry="58" fill="#ffc2d8"/><ellipse cx="340" cy="258" rx="180" ry="62" fill="#ffb0cc"/>` +
+    [[46, 244, 1], [360, 248, .9]].map(([x, y, k]) => `<g transform="translate(${x} ${y}) scale(${k})"><ellipse cx="0" cy="2" rx="24" ry="4" fill="rgba(0,0,0,.12)"/><rect x="-5" y="-50" width="10" height="52" rx="4" fill="#8a5a38"/>${L_.heart(0, -70, 5.2, "#ff5c8a")}${L_.heart(-6, -78, 1.4, "#ff8fb8")}</g>`).join("") +
+    L_.ground("#ff8fb8", "#ffa8c8") + [[110, 266], [134, 274], [300, 268], [326, 276]].map(([x, y]) => `<g transform="translate(${x} ${y})"><path d="M0 0 V-10" stroke="#2d8a3e" stroke-width="2"/><circle cy="-12" r="4.5" fill="#d62839"/><path d="M-3 -13 q3 -3 6 0" stroke="#a4161a" stroke-width="1.5" fill="none"/></g>`).join("") +
+    [[70, 150], [320, 170], [200, 60]].map(([x, y], i) => `<g class="flo" style="animation-delay:${i * 1.3}s">${L_.heart(x, y, 1.3, "#ff3d7f")}</g>`).join("")
+};
+function seasonalSVG(month) {
+  if (month === 9) return `<g transform="translate(106 266)"><ellipse cx="0" cy="0" rx="16" ry="3" fill="rgba(0,0,0,.15)"/><ellipse cx="-8" cy="-9" rx="9" ry="9" fill="#f77f00"/><ellipse cx="8" cy="-9" rx="9" ry="9" fill="#f77f00"/><ellipse cx="0" cy="-9" rx="10" ry="10" fill="#fb8b24"/><path d="M-4 -12 l2 -3 2 3z M2 -12 l2 -3 2 3z" fill="#3a1f00"/><path d="M-5 -6 q5 3 10 0" stroke="#3a1f00" stroke-width="1.6" fill="none"/><rect x="-1.5" y="-22" width="3" height="5" rx="1" fill="#2d8a3e"/></g>` +
+    `<g class="flo"><path d="M300 108 q0 -22 18 -22 q18 0 18 22 v18 l-6 -5 -6 5 -6 -5 -6 5 -6 -5 -6 5z" fill="#fff" opacity=".92"/><circle cx="312" cy="104" r="2.4" fill="#222"/><circle cx="324" cy="104" r="2.4" fill="#222"/><ellipse cx="318" cy="112" rx="3" ry="4" fill="#222"/></g>`;
+  if (month === 11) return `<g transform="translate(100 272) scale(.5) translate(-48 -128)">${FA.arbolnav.d()}</g><g transform="translate(132 272)"><rect x="-9" y="-16" width="18" height="16" rx="2" fill="#e63946"/><rect x="-2" y="-16" width="4" height="16" fill="#ffd23f"/><path d="M0 -16 q-8 -8 -6 0 M0 -16 q8 -8 6 0" stroke="#ffd23f" stroke-width="2" fill="none"/></g>`;
+  if (month === 0) return L_.snowman(108, 270, .55);
+  if (month === 1) return `<g class="flo"><path d="M310 150 Q316 180 304 200" stroke="#999" stroke-width="1.2" fill="none"/>${L_.heart(310, 138, 2.2, "#ff3d7f")}</g>`;
+  return "";
+}
+function landscape(scene, mode, wk = "", month = new Date().getMonth()) {
+  const N = mode === "night", Dw = mode === "dawn", out = scene !== "mar" && scene !== "espacio";
+  const SKY = { jardin: ["#7ec8ff", "#d4f0ff"], playa: ["#6ec6ff", "#d2f1ff"], bosque: ["#9fd4c4", "#e4f6dc"], nieve: ["#a9cdef", "#eef6fd"], montana: ["#6fb0e6", "#d6ecfa"],
+    ciudad: ["#8fc2ee", "#e6f2ff"], mar: ["#2a8cc4", "#0c3d66"], espacio: ["#05041a", "#2b1f5c"], amor: ["#ffb3cf", "#ffe6f0"] };
+  let [s1, s2] = SKY[scene] || SKY.jardin;
+  if (out) { if (N) [s1, s2] = ["#0b0c29", "#2f2a5c"]; else if (Dw) [s1, s2] = ["#ff9a8b", "#ffd9a8"]; if (wk === "rain" || wk === "storm") [s1, s2] = N ? ["#15172a", "#34374c"] : ["#8a98a8", "#cfd7e0"]; }
+  const gid = "lsk" + scene + mode + wk;
+  let s = `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s1}"/><stop offset="1" stop-color="${s2}"/></linearGradient></defs><rect width="400" height="300" fill="url(#${gid})"/>`;
+  if (out && N) s += starsSVG(34, "n" + scene, 160);
+  if (out && !["rain", "storm", "snow"].includes(wk)) s += N ? `<defs><mask id="moonM"><rect width="400" height="300" fill="#fff"/><circle cx="301" cy="37" r="15" fill="#000"/></mask></defs><circle cx="292" cy="44" r="28" fill="#fff6c2" opacity=".12"/><circle cx="292" cy="44" r="18" fill="#fff6c2" mask="url(#moonM)"/>` : Dw ? `<circle cx="300" cy="176" r="40" fill="#ffcf73" opacity=".35"/><circle cx="300" cy="176" r="26" fill="#ffb347"/>` : `<circle cx="292" cy="44" r="30" fill="#fff3b0" opacity=".45"/><circle cx="292" cy="44" r="20" fill="#ffd93b"/>`;
+  if (out && (!N || wk === "cloud" || wk === "rain" || wk === "storm")) { const c = wk === "rain" || wk === "storm" ? "#9aa3b0" : N ? "#8b86b8" : "#fff"; s += `<g class="drift" opacity=".92">${L_.cloud(150, 52, 1, c)}${L_.cloud(236, 96, .7, c)}${wk ? L_.cloud(66, 118, .8, c) + L_.cloud(340, 128, .9, c) : ""}</g>`; }
+  s += (SCN[scene] || SCN.jardin)(N, Dw);
+  if (out) s += seasonalSVG(month);
+  if (out && N && scene !== "ciudad") s += `<rect width="400" height="300" fill="#0a0a30" opacity=".3"/>`;
+  if (out && Dw) s += `<rect width="400" height="300" fill="#ff8a50" opacity=".08"/>`;
+  return `<svg class="land" viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice">${s}</svg>`;
+}
 function renderScene(I, pvScene, pvRoom) {
   const h = hourIn(myTz), mode = (h >= 21 || h < 6) ? "night" : (h < 8 || h >= 19) ? "dawn" : "day", month = new Date().getMonth();
   const p = I.p, scene = pvScene || p.scene || "jardin", room = { ...roomOf(p, curRoom), ...(pvRoom || {}) };
@@ -1471,20 +1549,14 @@ function renderScene(I, pvScene, pvRoom) {
       sky += `<div class="roomnight" style="${on ? `background:radial-gradient(circle at ${lp.x}% ${ly.toFixed(1)}%,rgba(255,220,140,.42) 0,rgba(255,200,120,.14) 90px,rgba(10,10,40,.5) 230px)` : ""}"></div>`;
     }
   } else {
-    S0.className = "scene sc-" + scene + " " + (mode === "day" ? "" : mode);
+    S0.className = "scene land-on sc-" + scene + " " + (mode === "day" ? "" : mode);
     S0.style.removeProperty("--wall"); S0.style.removeProperty("--floor");
-    if (scene === "espacio" || mode === "night") for (let i = 0; i < 26; i++) sky += `<i class="star" style="left:${(Math.random() * 100).toFixed(1)}%;top:${(Math.random() * 55).toFixed(1)}%;animation-delay:${(Math.random() * 2.4).toFixed(2)}s"></i>`;
-    if (scene !== "espacio" && scene !== "mar") {
-      if (!(wk === "rain" || wk === "storm" || wk === "snow")) sky += `<span class="sun">${mode === "night" ? "🌙" : mode === "dawn" ? "🌅" : "☀️"}</span>`;
-      if ((mode !== "night" && scene !== "ciudad") || wk === "cloud" || wk === "rain" || wk === "storm") sky += `<span class="cloud" style="top:40px;animation-delay:-8s">☁️</span><span class="cloud" style="top:90px;animation-delay:-24s;font-size:26px">☁️</span>`;
-    }
+    sky += landscape(scene, mode, wk, month);
     if (scene === "nieve" || wk === "snow") for (let i = 0; i < 16; i++) sky += `<i class="flake" style="left:${(Math.random() * 100).toFixed(0)}%;animation-delay:${(Math.random() * 6).toFixed(1)}s;animation-duration:${(5 + Math.random() * 4).toFixed(1)}s">❄</i>`;
     if ((wk === "rain" || wk === "storm") && scene !== "mar" && scene !== "espacio") { for (let i = 0; i < 30; i++) sky += `<i class="drop" style="left:${(Math.random() * 100).toFixed(0)}%;animation-delay:${(Math.random() * 1.2).toFixed(2)}s"></i>`; sky += `<span class="umbrella">☂️</span>`; }
     if (wk === "storm") sky += `<div class="flash"></div>`;
     if (wk === "fog") sky += `<div class="fog"></div>`;
     if (scene === "mar") for (let i = 0; i < 8; i++) sky += `<i class="bubbleup" style="left:${(10 + Math.random() * 80).toFixed(0)}%;animation-delay:${(Math.random() * 5).toFixed(1)}s">○</i>`;
-    for (const [e, st, cl] of (SCENE_DECO[scene] || [])) sky += `<span class="deco ${cl || ""}" style="${st}">${e}</span>`;
-    for (const [e, st, cl] of (SEASON_DECO[month] || [])) sky += `<span class="deco ${cl || ""}" style="${st}">${e}</span>`;
     // tesoro
     if (treasureReady(p) && I.si > 0 && !away) { const x = 12 + (hashStr(String((p.tre || {})[who] || 0)) % 60); sky += `<button class="treasure" id="treasureBtn" style="left:${x}%">✨</button>`; }
   }
@@ -3419,7 +3491,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "31";
+const APP_VERSION = "32";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
