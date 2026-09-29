@@ -709,11 +709,34 @@ function loadLeaflet() {
   });
   return leafletP;
 }
-const TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-const ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+// Mapa satélite (Esri, gratis y sin clave) con nombres de lugares encima.
+// Si no carga, se prueba un satélite de reserva y, en último caso, el mapa normal.
+const MAP_SOURCES = [
+  { url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", attr: "Imágenes © Esri, Maxar, Earthstar Geographics", max: 19, labels: true },
+  { url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", attr: "Imágenes © Esri, Maxar, Earthstar Geographics", max: 19, labels: true },
+  { url: "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/{z}/{y}/{x}.jpg", attr: "Sentinel-2 cloudless © EOX IT Services (Copernicus 2020)", max: 15, labels: true },
+  { url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", attr: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', max: 19, labels: false }
+];
+const LABELS = "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}";
 function baseMap(el) {
   const m = L.map(el, { zoomControl: false, attributionControl: true, worldCopyJump: true }).setView([45, 10], 3);
-  L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19 }).addTo(m);
+  const labels = L.tileLayer(LABELS, { maxZoom: 19, attribution: "Nombres © Esri" });
+  let idx = 0;
+  const use = () => {
+    const s = MAP_SOURCES[idx]; let ok = 0, bad = 0;
+    const t = L.tileLayer(s.url, { attribution: s.attr, maxZoom: 19, maxNativeZoom: s.max });
+    t.on("tileload", () => { ok++; });
+    t.on("tileerror", () => {
+      bad++;
+      if (ok === 0 && bad >= 3 && idx < MAP_SOURCES.length - 1) {
+        m.removeLayer(t); if (m.hasLayer(labels)) m.removeLayer(labels);
+        idx++; use();
+      }
+    });
+    t.addTo(m);
+    if (s.labels) labels.addTo(m);
+  };
+  use();
   return m;
 }
 
@@ -734,7 +757,7 @@ function drawMemMap() {
   if (!memMap) return;
   memLayer.clearLayers();
   withLoc.forEach(m => {
-    const html = m.photo ? `<div class="pin ${m.from}"><img src="${m.photo}" alt=""></div>` : `<div class="pin ${m.from} nophoto">💗</div>`;
+    const html = m.photo ? `<div class="pin ${m.from}"><div class="ph" style="background-image:url('${m.photo}')"></div></div>` : `<div class="pin ${m.from} nophoto">💗</div>`;
     const icon = L.divIcon({ html, className: "", iconSize: [52, 60], iconAnchor: [26, 58], popupAnchor: [0, -54] });
     const when = new Date(m.taken || m.at).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
     L.marker([m.lat, m.lng], { icon }).addTo(memLayer).bindPopup(
