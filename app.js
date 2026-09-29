@@ -705,30 +705,15 @@ function loadLeaflet() {
   leafletP = new Promise((res, rej) => {
     const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"; document.head.appendChild(css);
     const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
-    s.onload = () => res(window.L); s.onerror = () => { leafletP = null; rej(new Error("sin mapa")); }; document.head.appendChild(s);
+    s.onload = () => window.L ? res(window.L) : (leafletP = null, rej(new Error("sin mapa"))); s.onerror = () => { leafletP = null; rej(new Error("sin mapa")); }; document.head.appendChild(s);
   });
   return leafletP;
 }
 const TILES = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 const ATTR = '© <a href="https://www.openstreetmap.org/copyright">OSM</a> · © <a href="https://carto.com/">CARTO</a>';
-const SAT = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-const SAT_LABELS = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png";
 function baseMap(el) {
   const m = L.map(el, { zoomControl: false, attributionControl: true, worldCopyJump: true }).setView([45, 10], 3);
-  const street = L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19, subdomains: "abcd" });
-  const sat = L.layerGroup([
-    L.tileLayer(SAT, { attribution: "© Esri, Maxar, Earthstar Geographics", maxZoom: 19 }),
-    L.tileLayer(SAT_LABELS, { subdomains: "abcd", maxZoom: 19 })
-  ]);
-  let isSat = false; street.addTo(m);
-  const btn = document.createElement("button"); btn.className = "mapmode"; btn.textContent = "🛰️ Satélite";
-  btn.onclick = e => {
-    e.stopPropagation(); isSat = !isSat;
-    if (isSat) { m.removeLayer(street); sat.addTo(m); btn.textContent = "🗺️ Mapa"; }
-    else { m.removeLayer(sat); street.addTo(m); btn.textContent = "🛰️ Satélite"; }
-  };
-  L.DomEvent.disableClickPropagation(btn);
-  el.appendChild(btn);
+  L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19, subdomains: "abcd" }).addTo(m);
   return m;
 }
 
@@ -867,6 +852,86 @@ function renderMem(list) {
   drawMemMap();
 }
 
+
+// ================= Planes (lista para tachar) =================
+const PLAN_IDEAS = [
+  ["🌅", "Ver el amanecer juntos"], ["🚆", "Un viaje en tren sin rumbo"], ["🍝", "Cocinar juntos una receta nueva"], ["🧺", "Un picnic en el parque"],
+  ["🎬", "Noche de pelis con manta y palomitas"], ["🎤", "Ir a un concierto"], ["✈️", "Visitar un país nuevo"], ["🕯️", "Una cena romántica en casa"],
+  ["🌊", "Bañarnos en el mar de noche"], ["📺", "Ver la misma peli a la vez por videollamada"], ["🍷", "Ir a una cata de vinos"], ["⛰️", "Hacer una ruta por la montaña"],
+  ["🎡", "Subir a una noria"], ["📸", "Hacernos un fotomatón"], ["🏕️", "Dormir bajo las estrellas"], ["🎳", "Una tarde de bolos"],
+  ["🥐", "Desayunar en la cama"], ["🚲", "Recorrer una ciudad en bici"], ["🎨", "Pintar un cuadro juntos"], ["💃", "Clase de baile juntos"],
+  ["❄️", "Ver la nieve juntos"], ["🎢", "Ir a un parque de atracciones"], ["🐬", "Ir a un acuario"], ["📚", "Leer el mismo libro y comentarlo"]
+];
+let plans = [], showDone = false;
+function renderPlans(list) {
+  plans = list;
+  const todo = list.filter(p => !p.done).sort((a, b) => a.at - b.at), done = list.filter(p => p.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
+  const n = list.length;
+  $("plBar").style.width = n ? Math.round(done.length / n * 100) + "%" : "0";
+  $("plCount").textContent = n ? `${done.length} de ${n} planes cumplidos${done.length && done.length === n ? " 🎉" : ""}` : "Apuntad aquí todo lo que queréis hacer juntos ✨";
+  const row = p => {
+    const by = p.done ? `✅ ${esc(name(p.doneBy || p.from))} · ${new Date(p.doneAt).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}` : `Idea de ${esc(name(p.from))}`;
+    return `<div class="plan ${p.done ? "done" : ""}" data-id="${esc(p.id)}">
+      <button class="chk ${p.done ? "on" : ""}" data-chk="${esc(p.id)}" aria-label="Tachar">${p.done ? "✓" : ""}</button>
+      <div class="pt"><div>${esc(p.cat || "💫")} ${esc(p.text)}</div><small>${by}</small></div>
+      ${p.done ? `<button class="ph" data-ph="${esc(p.id)}">📸 Foto</button>` : ""}
+      <button class="x" data-del="${esc(p.id)}" aria-label="Borrar">✕</button></div>`;
+  };
+  $("plList").innerHTML = todo.length ? todo.map(row).join("") : (n ? '<div class="empty">¡Todos cumplidos! Añadid más planes 💫</div>' : "");
+  $("plDoneToggle").classList.toggle("hidden", !done.length);
+  $("plDoneToggle").textContent = (showDone ? "▾ Ocultar" : "▸ Ver") + ` planes cumplidos (${done.length})`;
+  $("plDone").classList.toggle("hidden", !showDone || !done.length);
+  $("plDone").innerHTML = done.map(row).join("");
+  document.querySelectorAll("#plansCard [data-chk]").forEach(b => b.onclick = () => togglePlan(b.dataset.chk));
+  document.querySelectorAll("#plansCard [data-del]").forEach(b => b.onclick = () => {
+    const p = plans.find(x => x.id === b.dataset.del); if (p && confirm(`¿Borrar "${p.text}"?`)) S.del("plans/" + p.id);
+  });
+  document.querySelectorAll("#plansCard [data-ph]").forEach(b => b.onclick = () => planPhoto(plans.find(x => x.id === b.dataset.ph)));
+}
+function addPlan(text, cat) {
+  text = (text || "").trim(); if (!text) return toast("Escribe un plan");
+  S.add("plans", { text: text.slice(0, 120), cat: cat || "💫", from: who, done: false, at: Date.now() });
+  sendMsg(`📝 He añadido un plan: ${cat || "💫"} ${text}`, "plan"); buzz();
+}
+$("plAdd").onclick = () => { addPlan($("plText").value, $("plCat").value); $("plText").value = ""; };
+$("plText").onkeydown = e => { if (e.key === "Enter") $("plAdd").click(); };
+$("plIdeasBtn").onclick = () => {
+  const have = new Set(plans.map(p => p.text.toLowerCase()));
+  const pool = PLAN_IDEAS.filter(([, t]) => !have.has(t.toLowerCase())).sort(() => Math.random() - .5).slice(0, 4);
+  $("plIdeas").innerHTML = pool.length ? pool.map(([c, t], i) => `<button data-i="${i}">＋ ${c} ${esc(t)}</button>`).join("") : '<div class="sub">¡Ya tenéis todas mis ideas! 😄</div>';
+  $("plIdeas").querySelectorAll("button").forEach(b => b.onclick = () => { const [c, t] = pool[+b.dataset.i]; addPlan(t, c); b.remove(); });
+};
+$("plDoneToggle").onclick = () => { showDone = !showDone; renderPlans(plans); };
+function togglePlan(id) {
+  const p = plans.find(x => x.id === id); if (!p) return;
+  if (p.done) {
+    if (!confirm("¿Desmarcar este plan?")) return;
+    S.merge("plans/" + id, { done: false, doneAt: null, doneBy: null }); return;
+  }
+  const el = document.querySelector(`.plan[data-id="${CSS.escape(id)}"]`); if (el) el.classList.add("pop");
+  setTimeout(() => S.merge("plans/" + id, { done: true, doneAt: Date.now(), doneBy: who }), 250);
+  confetti(); buzz([40, 60, 40]);
+  sendMsg(`✅ ¡Plan cumplido! ${p.cat || ""} ${p.text}`, "plan");
+  addCoins(20);
+  $("plIdeas").innerHTML = `<div class="plbanner"><span>🎉 ¡Plan cumplido! ¿Guardáis una foto?</span><button class="btn primary" id="plPhotoNow">📸 Foto</button><button class="btn" id="plPhotoNo">✕</button></div>`;
+  $("plPhotoNow").onclick = () => { $("plIdeas").innerHTML = ""; planPhoto(p); };
+  $("plPhotoNo").onclick = () => { $("plIdeas").innerHTML = ""; };
+}
+function planPhoto(p) {
+  if (!p) return;
+  $("memText").value = `✅ ${p.cat || ""} ${p.text}`.trim();
+  $("memText").scrollIntoView({ behavior: "smooth", block: "center" });
+  $("memPhoto").click();
+}
+function confetti() {
+  const E = ["🎉", "💖", "✨", "🥳", "💫", "🎊"];
+  for (let i = 0; i < 22; i++) {
+    const s = document.createElement("div"); s.className = "confetti"; s.textContent = E[i % E.length];
+    s.style.left = Math.random() * 100 + "vw"; s.style.animationDelay = Math.random() * .5 + "s"; s.style.animationDuration = 1.4 + Math.random() + "s";
+    document.body.appendChild(s); setTimeout(() => s.remove(), 2600);
+  }
+}
+
 // ================= Carta y ajustes =================
 function openIntro() {
   $("introLetter").textContent = CONFIG.letter; $("introSign").textContent = CONFIG.sign;
@@ -915,6 +980,7 @@ async function start() {
   S.watchDoc("state/ttt", d => { state.ttt = d; renderTTT(); renderQuiz(); });
   S.watchCol("messages", l => { state.msgs = l; renderChat(l); }, 40);
   S.watchCol("memories", renderMem, 100);
+  S.watchCol("plans", renderPlans, 200);
   watchAnswers();
   setInterval(() => { tick(); watchAnswers(); renderPet(); }, 15000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) { tick(); watchAnswers(); renderPet(); } });
