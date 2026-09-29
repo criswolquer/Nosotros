@@ -637,6 +637,253 @@ nav button i{font-size:22px}
 .stk i{font-style:normal;font-size:22px;color:var(--muted)}
 .stk.on{background:#fff;box-shadow:0 2px 0 rgba(0,0,0,.25)}
 .stk small{position:absolute;right:-2px;bottom:-4px;font-size:9px;background:var(--accent);color:#fff;border-radius:99px;padding:0 4px}
+
+/* ================= Casita v29: muebles dibujados ================= */
+.fi{position:absolute;z-index:1;pointer-events:none;transform:translate(-50%,-100%) scale(var(--s,1));transform-origin:50% 100%}
+.fi svg{display:block;width:100%;height:auto;overflow:visible}
+.fi.f-wall svg{filter:drop-shadow(0 4px 3px rgba(0,0,0,.2))}
+.fi.f-shelf{padding-bottom:6px}
+.fi.f-shelf::after{content:"";position:absolute;left:-12%;right:-12%;bottom:0;height:6px;background:#a86f45;border-radius:2px;box-shadow:0 4px 4px rgba(0,0,0,.18)}
+.fi .flame{transform-box:fill-box;transform-origin:50% 100%;animation:flame 1.2s ease-in-out infinite}
+@keyframes flame{50%{transform:scale(.85,1.1) rotate(4deg)}}
+.fi .fishsw{animation:fishsw 5s ease-in-out infinite}
+@keyframes fishsw{50%{transform:translateX(-22px)}}
+.fi .bob{animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-2px)}}
+.fi .steam{animation:steam 2s ease-out infinite}
+@keyframes steam{from{opacity:.8;transform:translateY(0)}to{opacity:0;transform:translateY(-6px)}}
+.walllight{position:absolute;left:0;right:0;top:0;height:62%;background:radial-gradient(120% 90% at 30% 0,rgba(255,255,255,.28),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 14px,transparent 14px 28px);pointer-events:none}
+.baseboard{position:absolute;left:0;right:0;top:calc(62% - 9px);height:10px;background:#fff;opacity:.55;box-shadow:0 3px 5px rgba(0,0,0,.18);pointer-events:none}
+.floorshade{position:absolute;left:0;right:0;top:62%;bottom:0;background:linear-gradient(rgba(0,0,0,.22),rgba(0,0,0,0) 45%,rgba(255,255,255,.06));pointer-events:none;z-index:0}
+.scene.room.garden{background:linear-gradient(#8fd3ff,#cdeeff 55%,#7cc95b 55%,#8fd66c 100%)}
+.scene.room.garden::before,.scene.room.garden::after{display:none}
+.fence{position:absolute;left:0;right:0;top:calc(55% - 38px);height:40px;pointer-events:none;
+  background:linear-gradient(#fff,#fff) 0 10px/100% 5px no-repeat,linear-gradient(#fff,#fff) 0 26px/100% 5px no-repeat,repeating-linear-gradient(90deg,#fff 0 10px,transparent 10px 26px);
+  -webkit-mask:linear-gradient(transparent 0 2px,#000 2px);filter:drop-shadow(0 2px 2px rgba(0,0,0,.15))}
+.bushes{position:absolute;left:-10px;right:-10px;top:calc(55% - 22px);height:26px;pointer-events:none;background:radial-gradient(circle at 20px 26px,#4f9f3e 20px,transparent 21px) 0 0/52px 26px repeat-x}
+.scene.editing .fi{pointer-events:auto;cursor:grab;touch-action:none;outline:2px dashed rgba(255,255,255,.9);outline-offset:3px;border-radius:10px}
+.scene.editing .fi.dragging{z-index:6;opacity:.9}
+.scene.editing .petbox{pointer-events:none;opacity:.35}
+.shopit i.fsvg{display:flex;align-items:center;justify-content:center;width:52px;height:40px}
+.shopit i.fsvg svg{max-width:52px;max-height:40px;width:auto;height:auto;overflow:visible}
+
+/* ================= v30: tienda, niveles y accesorios ================= */
+.ptitle{font-size:13px;font-weight:700;color:#ffd166;margin:2px 0 2px;letter-spacing:.02em}
+.setline{font-size:12.5px;color:#9fe6b8;margin-top:3px}
+.actions.six{grid-template-columns:repeat(3,1fr)}
+.pframe{position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:inherit}
+.pframe.fr-madera{box-shadow:inset 0 0 0 7px #8a5a38,inset 0 0 0 10px #b5835a}
+.pframe.fr-bronce{box-shadow:inset 0 0 0 7px #b87333,inset 0 0 0 10px #e0a070,inset 0 0 22px rgba(184,115,51,.5)}
+.pframe.fr-plata{box-shadow:inset 0 0 0 7px #aeb8c4,inset 0 0 0 10px #eef2f6,inset 0 0 24px rgba(220,230,240,.6)}
+.pframe.fr-oro{box-shadow:inset 0 0 0 7px #e0a100,inset 0 0 0 10px #ffe066,inset 0 0 30px rgba(255,210,63,.6);animation:frglow 3s ease-in-out infinite}
+.pframe.fr-diamante{box-shadow:inset 0 0 0 7px #8fd3ff,inset 0 0 0 10px #fff,inset 0 0 34px rgba(160,220,255,.8);animation:frglow 2.4s ease-in-out infinite}
+.pframe.fr-arcoiris{border:8px solid transparent;border-image:linear-gradient(90deg,#ff6b8b,#ffb361,#ffd93b,#6fdc9a,#7fb7ff,#b48be0) 1;animation:frhue 6s linear infinite}
+@keyframes frglow{50%{filter:brightness(1.25)}}
+@keyframes frhue{to{filter:hue-rotate(360deg)}}
+/* efectos mágicos */
+.chick .fxtw{transform-box:fill-box;transform-origin:center;animation:fxtw 2.1s ease-in-out infinite}
+@keyframes fxtw{0%,100%{transform:scale(.3);opacity:.15}50%{transform:scale(1.1);opacity:1}}
+.chick .fxup{animation:fxup 3.2s linear infinite;opacity:0}
+@keyframes fxup{0%{transform:translateY(24px);opacity:0}20%{opacity:1}100%{transform:translateY(-80px);opacity:0}}
+.chick .fxpulse{animation:fxpulse 3s ease-in-out infinite}
+@keyframes fxpulse{50%{opacity:.55}}
+.chick .fxjet{transform-box:fill-box;transform-origin:50% 0;animation:jet .25s ease-in-out infinite alternate}
+@keyframes jet{to{transform:scaleY(1.35)}}
+/* trucos */
+.petbox.t-wave .wr{animation:wave .3s ease-in-out 6}
+@keyframes wave{50%{transform:rotate(-75deg)}}
+.petbox.t-dance svg{animation:dance .65s ease-in-out 4}
+@keyframes dance{25%{transform:rotate(-10deg) translateX(-12px)}75%{transform:rotate(10deg) translateX(12px)}}
+.petbox.t-flip svg{animation:flip 1.05s ease-in-out}
+@keyframes flip{30%{transform:translateY(-70px) rotate(0)}75%{transform:translateY(-70px) rotate(360deg)}100%{transform:translateY(0) rotate(360deg)}}
+.petbox.t-vanish svg{animation:vanish 1.7s ease-in-out}
+@keyframes vanish{30%,62%{opacity:0;transform:scale(.2) rotate(90deg)}}
+.petbox.t-fly svg{animation:fly 2.8s ease-in-out}
+.petbox.t-fly .wl{animation:flapL .18s ease-in-out infinite}
+.petbox.t-fly .wr{animation:flapR .18s ease-in-out infinite}
+@keyframes fly{35%,65%{transform:translateY(-100px)}50%{transform:translateY(-110px) rotate(6deg)}}
+.petbox.t-giant svg{animation:giant 2.6s ease-in-out;transform-origin:50% 100%}
+@keyframes giant{25%,75%{transform:scale(1.5)}}
+.fx.kiss{left:50%;top:44%;margin-left:-17px;animation:kiss 1.7s ease-out forwards}
+@keyframes kiss{to{transform:scale(4.5) translateY(30px);opacity:0}}
+.fx.poof{left:50%;top:50%;margin-left:-17px;font-size:60px;animation:burst 1s ease-out forwards}
+.fx.burst{font-size:30px;animation:burst 1.3s ease-out forwards}
+@keyframes burst{from{transform:scale(.2);opacity:1}to{transform:scale(2.3);opacity:0}}
+.fx.hpop{font-size:22px;margin:-11px 0 0 -11px;animation:hpop 2.2s ease-out forwards}
+@keyframes hpop{0%{transform:scale(0)}15%{transform:scale(1.3)}25%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}
+/* tienda */
+.shopit{position:relative}
+.shopit i.isvg{display:flex;align-items:center;justify-content:center;width:56px;height:42px}
+.shopit i.isvg svg{width:100%;height:100%;overflow:visible}
+.shopit.r2{border-color:rgba(77,157,255,.55)}
+.shopit.r3{border-color:rgba(180,92,255,.7);background:linear-gradient(160deg,rgba(180,92,255,.14),var(--card2) 60%)}
+.shopit.r4{border-color:rgba(255,198,41,.85);background:linear-gradient(160deg,rgba(255,198,41,.18),var(--card2) 60%);overflow:hidden}
+.shopit.r4::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);animation:shine 3.2s ease-in-out infinite;pointer-events:none}
+@keyframes shine{60%,100%{left:120%}}
+.shopit small.rt{font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase}
+.shopit.pv{border-color:#ffd166;box-shadow:0 0 0 2px rgba(255,209,102,.35)}
+.shopit em.nw{position:absolute;top:4px;right:4px;font-style:normal;font-size:8.5px;font-weight:900;background:var(--accent);color:#fff;border-radius:6px;padding:1px 4px}
+.offer i.isvg,.offer i.fsvg{display:flex;align-items:center;justify-content:center;width:52px;height:34px}
+.offer i.isvg svg,.offer i.fsvg svg{width:100%;height:100%;overflow:visible}
+.weekly{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:2px solid var(--rc);border-radius:16px;padding:10px 12px;color:var(--text);background:linear-gradient(120deg,rgba(255,198,41,.18),rgba(180,92,255,.18));position:relative;overflow:hidden}
+.weekly::after{content:"";position:absolute;top:0;bottom:0;width:30%;left:-40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.2),transparent);animation:shine 3.6s ease-in-out infinite}
+.weekly i{font-style:normal;font-size:30px}
+.weekly>div{flex:1;min-width:0}
+.weekly small{display:block;font-size:10.5px;font-weight:800;color:#ffd166;letter-spacing:.03em}
+.weekly b{display:block;font-size:15px}
+.weekly .rtag{font-size:11px;font-weight:800;color:var(--rc)}
+.weekly .wprice{font-weight:900;color:#ffd166;white-space:nowrap}
+.setban{background:#1f3a2c;border-color:#3f8f63;color:#b9f5cf}
+.cart{background:var(--card2);border:1px solid #ffd166;border-radius:16px;padding:10px 12px;margin-bottom:6px}
+.cartt{font-size:12.5px;color:#ffd166;font-weight:700;margin-bottom:6px}
+.cartl{display:flex;flex-wrap:wrap;gap:6px}
+.cart .chip{display:inline-flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px 4px 4px 10px;font-size:12.5px;font-weight:600}
+.cart .chip.lk{opacity:.6}
+.cart .chip button{border:0;background:rgba(255,255,255,.1);color:var(--text);width:22px;height:22px;border-radius:50%;font-size:11px}
+.cart small{display:block;font-size:12px;color:var(--muted);margin-top:6px}
+/* armario */
+.outfits{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.outfit{position:relative}
+.outwear{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:14px;color:var(--text);padding:4px 4px 8px;display:flex;flex-direction:column;align-items:center}
+.outwear svg{width:100%;height:auto}
+.outwear b{font-size:12px}
+.outdel{position:absolute;top:4px;right:4px;border:0;background:rgba(0,0,0,.35);color:#fff;width:22px;height:22px;border-radius:50%;font-size:11px}
+.setrow{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.setrow.on{border-color:#3f8f63;background:linear-gradient(120deg,rgba(63,143,99,.25),var(--card2))}
+.sethead{display:flex;justify-content:space-between;align-items:center}
+.sethead b{font-size:15px}
+.setact{font-size:10px;font-weight:900;background:#3f8f63;color:#fff;border-radius:6px;padding:2px 6px}
+.setrow>small{display:block;font-size:12.5px;color:var(--accent2);margin:2px 0 6px}
+.setpcs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.setpcs .pc{position:relative;width:52px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;padding:0}
+.setpcs .pc i{font-style:normal;font-size:24px}
+.setpcs .pc i.isvg{width:46px;height:38px;display:flex}
+.setpcs .pc i.isvg svg{width:100%;height:100%;overflow:visible}
+.setpcs .pc:not(.own){opacity:.45}
+.setpcs .pc.worn{border-color:var(--ok);box-shadow:0 0 0 2px rgba(111,220,154,.3)}
+.setpcs .pc u{position:absolute;right:-4px;bottom:-4px;text-decoration:none;font-size:12px}
+.setpcs .btn{margin-left:auto;padding:8px 12px;font-size:13px}
+/* cofres */
+.chests{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.chest{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.chest .chimg{width:72px}
+.chest .chimg svg{width:100%;height:auto;display:block}
+.chest b{font-size:12.5px}
+.chest small{font-size:10.5px;line-height:1.35;font-weight:700}
+.chest .btn{width:100%;padding:8px 4px;font-size:14px;margin-top:auto}
+.chestview{position:fixed;inset:0;z-index:96;background:radial-gradient(circle at 50% 40%,#3b2352,#140c1a 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.chestbox{width:190px;position:relative}
+.chestbox svg{width:100%;height:auto;display:block}
+.chestbox.shake{animation:cshake .18s linear infinite}
+@keyframes cshake{25%{transform:rotate(-6deg) translateY(-3px)}75%{transform:rotate(6deg)}}
+.chestbox .lid{transform-box:fill-box;transform-origin:0% 100%;transition:transform .35s cubic-bezier(.3,1.6,.6,1)}
+.chestbox.open .lid{transform:rotate(-38deg) translate(-8px,-12px)}
+.chestbox.open::before{content:"";position:absolute;left:50%;top:40%;width:380px;height:380px;margin:-190px 0 0 -190px;background:repeating-conic-gradient(rgba(255,230,120,.28) 0 10deg,transparent 10deg 20deg);border-radius:50%;animation:rays 6s linear infinite;z-index:-1}
+@keyframes rays{to{transform:rotate(360deg)}}
+.chestbox.open{animation:none;opacity:.35;transform:scale(.75);transition:opacity .5s,transform .5s;margin-bottom:-60px}
+.chestbox.nochest{display:none}
+.chestres{position:relative;z-index:2;width:min(320px,100%);background:var(--card);border:3px solid var(--rc);border-radius:24px;padding:14px 16px 16px;text-align:center;box-shadow:0 0 40px color-mix(in srgb,var(--rc) 55%,transparent);animation:pop2in .45s cubic-bezier(.3,1.6,.6,1)}
+@keyframes pop2in{from{transform:scale(.4);opacity:0}}
+.chestres .rarlbl{display:inline-block;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;background:var(--rc);color:#1c1220;border-radius:99px;padding:3px 12px}
+.chestres .revsub{font-size:13px;color:var(--muted);margin-bottom:6px}
+.chestres .revpet{width:170px;height:170px;margin:4px auto 0}
+.chestres .revpet svg{width:100%;height:100%;overflow:visible}
+.chestres h3{margin:4px 0 12px;font-size:19px}
+.chestres .btn{margin-top:4px}
+/* camino de premios */
+.lvpath{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none;scroll-behavior:smooth}
+.lvpath::-webkit-scrollbar{display:none}
+.lvn{flex:none;width:78px;background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.55;position:relative}
+.lvn::before{content:"";position:absolute;right:-9px;top:22px;width:10px;height:3px;background:var(--line)}
+.lvn:last-child::before{display:none}
+.lvn.reach{opacity:1}
+.lvn.reach::before{background:var(--accent)}
+.lvn b{width:28px;height:28px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:13px}
+.lvn.reach b{background:var(--accent);color:#fff}
+.lvn.cur{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,107,139,.3)}
+.lvn.claim{border-color:#ffd166;background:linear-gradient(160deg,rgba(255,209,102,.2),var(--card2));animation:claimb 1.6s ease-in-out infinite}
+@keyframes claimb{50%{box-shadow:0 0 14px rgba(255,209,102,.6)}}
+.lvi{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px;min-height:40px}
+.lvi em{font-style:normal;font-size:13px;font-weight:700}
+.lvi i{font-style:normal}
+.lvi i.isvg,.lvi i.ch{width:44px;height:34px;display:flex}
+.lvi i.isvg svg,.lvi i.ch svg{width:100%;height:100%;overflow:visible}
+.lvi i.sw{width:26px;height:26px;border-radius:50%;display:block}
+.lvn small{font-size:12px;color:var(--muted)}
+.lvn .btn{padding:5px 8px;font-size:11.5px;border-radius:10px}
+.tchips{display:flex;flex-wrap:wrap;gap:6px}
+.tchip{background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:99px;padding:7px 11px;font-size:12.5px;font-weight:700}
+.tchip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.tchip.lk{opacity:.45;font-weight:500}
+.tchip.fchip.fr-madera{border-color:#b5835a}.tchip.fchip.fr-bronce{border-color:#e0a070}.tchip.fchip.fr-plata{border-color:#dfe6ee}.tchip.fchip.fr-oro{border-color:#ffd23f}.tchip.fchip.fr-diamante{border-color:#8fd3ff}
+.slotname small{font-size:11px;opacity:.8}
+.slotf{margin:6px 0 2px}
+.slotf .tchip{padding:6px 10px;font-size:12px}
+
+/* ================= v31: Inicio, diario y secciones ================= */
+.hero{position:relative;border-radius:24px;padding:18px 18px 14px;margin-bottom:14px;color:#fff;overflow:hidden;
+  background:radial-gradient(120% 90% at 0% 0%,rgba(255,179,138,.55),transparent 60%),radial-gradient(120% 90% at 100% 100%,rgba(123,97,255,.45),transparent 60%),linear-gradient(135deg,#ff6b8b,#b6437a)}
+.hero::after{content:"❤";position:absolute;right:-18px;top:-30px;font-size:150px;opacity:.09;transform:rotate(14deg)}
+.hgreet{font-size:19px;font-weight:800}
+.hgreet small{display:block;font-size:13px;font-weight:600;opacity:.85;text-transform:capitalize;margin-top:2px}
+.hmain{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:14px 0 12px}
+.htog b{display:block;font-size:54px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.htog span{font-size:14px;font-weight:700;opacity:.9}
+.hnext{text-align:right;background:rgba(255,255,255,.16);border-radius:16px;padding:8px 12px}
+.hnext small{display:block;font-size:11px;font-weight:700;opacity:.85;text-transform:uppercase;letter-spacing:.06em}
+.hnext b{display:block;font-size:24px;font-weight:900}
+.hnext b small{font-size:13px;display:inline;text-transform:none;letter-spacing:0}
+.hnext span{font-size:12px;opacity:.85}
+.hclocks{display:flex;justify-content:space-between;align-items:center;gap:6px;background:rgba(0,0,0,.16);border-radius:14px;padding:8px 12px;font-size:13px}
+.hclocks span{display:flex;align-items:baseline;gap:5px}
+.hclocks em{font-style:normal;opacity:.85}
+.hclocks b{font-size:16px;font-variant-numeric:tabular-nums}
+.hclocks i{font-style:normal}
+.hclocks .hdiff{font-size:11px;opacity:.8;text-align:center}
+#feed{display:flex;flex-direction:column;gap:8px}
+.fitem{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:11px 12px;color:var(--text)}
+.fitem.hot{border-color:rgba(255,107,139,.55);background:linear-gradient(120deg,rgba(255,107,139,.16),var(--card2) 70%)}
+.fitem>i{font-style:normal;font-size:26px;width:34px;text-align:center;flex:none}
+.fitem>div{flex:1;min-width:0}
+.fitem b{display:block;font-size:15px;line-height:1.25}
+.fitem small{display:block;font-size:13px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.fitem .go{font-size:22px;color:var(--muted);flex:none}
+.fitem .fimg{flex:none;width:64px;height:64px;border-radius:12px;background-size:cover;background-position:center;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.fitem:active{transform:scale(.98)}
+.seg{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px;margin-bottom:14px;position:sticky;top:calc(env(safe-area-inset-top) + 6px);z-index:30;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.seg button{flex:1;border:0;background:transparent;color:var(--muted);border-radius:12px;padding:9px 2px;font-size:13px;font-weight:800;white-space:nowrap}
+.seg button.on{background:var(--accent);color:#fff}
+.dyhead{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.dyhead span{color:var(--accent);margin-left:6px}
+.dyhead.big{font-size:14px;color:var(--text)}
+.dyhead em{font-style:normal;text-transform:none;color:var(--accent2)}
+.dyform textarea{min-height:84px}
+.dymoods{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dymoods button{background:var(--card2);border:1px solid var(--line);border-radius:12px;font-size:22px;width:42px;height:42px}
+.dymoods button.on{border-color:var(--accent);background:#4a2a45;transform:scale(1.08)}
+.dyph{position:relative;margin-top:10px}
+.dyph img{width:100%;border-radius:14px;display:block;max-height:280px;object-fit:cover}
+.dyph .x{position:absolute;top:8px;right:8px;border:0;background:rgba(0,0,0,.5);color:#fff;border-radius:50%;width:30px;height:30px}
+.dyent{background:var(--card2);border-radius:16px;padding:10px 12px;margin-top:8px;border-left:4px solid var(--blue)}
+.dyent.me{border-left-color:var(--accent)}
+.dyw{display:flex;align-items:center;gap:6px;font-size:14px}
+.dyw .dym{font-size:18px}
+.dyw .linkbtn{margin-left:auto;font-size:12.5px}
+.dytx{font-size:16px;line-height:1.45;margin-top:4px;white-space:pre-wrap;word-wrap:break-word}
+.dyimg{width:100%;border-radius:12px;margin-top:8px;display:block;max-height:360px;object-fit:cover}
+.dyreacts{display:flex;gap:4px;margin-top:8px}
+.dyreacts button{background:transparent;border:1px solid var(--line);border-radius:99px;font-size:17px;padding:3px 8px;opacity:.7}
+.dyreacts button.on{opacity:1;border-color:var(--accent);background:rgba(255,107,139,.2);transform:scale(1.1)}
+.dyre{font-size:12.5px;color:var(--muted);margin-top:6px}
+.dylock{margin-top:10px;background:repeating-linear-gradient(135deg,var(--card2) 0 10px,#2e1f33 10px 20px);border:1px dashed var(--line);border-radius:16px;padding:16px 12px;text-align:center;font-weight:700;font-size:14px}
+.dywait{margin-top:10px;font-size:13.5px;color:var(--muted);text-align:center}
+.dday{padding:12px 0;border-bottom:1px solid var(--line)}
+.dday:last-child{border-bottom:0}
+.say.ask{max-width:88%;pointer-events:auto}
+.say .askb{display:flex;gap:6px;justify-content:center;margin-top:8px}
+.say .askb button{border:0;border-radius:99px;padding:7px 13px;font-size:13.5px;font-weight:800}
+.say .askb .yes{background:var(--accent);color:#fff}
+.say .askb .no{background:#eee;color:#3a2330}
 </style>
 </head>
 <body>
@@ -674,27 +921,23 @@ nav button i{font-size:22px}
 
 <!-- ============ INICIO ============ -->
 <main id="tab-home">
-  <section class="card">
-    <div class="label">Ahora mismo</div>
-    <div class="clocks">
-      <div class="clock"><div class="who" id="meName"></div><div class="time" id="meTime">--:--</div><div class="day" id="meDay"></div></div>
-      <div class="clock"><div class="who" id="youName"></div><div class="time" id="youTime">--:--</div><div class="day" id="youDay"></div></div>
+  <section class="hero">
+    <div class="hgreet" id="hGreet"></div>
+    <div class="hmain">
+      <div class="htog"><b id="together">—</b><span id="togetherSub">días juntos</span></div>
+      <div class="hnext"><small>Nos vemos en</small><b id="countdown">—</b><span id="countdownSub"></span></div>
     </div>
-    <div class="diff" id="diff"></div>
+    <div class="hclocks">
+      <span><em id="meName"></em><b id="meTime">--:--</b><i id="meDay"></i></span>
+      <span class="hdiff" id="diff"></span>
+      <span><em id="youName"></em><b id="youTime">--:--</b><i id="youDay"></i></span>
+    </div>
   </section>
 
-  <div class="row">
-    <section class="card">
-      <div class="label">Juntos</div>
-      <div class="big" id="together">—</div>
-      <div class="sub" id="togetherSub">días</div>
-    </section>
-    <section class="card">
-      <div class="label">Nos vemos en</div>
-      <div class="big" id="countdown">—</div>
-      <div class="sub" id="countdownSub">elige fecha en ⚙️</div>
-    </section>
-  </div>
+  <section class="card" id="todayCard">
+    <div class="label">Hoy para vosotros ✨</div>
+    <div id="feed"></div>
+  </section>
 
   <div class="row" style="gap:10px">
     <button class="love" id="btnThink" style="flex:2">Pienso en ti ❤️</button>
@@ -708,7 +951,7 @@ nav button i{font-size:22px}
     <div class="moodcal" id="moodCal"></div>
   </section>
 
-  <section class="card">
+  <section class="card" id="chatCard">
     <div class="label">Buzón</div>
     <div class="chat" id="chat"></div>
     <div id="voiceBar" class="voicebar hidden"></div>
@@ -720,7 +963,7 @@ nav button i{font-size:22px}
     </div>
   </section>
 
-  <section class="card">
+  <section class="card" id="qCard">
     <div class="label">Pregunta del día</div>
     <div class="question" id="question"></div>
     <div id="qBox"></div>
@@ -743,11 +986,13 @@ nav button i{font-size:22px}
       <div class="wxpill hidden" id="petWx"></div>
       <button class="postbtn hidden" id="petPost">✉️</button>
       <div class="ground" id="petGround"></div>
+      <div class="pframe" id="petFrame"></div>
     </div>
     <div class="roombar hidden" id="roomBar"></div>
     <div style="padding:14px 18px 18px">
       <div style="text-align:center">
         <button class="pet-name" id="petName">Pollito</button> <span style="color:var(--muted);font-size:13px">✏️</span>
+        <div class="ptitle hidden" id="petTitle"></div>
         <div class="mood" id="petMood"></div>
         <div class="trait" id="petTrait"></div>
         <div class="today" id="petToday"></div>
@@ -760,22 +1005,27 @@ nav button i{font-size:22px}
         <button class="act" id="petPlay"><i>⚽</i><span>Jugar</span></button>
         <button class="act" id="petBath"><i>🛁</i><span>Baño</span></button>
         <button class="act" id="petSleep"><i>🌙</i><span>Siesta</span></button>
+        <button class="act" id="petTricks"><i>🎪</i><span>Trucos</span></button>
+        <button class="act" id="petWard"><i>👗</i><span>Armario</span></button>
+        <button class="act" id="petChests"><i>🎁</i><span>Cofres</span></button>
       </div>
       <div class="sub" style="text-align:center;font-size:12px;margin-top:10px">Tócale para mimos · 5 toques = cosquillas · mantén pulsado para acariciarle</div>
     </div>
   </section>
 
-  <section class="card">
+  <div class="seg" id="petSegBar"><button data-s="hoy">🎯 Hoy</button><button data-s="shop">🛍️ Tienda</button><button data-s="prog">⭐ Progreso</button><button data-s="col">📚 Colección</button></div>
+
+  <section class="card" data-pseg="hoy">
     <div class="label">Misiones de hoy 🎯</div>
     <div id="petMissions"></div>
   </section>
 
-  <section class="card">
+  <section class="card" data-pseg="hoy">
     <div class="label">Aventuras 🧭</div>
     <div id="petAdv"></div>
   </section>
 
-  <section class="card">
+  <section class="card" data-pseg="hoy">
     <div class="label">Minijuegos 🎮</div>
     <div class="mgrow">
       <i>🍓</i><div style="flex:1"><b>Atrapa fresas</b><div class="sub" style="margin-top:2px;font-size:12px" id="fgInfo">30 segundos · gana monedas</div></div>
@@ -792,7 +1042,7 @@ nav button i{font-size:22px}
     <div class="sub" style="font-size:12px;margin-top:8px">🏆 Carrera de récords: si superas el de tu pareja, le llega un aviso.</div>
   </section>
 
-  <section class="card">
+  <section class="card" data-pseg="prog">
     <div class="label">Crecimiento</div>
     <div class="stages" id="stages"></div>
     <div class="bar"><div id="petBar" style="width:0"></div></div>
@@ -808,33 +1058,42 @@ nav button i{font-size:22px}
     </div>
   </section>
 
-  <section class="card" id="shopCard">
+  <section class="card" id="lvCard" data-pseg="prog">
+    <div class="label">Camino de premios ⭐</div>
+    <div class="sub" style="font-size:13px;margin:0 0 8px" id="lvHead"></div>
+    <div class="lvpath" id="lvPath"></div>
+    <div class="slotname">🏷️ Títulos <small>(sale debajo de su nombre)</small></div><div class="tchips" id="lvTitles"></div>
+    <div class="slotname">🖼️ Marcos</div><div class="tchips" id="lvFrames"></div>
+    <div class="slotname">🎪 Trucos <small>(tócalos para verlos)</small></div><div class="tchips" id="lvSkills"></div>
+  </section>
+
+  <section class="card" id="shopCard" data-pseg="shop">
     <div class="label">Tienda del pollito 🛍️</div>
     <div id="shopOffers"></div>
     <div class="tabsx" id="shopTabs">
-      <button data-s="ropa" class="on">👒 Ropa</button><button data-s="color">🎨 Colores</button><button data-s="comida">🍰 Comida</button>
-      <button data-s="juguete">🧸 Juguetes</button><button data-s="casa">🏠 Casa</button><button data-s="lugar">🏞️ Lugares</button>
+      <button data-s="ropa" class="on">👒 Ropa</button><button data-s="fx">✨ Efectos</button><button data-s="armario">👗 Armario</button><button data-s="cofres">🎁 Cofres</button>
+      <button data-s="color">🎨 Colores</button><button data-s="comida">🍰 Comida</button><button data-s="juguete">🧸 Juguetes</button><button data-s="casa">🏠 Casa</button><button data-s="lugar">🏞️ Lugares</button>
     </div>
     <div id="shopBuy"></div>
     <div id="shopBody"></div>
   </section>
 
-  <section class="card">
+  <section class="card" data-pseg="col">
     <div class="label">Álbum de fotos 📷</div>
     <div class="album" id="petAlbum"></div>
   </section>
 
-  <section class="card">
+  <section class="card" data-pseg="col">
     <div class="label">Colecciones 📮🌟</div>
     <div id="petColl"></div>
   </section>
 
-  <section class="card">
+  <section class="card" data-pseg="col">
     <div class="label">Familia 👨‍👩‍👧</div>
     <div id="petFam"></div>
   </section>
 
-  <section class="card">
+  <section class="card" data-pseg="col">
     <div class="label">Cómo funciona</div>
     <div class="sub" style="margin:0;line-height:1.55">🍓 <b>Comer</b>: cada día los <b>dos</b> tenéis que darle de comer. Solo crece de fase los días que le cuidáis los dos 💞 (tarda meses en ser legendario).<br>
     ⏳ Su <b>hambre, cariño, diversión, limpieza y energía</b> bajan con las horas, aunque no abráis la app.<br>
@@ -848,6 +1107,9 @@ nav button i{font-size:22px}
     🌦️ <b>Tiempo real</b>: si lo activas, en la escena llueve, nieva o hace calor como donde estás.<br>
     🎃 Hay ropa de <b>temporada</b> (Halloween, Navidad, San Valentín, primavera, verano).<br>
     🏠 La casita tiene <b>salón, cocina, dormitorio y jardín</b>; pulsa ✏️ Mover para colocar los muebles con el dedo.<br>
+    ⭐ Hay <b>40 niveles</b>: cada uno trae un premio en el <b>camino de premios</b> (monedas, cofres, accesorios exclusivos, títulos, marcos y trucos nuevos).<br>
+    👗 En el <b>Armario</b> guardas conjuntos y ves los <b>sets</b>: si lleva todas las piezas de un set gana un bonus.<br>
+    🎁 Los <b>cofres</b> dan accesorios al azar (común, raro, épico o legendario) y algunos solo salen ahí. Cada semana hay un <b>exclusivo</b> nuevo.<br>
     🥚 Al llegar a <b>legendario</b> podéis adoptar un huevo nuevo (pollito, gatito, perrito, conejito o pingüino) y el anterior se queda en la familia.<br><br>
     <b>Monedas del pollito 🪙</b> (solo para su tienda):<br>
     🍓 Darle de comer: +10 · si ya comió del otro: +15 extra · 🔥 cada 7 días de racha: +50<br>
@@ -1096,13 +1358,25 @@ nav button i{font-size:22px}
 
 <!-- ============ RECUERDOS ============ -->
 <main id="tab-mem" class="hidden">
-  <section class="card" style="padding:14px">
+  <div class="seg" id="memSegBar"><button data-s="diary">📖 Diario</button><button data-s="map">🗺️ Mapa</button><button data-s="mems">📸 Recuerdos</button><button data-s="plans">📝 Planes</button></div>
+
+  <section class="card diarycard" data-mseg="diary">
+    <div class="label">Nuestro día 📖</div>
+    <div id="dyToday"></div>
+  </section>
+  <section class="card" data-mseg="diary">
+    <div class="label">Nuestra historia</div>
+    <div id="dyList"></div>
+    <button class="btn mt hidden" id="dyMore" style="width:100%">Ver días anteriores</button>
+  </section>
+
+  <section class="card" style="padding:14px" data-mseg="map">
     <div class="label" style="margin:4px 4px 8px">Nuestro mapa 🗺️</div>
     <div id="memMap" class="map"><div class="mapmsg">Cargando mapa…</div></div>
     <div class="mapstats" id="mapStats"></div>
   </section>
 
-  <section class="card" id="plansCard">
+  <section class="card" id="plansCard" data-mseg="plans">
     <div class="label">Nuestros planes 📝</div>
     <div class="plprog"><div class="bar"><div id="plBar" style="width:0"></div></div><div class="sub" id="plCount" style="font-size:13px"></div></div>
     <div class="sendrow">
@@ -1120,7 +1394,7 @@ nav button i{font-size:22px}
     <div id="plDone" class="hidden"></div>
   </section>
 
-  <section class="card">
+  <section class="card" data-mseg="mems">
     <div class="label">Nuevo recuerdo</div>
     <textarea id="memText" placeholder="Algo que no quieres olvidar…"></textarea>
     <div class="row mt">
@@ -1134,7 +1408,7 @@ nav button i{font-size:22px}
     </div>
   </section>
 
-  <section class="card">
+  <section class="card" data-mseg="mems">
     <div class="label">Nuestros recuerdos</div>
     <div id="memories"></div>
   </section>
@@ -1201,6 +1475,12 @@ nav button i{font-size:22px}
   <div class="fgmsg" id="fgMsg"></div>
 </div>
 
+<!-- Cofre / premio -->
+<div id="chestView" class="chestview hidden">
+  <div class="chestbox" id="chestBox"></div>
+  <div class="chestres hidden" id="chestRes"></div>
+</div>
+
 <!-- Acceso -->
 <div id="loginView" class="overlay hidden">
   <div class="heart">🔐</div>
@@ -1220,7 +1500,7 @@ nav button i{font-size:22px}
   <button data-tab="pet"><i>🐣</i>Mascota<span class="dot hidden" id="dotPet"></span></button>
   <button data-tab="games"><i>🎮</i>Juegos<span class="dot hidden" id="dotGames"></span></button>
   <button data-tab="letters"><i>💌</i>Cartas<span class="dot hidden" id="dotLetters"></span></button>
-  <button data-tab="mem"><i>📸</i>Recuerdos</button>
+  <button data-tab="mem"><i>📖</i>Nosotros</button>
 </nav>
 
 <dialog id="settings">
