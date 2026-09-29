@@ -1,4 +1,4 @@
-const CACHE = "nosotros-v24";
+const CACHE = "nosotros-v26";
 const FILES = ["./", "index.html", "app.js", "store.js", "config.js", "manifest.json", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
@@ -6,15 +6,14 @@ self.addEventListener("activate", e => {
   self.clients.claim();
 });
 self.addEventListener("fetch", e => {
-  const u = new URL(e.request.url);
   if (e.request.method !== "GET") return;
+  const u = new URL(e.request.url);
   const own = u.origin === location.origin;
-  const sdk = (u.hostname === "www.gstatic.com" && u.pathname.startsWith("/firebasejs/")) || u.hostname === "cdnjs.cloudflare.com";
-  if (!own && !sdk) return; // Firestore y login van siempre por red
-  // Primero red (para recibir actualizaciones), si no hay conexión, caché
-  // Archivos de la app: siempre se pide la versión más nueva (sin caché del navegador)
-  const req = own ? new Request(e.request, { cache: "no-cache" }) : e.request;
-  e.respondWith(fetch(req).then(res => {
+  const lib = u.hostname === "cdnjs.cloudflare.com";
+  if (!own && !lib) return; // Firebase, mapas, etc. van directos, sin pasar por aquí
+  // Archivos de la app: siempre la versión más nueva; si no hay internet, la guardada
+  const net = own ? fetch(u.href, { cache: "no-cache", credentials: "same-origin" }) : fetch(e.request);
+  e.respondWith(net.then(res => {
     if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
     return res;
   }).catch(() => caches.match(e.request, { ignoreSearch: true }).then(r => r || (e.request.mode === "navigate" ? caches.match("index.html") : Response.error()))));

@@ -470,6 +470,9 @@ nav button i{font-size:22px}
 .vale span{flex:1;font-size:15px;font-weight:700;min-width:0}
 .vale small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:2px}
 .vale .btn{padding:9px 12px;font-size:14px}
+.heartbar{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#4a2140,#3b2a55);border:1px solid #7a3d6a;border-radius:16px;padding:12px 16px;margin-bottom:12px;font-size:15px}
+.heartbar b{font-size:20px}
+.heartbar small{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -618,17 +621,18 @@ nav button i{font-size:22px}
     <div class="label">Cómo funciona</div>
     <div class="sub" style="margin:0;line-height:1.5">🍓 Cada día, los <b>dos</b> tenéis que darle de comer. Solo crece los días que le cuidáis los dos 💞, así que tardará meses en ser legendario.<br>
     😢 Si pasáis más de un día sin darle de comer se pone triste y se pierde la racha.<br><br>
-    <b>Cómo ganar monedas 🪙</b> (son de los dos):<br>
+    <b>Monedas del pollito 🪙</b> (solo para su ropa y colores):<br>
     🍓 Darle de comer: +10 · si ya comió del otro: +15 extra<br>
     🔥 Cada 7 días de racha: +50<br>
     🤗 Mimos: +1 (hasta 10 al día) · ⚽ Jugar: +3 (hasta 5) · 🛁 Baño: +5<br>
-    🎮 Ganar al tres en raya: +15 · empate +5<br>
-    💭 Acertar en "¿Me conoces?": +5 · 💬 Pregunta del día: +5<br>✅ Cumplir un plan juntos: +20</div>
+    🍓 Minijuego Atrapa fresas: hasta +30 al día<br><br>
+    <b>Corazones de pareja 💖</b> (para la Tienda de vales) se ganan en <b>Juegos</b>, con la pregunta del día y cumpliendo planes.</div>
   </section>
 </main>
 
 <!-- ============ JUEGOS ============ -->
 <main id="tab-games" class="hidden">
+  <div id="heartBar" class="heartbar"></div>
   <div id="gameMenu" class="gmenu"></div>
 
   <div id="gameHead" class="ghead hidden">
@@ -739,9 +743,9 @@ nav button i{font-size:22px}
   <!-- Tienda de vales -->
   <div id="g-shop" class="hidden">
     <section class="card" style="text-align:center">
-      <div class="sub" style="margin:0">Monedas de los dos</div>
-      <div class="big" id="shCoins">🪙 0</div>
-      <div class="sub" style="font-size:13px">Se ganan cuidando al pollito y jugando</div>
+      <div class="sub" style="margin:0">Tus corazones</div>
+      <div class="big" id="shCoins">💖 0</div>
+      <div class="sub" style="font-size:13px">Se ganan jugando juntos, con la pregunta del día y cumpliendo planes</div>
     </section>
     <section class="card"><div class="label">Lo que te ofrece <span class="oname"></span></div><div id="shBuy"></div></section>
     <section class="card"><div class="label">Tus vales 🎟️</div><div id="shMine"></div></section>
@@ -750,7 +754,7 @@ nav button i{font-size:22px}
         <select id="shEmoji" class="plcat"><option>💆</option><option>🍕</option><option>🎬</option><option>🥐</option><option>💋</option><option>🤗</option><option>📸</option><option>🎵</option><option>🍫</option><option>🌹</option><option>😈</option><option selected>🎁</option></select>
         <input id="shText" placeholder="Vale por un masaje…">
       </div>
-      <div class="sendrow"><input id="shPrice" type="number" inputmode="numeric" min="5" max="5000" placeholder="Precio 🪙" style="flex:1"><button class="btn primary" id="shAdd">Poner a la venta</button></div>
+      <div class="sendrow"><input id="shPrice" type="number" inputmode="numeric" min="5" max="5000" placeholder="Precio 💖" style="flex:1"><button class="btn primary" id="shAdd">Poner a la venta</button></div>
       <div id="shOffers" class="mt"></div>
     </section>
   </div>

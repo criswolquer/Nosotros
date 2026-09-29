@@ -177,7 +177,7 @@ function renderQuestion() {
   $("qBox").innerHTML = h;
   if (!mine) $("qSend").onclick = () => {
     const t = $("qAns").value.trim(); if (!t) return toast("Escribe tu respuesta");
-    S.merge("answers/" + dayKey(), { [who]: t, at: Date.now() }); buzz(); addCoins(5);
+    S.merge("answers/" + dayKey(), { [who]: t, at: Date.now() }); buzz(); addHearts(5, "pregunta del día");
   };
 }
 let unAns = null, ansDay = null;
@@ -457,7 +457,19 @@ document.querySelectorAll("#shopTabs button").forEach(b => b.onclick = () => { s
 
 // ---- Monedas ----
 function coinFx(n) { if (n > 0) fx("coinfx", "+" + n + " 🪙", "", 1300); }
-function addCoins(n) { return petTx(p => { p.coins += n; return p; }).then(() => { toast("+" + n + " 🪙 para vuestra mascota"); }).catch(() => {}); }
+function addCoins(n) { return petTx(p => { p.coins += n; return p; }).then(() => { toast("+" + n + " 🪙 para el pollito"); }).catch(() => {}); }
+// 💖 Corazones de pareja: cada uno tiene los suyos (juegos, pregunta del día, planes) y se gastan en la Tienda de vales
+const HEART_START = 50;
+const heartsOf = w => { const x = state.wallet; return x && typeof x[w] === "number" ? x[w] : HEART_START; };
+const walletTx = fn => S.tx("state/wallet", x => { x = x || {}; for (const w of ["a", "b"]) if (typeof x[w] !== "number") x[w] = HEART_START; return fn(x); });
+function addHearts(n, why) {
+  if (!n) return Promise.resolve();
+  return walletTx(x => { x[who] += n; return x; }).then(() => toast(`+${n} 💖${why ? " · " + why : ""}`)).catch(() => {});
+}
+function renderHearts() {
+  const el = $("heartBar"); if (el) el.innerHTML = `<span>💖 Tus corazones: <b>${heartsOf(who)}</b></span><small>${esc(name(other()))}: ${heartsOf(other())}</small>`;
+  if (typeof curGame !== "undefined" && curGame === "shop") renderShop2();
+}
 
 // ---- Reacciones ----
 function react(expr, ms) { tempExpr = expr; tempUntil = Date.now() + ms; renderPet(); setTimeout(renderPet, ms + 50); }
@@ -565,7 +577,7 @@ function renderQuiz() {
     <div class="okbad"><button class="btn" data-ok="1" data-i="${i}">✅ Acertó</button><button class="btn" data-ok="0" data-i="${i}">❌ Falló</button></div></div>`).join("");
   $("quizReview").querySelectorAll("button").forEach(b => b.onclick = () => {
     const ok = b.dataset.ok === "1";
-    S.merge("quiz/main", { gu: { [ot]: { [b.dataset.i]: { ok } } } }); buzz(); if (ok) addCoins(5);
+    S.merge("quiz/main", { gu: { [ot]: { [b.dataset.i]: { ok } } } }); buzz(); if (ok) addHearts(5, "¿Me conoces?");
     sendMsg((ok ? "✅ ¡Acertaste! " : "❌ Fallaste: ") + QZ[b.dataset.i].toLowerCase() + (ok ? "" : " → " + ((ans[me] || {})[b.dataset.i] || "")), "quiz");
   });
 
@@ -640,7 +652,7 @@ function move(i) {
     return g;
   }).then(g => {
     if (!g) return; buzz();
-    if (res === "win") addCoins(15); else if (res === "draw") addCoins(5);
+    if (res === "win") addHearts(15, "tres en raya"); else if (res === "draw") addHearts(5, "empate");
     sendMsg(res === "win" ? "🏆 ¡Te he ganado al tres en raya! " + (g.bet ? "Recuerda: " + g.bet : "") : res === "draw" ? "🤝 Empate en el tres en raya" : "🎮 Te toca en el tres en raya", "ttt");
   }).catch(offline);
 }
@@ -939,7 +951,7 @@ function togglePlan(id) {
   setTimeout(() => S.merge("plans/" + id, { done: true, doneAt: Date.now(), doneBy: who }), 250);
   confetti(); buzz([40, 60, 40]);
   sendMsg(`✅ ¡Plan cumplido! ${p.cat || ""} ${p.text}`, "plan");
-  addCoins(20);
+  addHearts(20, "plan cumplido");
   $("plIdeas").innerHTML = `<div class="plbanner"><span>🎉 ¡Plan cumplido! ¿Guardáis una foto?</span><button class="btn primary" id="plPhotoNow">📸 Foto</button><button class="btn" id="plPhotoNo">✕</button></div>`;
   $("plPhotoNow").onclick = () => { $("plIdeas").innerHTML = ""; planPhoto(p); };
   $("plPhotoNo").onclick = () => { $("plIdeas").innerHTML = ""; };
@@ -1299,6 +1311,7 @@ function gameBadge(id) {
   return null;
 }
 function renderGameMenu() {
+  renderHearts();
   $("gameMenu").innerHTML = GAMES.map(x => { const b = gameBadge(x.id); return `<button class="gcard" data-open="${x.id}"><i>${x.e}</i><b>${x.n}</b>${b ? `<span class="gbadge ${b.hot ? "hot" : ""}">${b.t}</span>` : ""}</button>`; }).join("");
   $("gameMenu").querySelectorAll("[data-open]").forEach(b => b.onclick = () => openGame(b.dataset.open));
   updateGamesDot();
@@ -1357,8 +1370,8 @@ function c4Drop(col) {
     return g;
   }).then(g => {
     if (!g) return; buzz(20);
-    if (res === "win") { addCoins(15); confetti(); sendMsg("🔴 ¡Te he ganado al Conecta 4!", "game"); }
-    else if (res === "draw") { addCoins(5); sendMsg("🤝 Empate en el Conecta 4", "game"); }
+    if (res === "win") { addHearts(15, "Conecta 4"); confetti(); sendMsg("🔴 ¡Te he ganado al Conecta 4!", "game"); }
+    else if (res === "draw") { addHearts(5, "empate"); sendMsg("🤝 Empate en el Conecta 4", "game"); }
     else sendMsg("🔴 Te toca en el Conecta 4", "game");
   }).catch(offline);
 }
@@ -1425,7 +1438,7 @@ function bsShoot(i) {
     return g;
   }).then(g => {
     if (!g) return; buzz(res === "miss" ? 15 : [30, 40, 30]);
-    if (res === "win") { addCoins(20); confetti(); sendMsg("🏆 ¡He hundido toda tu flota!", "game"); }
+    if (res === "win") { addHearts(20, "Hundir la flota"); confetti(); sendMsg("🏆 ¡He hundido toda tu flota!", "game"); }
     else if (res === "miss") sendMsg("🚢 Agua 💧 ¡Te toca disparar!", "game");
     else toast(res === "sunk" ? "¡Hundido! 🔥 Vuelves a disparar" : "¡Tocado! 💥 Vuelves a disparar");
   }).catch(offline);
@@ -1479,7 +1492,7 @@ function renderWordle() {
       return x;
     }).then(x => {
       if (!x) return; buzz(15);
-      if (res === "won") { addCoins(15); confetti(); sendMsg(`🔤 ¡Adiviné tu palabra ${x.word} en ${x.guesses.length} intentos!`, "game"); }
+      if (res === "won") { addHearts(15, "Wordle"); confetti(); sendMsg(`🔤 ¡Adiviné tu palabra ${x.word} en ${x.guesses.length} intentos!`, "game"); }
       else if (res === "lost") sendMsg(`🔤 No adiviné tu palabra 😅 Era ${x.word}`, "game");
     }).catch(offline);
   };
@@ -1524,7 +1537,7 @@ function renderDraw() {
       const t = norm($("drTry").value); if (!t) return;
       if (t === norm(d.word)) {
         S.merge("drawings/" + d.id, { solved: true, solvedAt: Date.now(), guesses: [...(d.guesses || []), t] });
-        addCoins(10); confetti(); buzz([30, 40, 30]); sendMsg(`🎨 ¡Adiviné tu dibujo! Era ${d.word}`, "game");
+        addHearts(10, "dibujo adivinado"); confetti(); buzz([30, 40, 30]); sendMsg(`🎨 ¡Adiviné tu dibujo! Era ${d.word}`, "game");
       } else { S.merge("drawings/" + d.id, { guesses: [...(d.guesses || []), t] }); toast("¡No! Prueba otra vez 🤔"); buzz(60); }
     };
     $("drGive").onclick = () => { if (!confirm("¿Te rindes?")) return; S.merge("drawings/" + d.id, { gaveUp: true }); toast("Era: " + d.word); sendMsg(`🎨 Me rindo con tu dibujo… ¿era ${d.word}? 😅`, "game"); };
@@ -1576,7 +1589,7 @@ function renderWyr() {
     $("wyrBox").innerHTML = `<div class="wyr"><button data-v="0">${esc(x)}</button><span>o</span><button data-v="1">${esc(y)}</button></div><div class="sub" style="text-align:center">${Object.keys(me).length}/${WYR.length} respondidas</div>`;
     $("wyrBox").querySelectorAll("[data-v]").forEach(b => b.onclick = () => {
       const v = +b.dataset.v; S.merge("games/wyr", { ans: { [who]: { [next]: v } } }); buzz(15);
-      if (ot[next] !== undefined) { if (ot[next] === v) { toast(`¡Coincidís! 💞 ${name(other())} también eligió eso`); addCoins(3); } else toast(`${name(other())} eligió lo otro 😅`); }
+      if (ot[next] !== undefined) { if (ot[next] === v) { toast(`¡Coincidís! 💞 +3 💖 para los dos`); walletTx(x => { x.a += 3; x.b += 3; return x; }).catch(() => {}); } else toast(`${name(other())} eligió lo otro 😅`); }
     });
   }
   $("wyrHist").innerHTML = both.length ? both.slice(-12).reverse().map(i => `<div class="lrow"><span>${esc(WYR[i][me[i]])}</span><small>${esc(name(other()))}: ${esc(WYR[i][ot[i]].split(" ").slice(1).join(" "))}</small><span style="flex:none">${me[i] === ot[i] ? "✅" : "❌"}</span></div>`).join("") : '<div class="empty">Aquí saldrán vuestras respuestas.</div>';
@@ -1650,8 +1663,8 @@ function mmWin() {
   mm.end = Date.now(); renderMM(); confetti(); buzz([30, 40, 30]);
   const moves = mm.moves, secs = Math.round((mm.end - mm.t0) / 1000), prev = (((G.memory || {}).best) || {})[who];
   if (!prev || moves < prev.moves) { S.merge("games/memory", { best: { [who]: { moves, secs, at: Date.now() } } }); if (prev) sendMsg(`🧩 ¡Nuevo récord en Memory: ${moves} movimientos!`, "game"); }
-  let g = 0; petTx(p => { p.day.mem = p.day.mem || {}; const n = p.day.mem[who] || 0; g = n < 3 ? 5 : 0; p.day.mem[who] = n + 1; p.coins += g; return p; })
-    .then(() => toast(`🧩 ¡Completado en ${moves} movimientos!${g ? " +5 🪙" : ""}`, 3500)).catch(() => {});
+  let g = 0; walletTx(x => { const d = dayKey(); if (!x.memDay || x.memDay.d !== d) x.memDay = { d }; const n = x.memDay[who] || 0; g = n < 3 ? 5 : 0; x.memDay[who] = n + 1; x[who] += g; return x; })
+    .then(() => toast(`🧩 ¡Completado en ${moves} movimientos!${g ? " +5 💖" : ""}`, 3500)).catch(() => {});
 }
 $("mmNew").onclick = newMM;
 
@@ -1673,7 +1686,7 @@ function renderScratch() {
   if (done) $("scBox").innerHTML = `<div class="scdone">🌙 Ya has rascado hoy.<br>Vuelve mañana para otra tarjeta.</div>`;
   else if (!$("scCanvas")) {
     const r = Math.random(), prize = r < .45 ? { k: "vale", t: rnd(pool) } : r < .8 ? { k: "coins", n: rnd([10, 15, 20, 30]) } : { k: "nada" };
-    $("scBox").innerHTML = `<div class="scard"><div class="scprize">${prize.k === "vale" ? `🎟️<b>${esc(prize.t)}</b>` : prize.k === "coins" ? `🪙<b>+${prize.n} monedas</b>` : `🍀<b>¡Casi! Mañana más suerte</b>`}</div><canvas id="scCanvas"></canvas></div><div class="sub">Rasca con el dedo 👆</div>`;
+    $("scBox").innerHTML = `<div class="scard"><div class="scprize">${prize.k === "vale" ? `🎟️<b>${esc(prize.t)}</b>` : prize.k === "coins" ? `💖<b>+${prize.n} corazones</b>` : `🍀<b>¡Casi! Mañana más suerte</b>`}</div><canvas id="scCanvas"></canvas></div><div class="sub">Rasca con el dedo 👆</div>`;
     scInit(prize);
   }
   document.querySelectorAll(".oname").forEach(e => e.textContent = name(other()));
@@ -1707,7 +1720,7 @@ function scClaim(prize) {
   S.tx("games/scratch", g => { g = g || {}; g.last = g.last || {}; if (g.last[who] === today) return null; g.last[who] = today; return g; }).then(g => {
     if (!g) return;
     if (prize.k === "vale") { S.add("vouchers", { to: who, from: other(), text: prize.t, src: "scratch", used: false, at: Date.now() }); confetti(); sendMsg(`🎟️ ¡He ganado un vale rascando! ${prize.t}`, "vale"); }
-    else if (prize.k === "coins") { addCoins(prize.n); confetti(); }
+    else if (prize.k === "coins") { addHearts(prize.n, "rasca y gana"); confetti(); }
     buzz([30, 40, 30]);
   }).catch(offline);
 }
@@ -1718,29 +1731,29 @@ $("scAdd").onclick = () => {
 
 // ---------------- Tienda de vales ----------------
 function renderShop2() {
-  $("shCoins").textContent = "🪙 " + coinsOf(state.pet);
-  const offers = ((G.shop || {}).offers || {}), theirs = offers[other()] || [], mine = offers[who] || [], coins = coinsOf(state.pet);
-  $("shBuy").innerHTML = theirs.length ? theirs.map(o => `<div class="vale"><span>${esc(o.e)} ${esc(o.t)}<small>🪙 ${o.price}</small></span><button class="btn ${coins >= o.price ? "primary" : ""}" data-buy="${esc(o.id)}" ${coins >= o.price ? "" : "disabled"}>${coins >= o.price ? "Comprar" : "Faltan " + (o.price - coins)}</button></div>`).join("")
+  $("shCoins").textContent = "💖 " + heartsOf(who);
+  const offers = ((G.shop || {}).offers || {}), theirs = offers[other()] || [], mine = offers[who] || [], coins = heartsOf(who);
+  $("shBuy").innerHTML = theirs.length ? theirs.map(o => `<div class="vale"><span>${esc(o.e)} ${esc(o.t)}<small>💖 ${o.price}</small></span><button class="btn ${coins >= o.price ? "primary" : ""}" data-buy="${esc(o.id)}" ${coins >= o.price ? "" : "disabled"}>${coins >= o.price ? "Comprar" : "Faltan " + (o.price - coins)}</button></div>`).join("")
     : `<div class="empty">${esc(name(other()))} aún no ha puesto nada a la venta. ¡Pídeselo! 😉</div>`;
   $("shBuy").querySelectorAll("[data-buy]").forEach(b => b.onclick = () => {
-    const o = theirs.find(x => x.id === b.dataset.buy); if (!o || !confirm(`¿Comprar "${o.t}" por ${o.price} 🪙?`)) return;
+    const o = theirs.find(x => x.id === b.dataset.buy); if (!o || !confirm(`¿Comprar "${o.t}" por ${o.price} 💖?`)) return;
     let ok = false;
-    petTx(p => { if (p.coins < o.price) return null; p.coins -= o.price; ok = true; return p; }).then(() => {
-      if (!ok) return toast("No tenéis suficientes monedas 🪙");
+    walletTx(x => { if (x[who] < o.price) return null; x[who] -= o.price; ok = true; return x; }).then(() => {
+      if (!ok) return toast("No tienes suficientes corazones 💖");
       S.add("vouchers", { to: who, from: other(), text: `${o.e} ${o.t}`, src: "shop", price: o.price, used: false, at: Date.now() });
       confetti(); buzz([30, 40, 30]); sendMsg(`🛍️ ¡Te he comprado un vale! ${o.e} ${o.t}`, "vale");
     }).catch(offline);
   });
-  $("shOffers").innerHTML = mine.length ? mine.map(o => `<div class="lrow"><span>${esc(o.e)} ${esc(o.t)}</span><small>🪙 ${o.price}</small><button class="x" data-rm="${esc(o.id)}">✕</button></div>`).join("") : '<div class="empty">Pon cosas que te pueda comprar: un masaje, elegir plan, una carta…</div>';
+  $("shOffers").innerHTML = mine.length ? mine.map(o => `<div class="lrow"><span>${esc(o.e)} ${esc(o.t)}</span><small>💖 ${o.price}</small><button class="x" data-rm="${esc(o.id)}">✕</button></div>`).join("") : '<div class="empty">Pon cosas que te pueda comprar: un masaje, elegir plan, una carta…</div>';
   $("shOffers").querySelectorAll("[data-rm]").forEach(b => b.onclick = () => S.tx("games/shop", g => { g = g || {}; g.offers = g.offers || {}; g.offers[who] = (g.offers[who] || []).filter(x => x.id !== b.dataset.rm); return g; }).catch(offline));
   voucherList($("shMine"));
 }
 $("shAdd").onclick = () => {
   const t = $("shText").value.trim(), price = Math.round(+$("shPrice").value);
-  if (!t) return toast("Escribe qué ofreces"); if (!(price >= 5 && price <= 5000)) return toast("Precio entre 5 y 5000 🪙");
+  if (!t) return toast("Escribe qué ofreces"); if (!(price >= 5 && price <= 5000)) return toast("Precio entre 5 y 5000 💖");
   const o = { id: Math.random().toString(36).slice(2, 9), e: $("shEmoji").value, t: t.slice(0, 80), price };
   S.tx("games/shop", g => { g = g || {}; g.offers = g.offers || {}; g.offers[who] = [...(g.offers[who] || []), o]; return g; })
-    .then(() => { $("shText").value = ""; $("shPrice").value = ""; toast("¡A la venta! 🛍️"); sendMsg(`🛍️ He puesto a la venta: ${o.e} ${o.t} (${o.price} 🪙)`, "vale"); }).catch(offline);
+    .then(() => { $("shText").value = ""; $("shPrice").value = ""; toast("¡A la venta! 🛍️"); sendMsg(`🛍️ He puesto a la venta: ${o.e} ${o.t} (${o.price} 💖)`, "vale"); }).catch(offline);
 };
 
 GAMES_READY = true;
@@ -1972,7 +1985,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "24";
+const APP_VERSION = "26";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -1994,24 +2007,29 @@ function setConn(st, code, where) {
   }
 }
 S.onStatus(setConn);
+function showRetry() {
+  const el = $("connPill"); el.innerHTML = el.textContent + ` <button class="btn" id="retryBtn" style="padding:4px 10px;font-size:13px;margin-left:6px">Reintentar</button>`;
+  $("retryBtn").onclick = () => location.reload();
+}
 
 async function start() {
   if (S.demo) { $("demoBanner").classList.remove("hidden"); setConn("demo"); }
   if (S.needsLogin) {
-    try { await S.init(loginUI); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); return; }
+    try { await S.init(loginUI); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); showRetry(); return; }
     $("loginView").classList.add("hidden");
     who = S.userEmail === (CONFIG.emails.a || "").toLowerCase() ? "a" : "b"; ls.set("who", who);
   } else if (who !== "a" && who !== "b") await pickWho();
   if (who === "b" && !ls.get("introSeen")) openIntro();
   const t = ls.get("tab"); if (TABS.includes(t)) showTab(t);
   tick(); renderQuestion(); renderPet(); renderQuiz(); renderTTT(); renderMoods([]); drawWheel(); fgInfo(); renderLetters([]); renderCaps([]); renderDates([]); renderGameMenu();
-  if (!S.needsLogin) { try { await S.init(); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); return; } }
+  if (!S.needsLogin) { try { await S.init(); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); showRetry(); return; } }
   S.merge("state/main", { tz: { [who]: myTz } });
   S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); });
   S.watchDoc("state/pet", d => { state.pet = d; renderPet(); fgInfo(); });
   S.watchDoc("quiz/main", d => { state.quiz = d; renderQuiz(); });
   S.watchDoc("state/ttt", d => { state.ttt = d; renderTTT(); renderQuiz(); renderGameMenu(); });
   S.watchDoc("state/wheel", drawWheel);
+  S.watchDoc("state/wallet", d => { state.wallet = d; renderHearts(); });
   ["c4", "bs", "wordle", "wyr", "tod", "memory", "scratch", "shop"].forEach(k => S.watchDoc("games/" + k, d => { G[k] = d; gRefresh(k); }));
   S.watchCol("drawings", l => { drawings = l; gRefresh("draw"); }, 30);
   S.watchCol("vouchers", l => { vouchers = l; gRefresh("scratch"); gRefresh("shop"); }, 200);

@@ -31,9 +31,11 @@ export const tx = (p, fn) => impl.tx(p, fn);
 
 async function firebaseImpl(loginUI) {
   const base = "https://www.gstatic.com/firebasejs/10.12.2/";
-  const { initializeApp } = await import(base + "firebase-app.js");
-  const fs = await import(base + "firebase-firestore.js");
-  const au = await import(base + "firebase-auth.js");
+  // Si la descarga falla, la app enseña un botón "Reintentar" (recarga la página)
+  const load = f => import(base + f);
+  const { initializeApp } = await load("firebase-app.js");
+  const fs = await load("firebase-firestore.js");
+  const au = await load("firebase-auth.js");
   const app = initializeApp(CONFIG.firebase);
   let db;
   const dbId = CONFIG.database || "(default)";   // nombre de la base de datos de Firestore
