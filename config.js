@@ -17,7 +17,7 @@ export const CONFIG = {
   couple: "4AZIZhNNdznlToMOnho9sGQq",
 
   // 3) Vuestros nombres: a = tú, b = tu pareja
-  names: { a: "Christian", b: "Mi amor" },
+  names: { a: "Christian", b: "Celia" },
 
   // 4) Fecha en que empezasteis (AAAA-MM-DD)
   start: "",
