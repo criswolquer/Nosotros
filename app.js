@@ -3528,7 +3528,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "36";
+const APP_VERSION = "37";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -4205,9 +4205,13 @@ function aiContext() {
     `Eres ${p.name || sp.n}, la mascota virtual (${sp.n.toLowerCase()}, fase «${stageName(I.si, p.species)}», nivel ${I.L.l}) que comparten ${name("a")} y ${name("b")}, una pareja que vive a distancia. Ahora hablas con ${me}.`,
     tr ? `Tu personalidad: ${tr.n.toLowerCase()} (${tr.d}).` : "",
     "Responde SIEMPRE en español, en 1 a 3 frases cortas, con ternura y humor y algún emoji. Eres su mascota: nunca digas que eres una IA, un modelo o un programa. No inventes cosas sobre ellos que no estén en estos datos; si no sabes algo, dilo con gracia. Anima a la pareja y nunca critiques a ninguno de los dos.",
-    `Si ${me} te pide que le digas o le lleves algo a ${o}, contesta que se lo dirás y añade al final exactamente: [RECADO: lo que tienes que decirle]`,
+    `Si ${me} te pide que le digas o le lleves algo a ${o}, contesta que se lo dirás y añade al final exactamente: [RECADO: lo que tienes que decirle]. Solo en ese caso: si no hay recado, no escribas nada entre corchetes.`,
+    "Habla como un personaje, no expliques tus datos ni repitas números sin venir a cuento. Si te dicen algo que contradice tus datos, créete a la persona con cariño.",
     "Datos de ahora mismo:",
-    days !== null ? `- Llevan ${days} días juntos.` : "", nx ? `- Faltan ${nx} días para que se vean.` : "",
+    p.hatchedAt > 1e12 ? `- Naciste del huevo hace ${Math.floor((Date.now() - p.hatchedAt) / DAY)} días (el ${new Date(p.hatchedAt).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}); eres muy pequeñito todavía. Tu nivel no es tu edad.` : "",
+    p.born > 1e12 ? `- Ellos adoptaron tu huevo el ${new Date(p.born).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}.` : "",
+    `- Hoy es ${new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" })}.`,
+        days !== null ? `- Llevan ${days} días juntos.` : "", nx ? `- Faltan ${nx} días para que se vean.` : "",
     `- Tus necesidades (100% = perfecto): hambre ${I.nv.food}%, cariño ${I.nv.love}%, diversión ${I.nv.fun}%, limpieza ${I.nv.clean}%, energía ${I.nv.energy}%.${I.sick ? " Estás malito." : ""}`,
     `- Hoy te ha dado de comer: ${[I.meT ? me : "", I.otT ? o : ""].filter(Boolean).join(" y ") || "nadie todavía"}. Días que te han cuidado los dos: ${p.xp}. Racha: ${p.streak || 0}.`,
     wear.length ? `- Llevas puesto: ${wear.join(", ")}.` : "",
@@ -4247,13 +4251,18 @@ async function aiSend() {
     if (S.demo) { aiContext.last = aiContext(); await new Promise(r => setTimeout(r, 700)); reply = demoReply(t); }
     else if (!srvUrl()) reply = "Pío… 🥺 Aún no tengo voz: falta poner la dirección del servidor en ⚙️ Ajustes.";
     else {
-      const r = await fetch(srvUrl(), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ secret: CONFIG.pushSecret, type: "chat", system: aiContext(), messages: aiHist.slice(-12) }) });
-      const j = await r.json(); if (!j.ok || !j.reply) throw new Error(j.error || "sin respuesta"); reply = j.reply;
+      const body = JSON.stringify({ secret: CONFIG.pushSecret, type: "chat", system: aiContext(), messages: aiHist.filter(m => !m.fail).slice(-12).map(m => ({ role: m.role, content: m.content })) });
+      for (let i = 0; i < 2 && !reply; i++) {
+        try { const r = await fetch(srvUrl(), { method: "POST", headers: { "Content-Type": "application/json" }, body }); const j = await r.json(); if (!j.ok || !j.reply) throw new Error(j.error || "sin respuesta"); reply = j.reply; }
+        catch (e) { if (i) throw e; await new Promise(r => setTimeout(r, 800)); }
+      }
     }
-  } catch (e) { console.warn(e); reply = "Pío… me he quedado sin palabras 😵 Prueba otra vez en un ratito."; }
+  } catch (e) { console.warn(e); reply = null; }
   aiSend.busy = false;
-  let rec = null; reply = String(reply).replace(/\[RECADO:\s*([^\]]+)\]/i, (_, m) => { rec = m.trim(); return ""; }).trim() || "🐤💛";
-  aiHist.push({ role: "assistant", content: reply }); aiHist = aiHist.slice(-20); ls.set("aiHist", JSON.stringify(aiHist)); drawAi();
+  const fail = !reply; if (fail) reply = "Pío… me he quedado sin palabras 😵 Prueba otra vez en un ratito.";
+  let rec = null; reply = String(reply).replace(/\[RECADO:\s*([^\]]+)\]/i, (_, m) => { rec = m.trim(); return ""; }).replace(/\[[^\]]*\]/g, "").replace(/\s{2,}/g, " ").trim() || "🐤💛";
+  if (rec && /^(no hay|ninguno|nada)/i.test(rec)) rec = null;
+  aiHist.push(fail ? { role: "assistant", content: reply, fail: 1 } : { role: "assistant", content: reply }); aiHist = aiHist.slice(-20); ls.set("aiHist", JSON.stringify(aiHist)); drawAi();
   say(reply.length > 150 ? reply.slice(0, 147) + "…" : reply, 5000); react("happy", 1500);
   const pn = (state.pet || {}).name || "La mascota";
   petTx(q => { firstMark(q, "talk"); bump(q, "talk"); if (rec) { q.words = [...(q.words || []), { id: Date.now().toString(36), from: who, text: rec.slice(0, 140), at: Date.now(), said: 0 }].slice(-40); firstMark(q, "word"); } return q; })
