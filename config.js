@@ -41,7 +41,7 @@ export const CONFIG = {
   sign: "Te quiero, Christian ❤️",
 
   // 7) Avisos con la app cerrada: dirección de tu servidor de Cloudflare (la pondremos cuando lo crees)
-  pushUrl: "",
+  pushUrl: "https://nosotros-avisos.criswolquer.workers.dev",
   vapidPublic: "BIESSgB6LD0_mid1CaXoeV_nqPN8YupKs8SQrxjXeRN7Nd7nFk4E6G8ND1FyagXnj0CrQlLkwze__d3MTW0rWtI",
   pushSecret: "abTidlXm25yVH4DpA52syGZj9WyiqpB_",
 
