@@ -1180,10 +1180,13 @@ label.shopit{cursor:pointer}
 
 /* ===== v40 · pareja, crías, árbol, marcas ===== */
 .matefig,.kidfig,.nestfig{position:absolute;bottom:4px;background:none;border:0;padding:0;z-index:2;cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent}
-.matefig{left:-2%;bottom:10px;width:150px;height:150px;animation:mateBob 3.4s ease-in-out infinite;z-index:1}
+.matefig{left:clamp(-6%, calc(var(--px, 50%) - 46%), 56%);bottom:10px;width:150px;height:150px;animation:mateBob 3.4s ease-in-out infinite;z-index:1;transition:left 1.4s ease}
+.scene.inter-close .matefig:not(.far),.matefig.snug{left:clamp(-2%, calc(var(--px, 50%) - 37%), 60%)}
+.matefig.far{left:28%;animation:mateStroll 10s ease-in-out infinite}
 .matefig svg,.kidfig svg,.nestfig svg{width:100%;height:100%;overflow:visible;display:block}
 .matefig b{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);font-size:10.5px;font-weight:800;color:#fff;background:rgba(0,0,0,.35);padding:1px 7px;border-radius:9px;white-space:nowrap}
-.kidfig{width:58px;height:58px;animation:kidHop 2.6s ease-in-out infinite;z-index:3}
+.kidfig{width:58px;height:58px;animation:kidHop 2.6s ease-in-out infinite;z-index:3;left:min(calc(var(--px, 50%) + 12% + var(--ki, 0) * 11%), 82%);transition:left 1.6s ease}
+.kidfig.alone{left:calc(30% + var(--ki, 0) * 16%)}
 .kidfig.kst2{width:64px;height:64px}.kidfig.kst3{width:70px;height:70px}.kidfig.kst4{width:76px;height:76px}
 .nestfig{left:23%;bottom:0;width:70px;height:63px;z-index:3}
 @keyframes mateBob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-2deg)}}
@@ -1259,6 +1262,61 @@ label.shopit{cursor:pointer}
 .sexrow{display:flex;gap:8px}.sexrow button{flex:1;padding:11px 6px;border-radius:14px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:inherit;font-weight:800;font-size:14px}
 .sexrow button.on{border-color:#ff6f91;background:rgba(255,111,145,.18)}
 .chem{text-align:center;font-size:12.5px;margin-top:8px;opacity:.9}.chem b{color:#ff8fb0}
+
+/* ===== v43 · vida propia ===== */
+.petbox.gone{visibility:hidden;pointer-events:none}
+.petbox.arrive svg{animation:arrive .8s ease-out}
+@keyframes arrive{0%{transform:translateY(-30px) scale(.8);opacity:0}60%{transform:translateY(6px) scale(1.04);opacity:1}100%{transform:none}}
+.lookfor{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;background:rgba(24,14,32,.74);color:#fff;border-radius:18px;padding:12px 16px 14px;text-align:center;width:min(78%,290px);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 8px 24px rgba(0,0,0,.25);animation:lkin .5s ease-out}
+.lookfor b{display:block;font-size:15px}.lookfor small{display:block;font-size:12.5px;opacity:.85;margin:4px 0 10px;line-height:1.35}
+.lookfor .btn{padding:8px 16px;font-size:13px}
+.lkpaw{font-size:20px;opacity:.7;letter-spacing:8px;animation:paw 2s ease-in-out infinite}
+@keyframes paw{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+@keyframes lkin{from{opacity:0;transform:translate(-50%,-40%)}to{opacity:1;transform:translate(-50%,-50%)}}
+@keyframes mateStroll{0%,100%{transform:translateX(0)}25%{transform:translateX(26px) rotate(2deg)}50%{transform:translateX(52px)}75%{transform:translateX(20px) rotate(-2deg)}}
+.hugme svg{animation:hugsq .5s ease-in-out 4}
+@keyframes hugsq{0%,100%{transform:scale(1)}50%{transform:scale(1.07,.95)}}
+.matefig.hop svg{animation:hopsm .6s ease-out}
+.matefig.snug{transform:rotate(8deg);animation:none}
+.dateprop{position:absolute;bottom:2px;width:52%;z-index:1;pointer-events:none;animation:dpin .7s ease-out}
+.dateprop svg{width:100%;height:auto;display:block}
+@keyframes dpin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ===== v44 · más vida ===== */
+.chick .leg{transform-box:fill-box;transform-origin:50% 0}
+.walking .ll{animation:stepA .34s ease-in-out infinite}.walking .lr{animation:stepA .34s ease-in-out -.17s infinite}
+@keyframes stepA{0%,100%{transform:rotate(-17deg)}50%{transform:rotate(17deg) translateY(-2px)}}
+.walking .wing{animation:wingW .34s ease-in-out infinite}
+@keyframes wingW{50%{transform:rotate(14deg)}}
+.matefig.walking svg,.kidfig.walking svg{animation:walkbob .34s ease-in-out infinite}
+.petbox .eyesg{transform:translate(var(--ex,0px),var(--ey,0px));transition:transform .18s ease-out}
+.petbox{transition:bottom .6s ease}
+.petbox svg{transition:transform .5s ease}
+.petbox.pose-bed{bottom:40px}
+.petbox.pose-bed svg{transform:scale(.8) rotate(-7deg);transform-origin:50% 90%}
+.petbox.pose-bed::after{content:"";position:absolute;left:23%;right:23%;bottom:9%;height:23%;background:linear-gradient(#ffa9c6,#ff7fa8);border-radius:44% 44% 18px 18px;box-shadow:inset 0 7px 0 rgba(255,255,255,.4),0 3px 6px rgba(0,0,0,.15);z-index:2}
+.petbox.pose-bed .leg,.petbox.pose-sofa .leg,.petbox.pose-eat .leg,.petbox.pose-curl .leg{opacity:0}
+.petbox.pose-curl svg{transform:scale(1.04,.86);transform-origin:50% 96%}
+.petbox.pose-sofa{bottom:36px}.petbox.pose-sofa svg{transform:scale(.86,.8);transform-origin:50% 96%}
+.petbox.pose-eat svg{transform-origin:50% 96%;animation:peckS .55s ease-in-out infinite}
+@keyframes peckS{0%,100%{transform:scale(1,.9) rotate(0)}50%{transform:scale(1,.9) rotate(13deg) translateY(7px)}}
+.petbox.pose-peck svg{transform-origin:50% 96%;animation:peckT .5s ease-in-out infinite}
+@keyframes peckT{0%,100%{transform:rotate(0)}50%{transform:rotate(18deg) translateY(10px)}}
+.petbox.pose-tiptoe svg{transform:translateY(-10px) scale(.97,1.06);transform-origin:50% 96%}
+.petbox.pose-dance svg{transform-origin:50% 96%;animation:danceP .5s ease-in-out infinite}
+@keyframes danceP{0%,100%{transform:rotate(-10deg) translateY(0)}50%{transform:rotate(10deg) translateY(-10px)}}
+.petbox.pose-dance .wl{animation:flapL .25s ease-in-out infinite}.petbox.pose-dance .wr{animation:flapR .25s ease-in-out infinite}
+.petbox.pose-stretch svg{transform-origin:50% 96%;animation:stretchP 2.2s ease-in-out}
+@keyframes stretchP{0%,100%{transform:none}35%,65%{transform:scale(.92,1.14)}}
+.petbox.pose-stretch .wl{transform:rotate(-55deg)}.petbox.pose-stretch .wr{transform:rotate(55deg)}
+.petbox.pose-shake svg{animation:shakeP .1s linear 12}
+@keyframes shakeP{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+.petbox.pose-scratch svg{transform:rotate(-6deg);transform-origin:50% 96%}
+.petbox.pose-scratch .lr{animation:scratchL .16s ease-in-out infinite}
+@keyframes scratchL{0%,100%{transform:rotate(-40deg) translateY(-12px)}50%{transform:rotate(-60deg) translateY(-18px)}}
+.bfly{position:absolute;left:-8%;font-size:28px;z-index:4;pointer-events:none;animation:bfly 5.6s linear forwards}
+@keyframes bfly{0%{left:-8%;transform:translateY(0) scaleX(1)}20%{transform:translateY(-22px) scaleX(.7)}40%{transform:translateY(12px) scaleX(1)}60%{transform:translateY(-16px) scaleX(.7)}80%{transform:translateY(8px) scaleX(1)}100%{left:106%;transform:translateY(0)}}
+.plate{position:absolute;bottom:12px;font-size:30px;z-index:3;transform:translateX(-50%);pointer-events:none;animation:dpin .5s ease-out}
 </style>
 </head>
 <body>
@@ -1362,6 +1420,7 @@ label.shopit{cursor:pointer}
       <button class="viewbtn" id="petView">🏠 Casita</button>
       <div class="say hidden" id="petSay"></div>
       <div class="petbox" id="petBox"></div>
+      <div class="lookfor hidden" id="petLook"></div>
       <div class="zzz hidden" id="petZzz"><span>z</span><span>z</span><span>z</span></div>
       <div class="flies hidden" id="petFlies"><i>🪰</i><i>🪰</i></div>
       <div class="dream hidden" id="petDream"></div>

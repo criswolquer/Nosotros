@@ -819,7 +819,7 @@ function chickSVG(si, expr, wear, crackLevel, colorId, extra = {}) {
   const line = hexMix(dark, "#3a1a00", .45);
   const foot = x => `<path d="M${x} 164 L${x} 178" stroke="#f28a00" stroke-width="5" stroke-linecap="round"/><path d="M${x} 178 L${x - 8} 183 M${x} 178 L${x} 185 M${x} 178 L${x + 8} 183" stroke="#ff9f1c" stroke-width="4.2" stroke-linecap="round"/>`;
   const paw = x => `<ellipse cx="${x}" cy="174" rx="13" ry="8.5" fill="${dark}"/><ellipse cx="${x}" cy="174" rx="13" ry="8.5" fill="url(#${u}s)"/><path d="M${x - 4} 179 v-4 M${x + 4} 179 v-4" stroke="${line}" stroke-width="1.6" stroke-linecap="round" opacity=".5"/>`;
-  const feet = si === 1 ? "" : bird ? foot(86) + foot(114) : paw(84) + paw(116);
+  const feet = si === 1 ? "" : `<g class="leg ll">${bird ? foot(86) : paw(84)}</g><g class="leg lr">${bird ? foot(114) : paw(116)}</g>`;
   // cola (detrás)
   let tail = "";
   if (sp === "pollito" && si >= 5) tail = `<g fill="${dark}"><ellipse cx="146" cy="96" rx="10" ry="26" transform="rotate(20 146 96)"/><ellipse cx="156" cy="106" rx="10" ry="26" transform="rotate(45 156 106)"/><ellipse cx="160" cy="120" rx="9" ry="22" transform="rotate(70 160 120)"/></g>`;
@@ -1832,13 +1832,13 @@ function renderScene(I, pvScene, pvRoom) {
   $("roomBar").classList.toggle("hidden", petView !== "in");
   $("roomBar").innerHTML = ROOMS.map(([id, n]) => `<button class="${id === curRoom ? "on" : ""}" data-room="${id}">${n}</button>`).join("") +
     `<button class="${editMode ? "on" : ""}" id="editBtn">${editMode ? "✅ Listo" : "✏️ Mover"}</button>` + (mode === "night" && room.items.lampara ? `<button id="lightBtn">${room.light === false ? "💡 Encender" : "🌑 Apagar"}</button>` : "");
-  $("roomBar").querySelectorAll("[data-room]").forEach(b => b.onclick = () => { petHome(true); curRoom = b.dataset.room; ls.set("petRoom", curRoom); editMode = false; sceneSig = ""; renderPet(); });
+  $("roomBar").querySelectorAll("[data-room]").forEach(b => b.onclick = () => { locNav = true; petHome(true); curRoom = b.dataset.room; ls.set("petRoom", curRoom); editMode = false; sceneSig = ""; renderPet(); });
   $("editBtn").onclick = () => { editMode = !editMode; sceneSig = ""; renderPet(); if (editMode) toast("Arrastra los muebles con el dedo ✋"); };
   const lb = $("lightBtn"); if (lb) lb.onclick = () => petTx(q => { q.rooms = q.rooms || {}; q.rooms[curRoom] = { ...roomOf(q, curRoom), light: roomOf(q, curRoom).light === false }; return q; }).then(() => { sceneSig = ""; renderPet(); }).catch(offline);
   const tb = $("treasureBtn"); if (tb) tb.onclick = e => { e.stopPropagation(); digTreasure(); };
   if (editMode) enableDrag();
 }
-$("petView").onclick = () => { petHome(true); petView = petView === "in" ? "out" : "in"; ls.set("petView", petView); editMode = false; sceneSig = ""; renderPet(); say(petView === "in" ? "¡Mi casita! 🏠" : "¡Qué buen día hace fuera! 🌳"); };
+$("petView").onclick = () => { locNav = true; petHome(true); petView = petView === "in" ? "out" : "in"; ls.set("petView", petView); editMode = false; sceneSig = ""; renderPet(); if (locHere()) say(petView === "in" ? "¡Mi casita! 🏠" : "¡Qué buen día hace fuera! 🌳"); };
 // mover muebles con el dedo
 function enableDrag() {
   const sc = $("petScene");
@@ -1880,10 +1880,13 @@ function renderPet() {
     cold: !!(WX && WX.temp <= 8 && petView === "out"), hot: !!(WX && WX.temp >= 28 && petView === "out") };
   const sig = [si, expr, JSON.stringify(wear), crack, color, extra.dirty, extra.party, extra.species, extra.cold, extra.hot, away ? 1 : 0].join("|");
   if (sig !== petSig) { petSig = sig; $("petBox").innerHTML = away ? awaySign(away, p.trip.until) : chickSVG(si, expr, wear, crack, color, extra); }
-  $("petZzz").classList.toggle("hidden", expr !== "sleep" || !!away);
-  $("petDream").classList.toggle("hidden", expr !== "sleep" || !!away);
+  const here = renderLocate(p, I);
+  if (here && expr === "sleep" && !away && petView === "in") { const rm = roomOf(p, curRoom); if (rm.items && rm.items.cama) { const bx = Math.max(24, furnPos(rm, "cama").x); if (Math.abs(petX - bx) > 3) petPlace(bx, 0); } }
+  if (here && !away) sleepPose(expr);
+  $("petZzz").classList.toggle("hidden", expr !== "sleep" || !!away || !here);
+  $("petDream").classList.toggle("hidden", expr !== "sleep" || !!away || !here);
   if (expr === "sleep" && !$("petDream").textContent) $("petDream").textContent = dreamText();
-  $("petFlies").classList.toggle("hidden", !extra.dirty || !!away);
+  $("petFlies").classList.toggle("hidden", !extra.dirty || !!away || !here);
   $("petCoins").textContent = "🪙 " + coinsOf(p);
   $("petLvl").textContent = "Nv. " + I.L.l;
   $("petWx").classList.toggle("hidden", !WX);
@@ -1896,7 +1899,7 @@ function renderPet() {
   $("petName").textContent = p.name;
   const tt = TITLES[p.title]; $("petTitle").textContent = tt ? "« " + tt[1] + " »" : ""; $("petTitle").classList.toggle("hidden", !tt || si === 0);
   $("petFrame").className = "pframe fr-" + (p.frame || "ninguno");
-  $("petMood").textContent = stageName(si, p.species) + " · " + (away ? `Está de excursión en ${away.n} ${away.e}` : moodText(I));
+  $("petMood").textContent = stageName(si, p.species) + " · " + (away ? `Está de excursión en ${away.n} ${away.e}` : moodText(I)) + (si && !away && here ? ` · 📍 ${LOCE[petLoc(p, I)]} ${LOCN[petLoc(p, I)]}` : "");
   const tr = TRAITS[p.trait], spc = SPECIES[p.species || "pollito"];
   $("petTrait").innerHTML = si > 0 && tr ? `${spc.e} ${spc.n} · ${tr.e} ${tr.n} <small>· ${esc(tr.d)}</small>` : si === 0 && p.species && p.species !== "pollito" ? `Huevo de ${spc.n.toLowerCase()} ${spc.e}` : "";
   const act = si > 0 ? activeSets(p) : []; if (act.length) $("petTrait").innerHTML += act.map(s => `<div class="setline">✨ Set ${esc(s.n)} · ${esc(s.d)}</div>`).join("");
@@ -2004,7 +2007,7 @@ function renderHearts() {
 function react(expr, ms) { tempExpr = expr; tempUntil = Date.now() + ms; renderPet(); setTimeout(renderPet, ms + 50); }
 function anim(cls, ms) { const b = $("petBox"); b.classList.remove(cls); void b.offsetWidth; b.classList.add(cls); setTimeout(() => b.classList.remove(cls), ms); }
 function fx(cls, e, style = "", ms = 1800) { const s = document.createElement("span"); s.className = "fx " + cls; s.textContent = e; s.style.cssText = style; $("petScene").appendChild(s); setTimeout(() => s.remove(), ms); }
-function say(t, ms = 3200) { const b = $("petSay"); b.classList.remove("ask"); b.textContent = t; b.classList.remove("hidden"); b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; clearTimeout(say.t); say.t = setTimeout(() => b.classList.add("hidden"), ms); }
+function say(t, ms = 3200) { if (typeof locHere === "function" && state.pet && hatched() && !tripAway(state.pet) && !locHere() && !/^🔊/.test(t)) t = `🔊 A lo lejos: «${t}»`; const b = $("petSay"); b.classList.remove("ask"); b.textContent = t; b.classList.remove("hidden"); b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; clearTimeout(say.t); say.t = setTimeout(() => b.classList.add("hidden"), ms); }
 function phrase() {
   const I = petInfo(), o = name(other()), me = name(who), h = hourIn(myTz), p = I.p, tr = p.trait;
   const L = ["¡Pío pío! 🐤", "¡Os quiero a los dos! 💛", `Dile a ${o} que le echo de menos`, "Me encantan los mimos 🥰", "¿Jugamos? ⚽", "Cuando os veáis, ¡llevadme! 🧳", "¿Me compráis algo bonito? 🛍️", `${me}, ¡eres mi favorito! 🤫 (no se lo digas a ${o})`];
@@ -2207,7 +2210,10 @@ function hearts(el, e) {
 setInterval(() => {
   if (document.hidden || $("tab-pet").classList.contains("hidden") || !hatched() || Date.now() < tempUntil) return;
   const I = petInfo(), ex = currentExpr(I);
-  if (tripAway(I.p) || editMode) return;
+  if (tripAway(I.p) || editMode || !locHere()) return;
+  sleepPose(ex);
+  if (ex !== "sleep" && lifeTick(I, ex)) return;
+  if (petPose) return;
   if (petWander(I, ex)) return;
   if (ex === "sleep") { if (Math.random() < .15) say(rnd(["Zzz…", "*ronquidito*", "💤"]), 1800); return; }
   const r = Math.random();
@@ -2218,7 +2224,7 @@ setInterval(() => {
   else if (r < .73) say(phrase());
   else if (r < .78 && ex === "hungry") say("Grrr… mi tripita 🍽️", 2000);
   else if (r < .84) maybeAsk();
-}, 7000);
+}, 4500);
 setInterval(() => { if (!document.hidden) renderPet(); }, 60000);
 
 // ================= ¿Me conoces? =================
@@ -3670,7 +3676,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "42";
+const APP_VERSION = "44";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -4017,12 +4023,13 @@ function petPlace(x, ms) {
   const dx = x - petX; if (Math.abs(dx) < 1) return 0;
   const dur = ms != null ? ms : Math.min(3400, Math.round(Math.abs(dx) * 60));
   box.style.transition = dur ? `left ${dur}ms linear` : "none";
-  box.classList.toggle("flip", dx < 0); if (dur > 400) box.classList.add("walking");
+  if (petPose && petPose !== "bed") setPose("");
+  box.classList.toggle("flip", dx < 0); if (dur > 400) { box.classList.add("walking"); crewWalk(dx, dur); }
   box.style.left = x + "%"; petX = x; $("petScene").style.setProperty("--px", x + "%");
   clearTimeout(walkT); walkT = setTimeout(() => box.classList.remove("walking", "flip"), dur + 30);
   return dur;
 }
-function petHome(instant) { petBusyUntil = 0; petPlace(50, instant ? 0 : 350); }
+function petHome(instant) { petBusyUntil = 0; if (typeof setPose === "function") setPose(""); petPlace(50, instant ? 0 : 350); }
 const USE = {
   sofa: ["Qué cómodo es el sofá… 🛋️", "Me quedaría aquí toda la tarde 😌"], tele: ["📺 ¡Mis dibujos favoritos!", "¿Vemos una peli juntos? 🍿"], pecera: ["¡Hola, pececito! 🐠", "Blub, blub 🫧"],
   fogon: ["¡Qué bien huele! 🍳", "¿Cocinamos algo rico?"], frutero: ["¿Me como una manzana? 🍎"], piano: ["🎵 Do, re, mi… 🎹"], estanteria: ["Estoy leyendo un cuento 📚"],
@@ -4369,7 +4376,7 @@ function aiContext() {
     `- Tus necesidades (100% = perfecto): hambre ${I.nv.food}%, cariño ${I.nv.love}%, diversión ${I.nv.fun}%, limpieza ${I.nv.clean}%, energía ${I.nv.energy}%.${I.sick ? " Estás malito." : ""}`,
     `- Hoy te ha dado de comer: ${[I.meT ? me : "", I.otT ? o : ""].filter(Boolean).join(" y ") || "nadie todavía"}. Días que te han cuidado los dos: ${p.xp}. Racha: ${p.streak || 0}.`,
     wear.length ? `- Llevas puesto: ${wear.join(", ")}.` : "", familyCtx(p),
-    away ? `- Estás de excursión en ${away.n}.` : `- Estás en: ${petView === "in" ? "tu casita" : (CAT[p.scene || "jardin"] || {}).n || "el jardín"}.`,
+    away ? `- Estás de excursión en ${away.n}.` : `- Estás en ${petLoc(p) === "out" ? (CAT[p.scene || "jardin"] || {}).n || "el jardín" : LOCN[petLoc(p)] + " de vuestra casita"}. ${petLoc(p) === viewLoc() ? name(who) + " está mirándote ahí." : name(who) + " te está buscando por otra habitación (dale pistas de dónde estás, sin decirlo del todo)."}`,
     md[who] ? `- ${me} hoy se siente ${MOOD_TXT[md[who]]}.` : "", md[other()] ? `- ${o} hoy se siente ${MOOD_TXT[md[other()]]}.` : "",
     d[who] && d[who].text ? `- ${me} escribió hoy en el diario: «${d[who].text.slice(0, 200)}»` : "",
     d[who] && d[other()] && d[other()].text ? `- ${o} escribió hoy en el diario: «${d[other()].text.slice(0, 200)}»` : "",
@@ -5254,19 +5261,23 @@ function markIcon(it) {
 }
 
 // ---------- en la escena ----------
-function famSig(p) { const m = mateOf(p); return JSON.stringify([m && [m.name, m.c, m.mark, m.status, relStatus(relOf(m))[1], m.weddingAt && Date.now() - m.weddingAt < DAY], kidsOf(p).map(k => [k.id, kidStage(k), k.name, JSON.stringify(k.wear || {})]), p.nest && [p.nest.n, p.nest.at]]); }
+function famSig(p) { const m = mateOf(p), I0 = petInfo(); return JSON.stringify([viewLoc(), petLoc(p, I0), mateLoc(p, I0), kidsOf(p).map(k => kidLoc(p, I0, k)).join(), I0.si && currentExpr(I0) === "sleep",m && [m.name, m.c, m.mark, m.status, relStatus(relOf(m))[1], m.weddingAt && Date.now() - m.weddingAt < DAY], kidsOf(p).map(k => [k.id, kidStage(k), k.name, JSON.stringify(k.wear || {})]), p.nest && [p.nest.n, p.nest.at]]); }
 function famScene(p, I) {
   let h = "";
-  const m = mateOf(p);
-  if (m) {
-    const wed = m.weddingAt && Date.now() - m.weddingAt < DAY, wear = geneWear(m);
+  const m = mateOf(p), vl = viewLoc(), pl = petLoc(p, I);
+  if (m && mateLoc(p, I) === vl) {
+    const wed = m.weddingAt && Date.now() - m.weddingAt < DAY, wear = geneWear(m), far = pl !== vl, sleep = I.si && currentExpr(I) === "sleep";
+    const snug = !far && sleep && m.status !== "conocidos";
     if (wed && !wear.head) wear.head = sexOf(m) === "m" ? "chistera" : "tiara";
-    h += `<button class="matefig" id="mateFig" aria-label="${esc(m.name)}">${chickSVG(Math.max(2, Math.min(5, I.si || 4)), I.si && currentExpr(I) === "sleep" ? "sleep" : "idle", wear, 0, geneColor(m), { species: m.species })}<b>${relStatus(relOf(m))[0]} ${esc(m.name)}</b></button>`;
+    h += `<button class="matefig${far ? " far" : ""}${snug ? " snug" : ""}" id="mateFig" aria-label="${esc(m.name)}">${chickSVG(Math.max(2, Math.min(5, I.si || 4)), snug || (sleep && !far) ? "sleep" : "idle", wear, 0, geneColor(m), { species: m.species })}<b>${relStatus(relOf(m))[0]} ${esc(m.name)}</b></button>`;
   }
+  let ki = 0;
   kidsOf(p).slice(0, MAX_KIDS).forEach((k, i) => {
-    h += `<button class="kidfig kst${kidStage(k)}" data-kid="${k.id}" style="left:${58 + i * 11}%;animation-delay:${-i * .7}s">${chickSVG(kidStage(k), "happy", geneWear(k), 0, geneColor(k), { species: k.species })}</button>`;
+    if (kidLoc(p, I, k) !== vl) return;
+    const alone = pl !== vl;
+    h += `<button class="kidfig kst${kidStage(k)}${alone ? " alone" : ""}" data-kid="${k.id}" style="--ki:${ki++};animation-delay:${-i * .7}s">${chickSVG(kidStage(k), pl === "dorm" && vl === "dorm" && hourIn(myTz) >= 21 ? "sleep" : "happy", geneWear(k), 0, geneColor(k), { species: k.species })}</button>`;
   });
-  if (p.nest && !p.nest.hatched) h += `<button class="nestfig" id="nestFig" aria-label="Huevo">${nestSVG(p)}</button>`;
+  if (p.nest && !p.nest.hatched && (vl === "dorm" || vl === "jardin" || vl === "out")) h += `<button class="nestfig" id="nestFig" aria-label="Huevo">${nestSVG(p)}</button>`;
   return h;
 }
 function nestSVG(p) {
@@ -5379,7 +5390,7 @@ function doInter(id) {
     if (res.coins) return toast("No tenéis monedas suficientes 🪙");
     sceneSig = ""; renderPet();
     const mf = $("mateFig");
-    if (res.ok) { react(res.it.rom ? "love" : "happy", 2600); hearts($("petBox"), res.it.rom ? "💕" : "✨"); if (mf) hearts(mf, res.it.rom ? "💖" : "⭐"); say(rnd(res.it.say).replace("{m}", res.name), 4000); }
+    if (res.ok) { setTimeout(() => interAnim(res.it.id), 250); react(res.it.rom ? "love" : "happy", 2600); hearts($("petBox"), res.it.rom ? "💕" : "✨"); if (mf) hearts(mf, res.it.rom ? "💖" : "⭐"); say(rnd(res.it.say).replace("{m}", res.name), 4000); }
     else { react("sad", 2200); say(res.it.fail || "Uy… no ha salido bien 😅", 3500); }
     toast(`${res.it.e} ${res.df ? (res.df > 0 ? "+" : "") + res.df + " 💚 amistad" : ""}${res.df && res.dr ? " · " : ""}${res.dr ? (res.dr > 0 ? "+" : "") + res.dr + " 💗 romance" : ""}` || res.it.e, 2600);
     if (res.mile) setTimeout(() => { confetti(); readView({ icon: res.mile[1], title: `¡${res.mile[2]}!`, sub: `${(state.pet || {}).name} y ${res.name}`, text: mileText(res.mile[0], res.name) }); sendMsg(`${res.mile[1]} ${(state.pet || {}).name} y ${res.name}: ¡${res.mile[2].toLowerCase()}!`, "pet"); }, 1200);
@@ -5654,6 +5665,228 @@ function addCredits() {
   });
 }
 addCredits();
+
+// =====================================================================
+//   v43 · Vida propia: la mascota va por la casa y hay que buscarla
+// =====================================================================
+const LOC_SLOT = 40 * 6e4;   // cada 40 minutos puede cambiar de sitio
+const LOCN = { out: "fuera", salon: "el salón", cocina: "la cocina", dorm: "el dormitorio", jardin: "el jardín de casa" };
+const LOCE = { out: "🌳", salon: "🛋️", cocina: "🍳", dorm: "🛏️", jardin: "🌻" };
+const LOCCLUE = {
+  out: ["Se oyen pajaritos fuera… ¿habrá salido a pasear? 🌳", "La puerta de la calle está entreabierta 🚪🌳"],
+  salon: ["Se oye la tele en el salón 📺", "Hay plumitas en el sofá del salón 🛋️"],
+  cocina: ["Huele a galletas desde la cocina 🍪", "Se oye ñam, ñam en la cocina 🍓"],
+  dorm: ["Se oyen ronquiditos en el dormitorio 💤", "La lamparita del dormitorio está encendida 🛏️"],
+  jardin: ["Se oyen risas en el jardín de casa 🌻", "Hay huellitas camino del jardín de casa 🐾"]
+};
+const LOC_GO = { cocina: ["¡Tengo hambre! Me voy a la cocina 🍪", "Voy a por algo rico a la cocina 🍓"], dorm: ["Qué sueño… me voy a la camita 💤", "Me voy al dormitorio a descansar 🛏️"],
+  salon: ["Me voy al salón a ver la tele 📺", "Voy al sofá un ratito 🛋️"], out: ["¡Me voy a dar un paseo! 🌳", "Salgo a tomar el aire ☀️"], jardin: ["¡Me voy a jugar al jardín! 🌻", "Voy a regar las flores 🌷"] };
+let locSeen = null, locMiss = false, locNav = false, locCalled = false;
+const viewLoc = () => (petView === "out" ? "out" : curRoom);
+function pickW(w, seed) { const tot = w.reduce((a, x) => a + x[1], 0); let r = (seed % 1000) / 1000 * tot; for (const [k, v] of w) { if ((r -= v) < 0) return k; } return w[0][0]; }
+function schedW(h) {
+  if (h >= 22 || h < 7) return [["dorm", 1]];
+  if (h < 10) return [["cocina", 4], ["salon", 2], ["jardin", 1]];
+  if (h < 13) return [["out", 3], ["jardin", 2], ["salon", 2], ["cocina", 1]];
+  if (h < 15) return [["cocina", 3], ["salon", 2], ["out", 2]];
+  if (h < 17) return [["dorm", 2], ["salon", 2], ["out", 2], ["jardin", 1]];
+  if (h < 20) return [["out", 3], ["jardin", 2], ["salon", 3]];
+  return [["salon", 4], ["cocina", 2], ["dorm", 1]];
+}
+function petLoc(p, I) {
+  p = p || state.pet || {}; I = I || petInfo();
+  if (!I.si || tripAway(p)) return viewLoc();
+  const now = Date.now();
+  if (p.here && p.here.until > now && LOCN[p.here.loc]) return p.here.loc;
+  if (isNapping(p) || currentExpr(I) === "sleep") return "dorm";
+  if (I.nv.food < 35) return "cocina";
+  if (I.nv.energy < 28) return "dorm";
+  const slot = Math.floor(now / LOC_SLOT);
+  if (I.nv.fun < 35) return hashStr(slot + ":f") % 2 ? "out" : "jardin";
+  return pickW(schedW(hourIn(myTz)), hashStr(slot + ":" + (p.born || 0)));
+}
+function mateLoc(p, I) {
+  const m = mateOf(p); if (!m) return null;
+  const pl = petLoc(p, I), slot = Math.floor(Date.now() / LOC_SLOT), close = m.status !== "conocidos" ? 85 : 55;
+  if (pl === "dorm" && m.status !== "conocidos") return "dorm";
+  return hashStr(slot + ":m:" + m.name) % 100 < close ? pl : pickW(schedW(hourIn(myTz)).filter(x => x[0] !== pl).concat([["jardin", 1]]), hashStr(slot + ":mw:" + m.name));
+}
+function kidLoc(p, I, k) {
+  const pl = petLoc(p, I), slot = Math.floor(Date.now() / LOC_SLOT);
+  if (pl === "dorm" && hourIn(myTz) >= 21) return "dorm";
+  return hashStr(slot + ":k:" + k.id) % 100 < 65 ? pl : (hashStr(slot + k.id) % 2 ? "jardin" : "salon");
+}
+const locHere = () => petLoc() === viewLoc();
+function summonPet(silent) {
+  const loc = viewLoc(), pn = (state.pet || {}).name || "Pollito";
+  if (locHere()) return Promise.resolve();
+  locNav = true; locCalled = true;
+  if (!silent) toast(`📣 ¡${pn}! Ya viene corriendo… 🐾`, 2200);
+  return petTx(q => { q.here = { loc, until: Date.now() + 15 * 6e4, by: who }; return q; }).then(() => { sceneSig = ""; petSig = ""; renderPet(); walkIn(); }).catch(offline);
+}
+function renderLocate(p, I) {
+  const box = $("petBox"), look = $("petLook"); if (!box || !look) return true;
+  const pl = petLoc(p, I), vl = viewLoc(), here = pl === vl, pn = esc(p.name || "Pollito");
+  if (!I.si || !p.born) { locSeen = null; box.classList.remove("gone"); look.classList.add("hidden"); return true; }
+  if (locSeen && locSeen.loc !== pl && locSeen.here && !here && !locNav && performance.now() > 5000 && !$("tab-pet").classList.contains("hidden") && !box.classList.contains("gone")) {
+    // se va andando de la habitación en la que la estabas mirando
+    setPose(""); say(rnd(LOC_GO[pl] || ["¡Ahora vuelvo! 🐾"]), 2600);
+    box.style.transition = "left 1600ms linear"; box.classList.add("walking"); box.classList.toggle("flip", petX < 50); box.style.left = (petX < 50 ? -30 : 130) + "%";
+    setTimeout(() => { box.classList.add("gone"); box.classList.remove("walking", "flip"); box.style.transition = "none"; petX = 50; box.style.left = "50%"; $("petScene").style.setProperty("--px", "50%"); }, 1650);
+  } else if (locSeen && !locSeen.here && here && !locNav && performance.now() > 5000 && !$("tab-pet").classList.contains("hidden")) {
+    walkIn(); setTimeout(() => say(rnd(["¡Ya estoy aquí! 🐾", "¡Hola! ¿Me buscabas? 👋", "¡Llegué! 😊"]), 2200), 1900);
+  } else box.classList.toggle("gone", !here);
+  look.classList.toggle("hidden", here);
+  if (!here) {
+    const clue = rnd(LOCCLUE[pl] || ["¿Dónde se habrá metido? 🐾"]);
+    if (look.dataset.loc !== pl + vl) { look.dataset.loc = pl + vl; look.innerHTML = `<div class="lkpaw">🐾 🐾</div><b>${pn} no está aquí</b><small>${esc(clue)}</small><button class="btn" id="lookCall">📣 Llamarle</button>`; $("lookCall").onclick = e => { e.stopPropagation(); summonPet(); }; }
+    locMiss = true;
+  } else if (locMiss && !locCalled && I.si) {
+    locMiss = false;
+    const slot = Math.floor(Date.now() / LOC_SLOT), key = "found:" + who;
+    if (ls.get(key) !== String(slot)) {
+      ls.set(key, String(slot));
+      setTimeout(() => { say(rnd([`¡Me has encontrado! 🎉 Estaba en ${LOCN[pl]}`, `¡Pillado! 🙈 +3 🪙`, `¡Cucú! 👀 ¡Aquí estoy!`]), 3200); react("happy", 1800); }, 250);
+      petTx(q => { q.coins = coinsOf(q) + 3; return q; }).catch(() => {});
+    }
+  } else if (here) locMiss = false;
+  if (here) locCalled = false;
+  locSeen = { loc: pl, here }; locNav = false;
+  return here;
+}
+// animaciones cuando hacen planes juntos
+const DATE_PROPS = {
+  picnic: `<svg viewBox="0 0 220 60"><ellipse cx="110" cy="34" rx="104" ry="22" fill="#e63946"/><g fill="#fff" opacity=".9">${[20, 60, 100, 140, 180].map(x => `<rect x="${x}" y="16" width="18" height="36" transform="skewX(-20)"/>`).join("")}</g><text x="150" y="30" font-size="26">🧺</text><text x="40" y="34" font-size="20">🍓</text></svg>`,
+  velas: `<svg viewBox="0 0 220 80"><rect x="60" y="30" width="100" height="10" rx="4" fill="#fff"/><rect x="70" y="40" width="6" height="36" fill="#8a5a38"/><rect x="144" y="40" width="6" height="36" fill="#8a5a38"/><text x="98" y="30" font-size="24">🕯️</text><text x="74" y="30" font-size="18">🍝</text><text x="126" y="30" font-size="18">🍷</text></svg>`,
+  cine: `<svg viewBox="0 0 220 70"><text x="70" y="52" font-size="30">🍿</text><text x="120" y="52" font-size="28">🥤</text></svg>`
+};
+function interAnim(id) {
+  const sc = $("petScene"); if (!sc || !locHere()) return;
+  const mf = $("mateFig"); if (!mf || mf.classList.contains("far")) return;
+  const close = ["abrazo", "beso", "alas", "cita", "piropo", "merienda"].includes(id);
+  if (close) { sc.classList.add("inter-close"); clearTimeout(interAnim.t); interAnim.t = setTimeout(() => sc.classList.remove("inter-close"), id === "cita" ? 20000 : 5000); }
+  const pb = $("petBox"), px = parseFloat(getComputedStyle(sc).getPropertyValue("--px")) || petX;
+  const at = (e, dx, top, cls = "burst", ms = 1600) => fx(cls, e, `left:${px + dx}%;top:${top}%`, ms);
+  if (id === "abrazo") { pb.classList.add("hugme"); mf.classList.add("hugme"); setTimeout(() => { pb.classList.remove("hugme"); mf.classList.remove("hugme"); }, 2400); at("💞", -12, 30); }
+  else if (id === "beso") setTimeout(() => { at("💋", -13, 36); at("💗", -10, 24); }, 600);
+  else if (id === "alas") { anim("hopsm", 700); mf.classList.add("hop"); setTimeout(() => mf.classList.remove("hop"), 800); at("🤝", -13, 50); }
+  else if (id === "charlar") { at("💬", -30, 26); setTimeout(() => at("💭", 4, 22), 700); }
+  else if (id === "jugar") { for (let i = 0; i < 4; i++) setTimeout(() => at("⚽", i % 2 ? -4 : -28, 55 + (i % 2) * 6, "burst", 900), i * 450); }
+  else if (id === "merienda") at("🍓", -14, 50);
+  else if (id === "regalo") at("🎁", -30, 40);
+  else if (id === "piropo") at("😊", -30, 28);
+  else if (id === "chiste") { at("😂", -30, 26); at("😆", 2, 24); }
+  else if (id === "cita") {
+    const kind = rnd(Object.keys(DATE_PROPS)), d = document.createElement("div"); d.className = "dateprop dp-" + kind; d.innerHTML = DATE_PROPS[kind];
+    d.style.left = `calc(${px}% - 26%)`; sc.appendChild(d); setTimeout(() => d.remove(), 20000);
+    for (let i = 0; i < 6; i++) setTimeout(() => at(rnd(["💕", "💖", "✨"]), -14 + Math.random() * 10, 20 + Math.random() * 20), i * 500);
+  }
+}
+
+
+// =====================================================================
+//   v44 · Más vida: patitas, poses, comportamientos espontáneos y mirada
+// =====================================================================
+let petPose = "", poseT = 0, lifeBusy = 0;
+function setPose(p, ms) {
+  const b = $("petBox"); if (!b) return;
+  b.classList.remove("pose-bed", "pose-sofa", "pose-eat", "pose-curl", "pose-tiptoe", "pose-dance", "pose-stretch", "pose-shake", "pose-scratch", "pose-peck");
+  petPose = p || ""; clearTimeout(poseT);
+  if (p) { b.classList.add("pose-" + p); if (ms) poseT = setTimeout(() => setPose(""), ms); }
+}
+// acompañantes andan a la vez que la mascota
+function crewWalk(dx, dur) {
+  document.querySelectorAll("#mateFig:not(.far), #petSky .kidfig:not(.alone)").forEach((e, i) => {
+    e.classList.add("walking"); e.classList.toggle("flip", dx < 0);
+    setTimeout(() => e.classList.remove("walking", "flip"), dur + 500 + i * 150);
+  });
+}
+// entrar andando desde un lado
+function walkIn() {
+  const b = $("petBox"); if (!b) return;
+  const from = Math.random() < .5 ? -25 : 125, to = 35 + Math.random() * 30;
+  b.style.transition = "none"; b.style.left = from + "%"; void b.offsetWidth;
+  b.classList.remove("gone"); b.classList.add("walking"); b.classList.toggle("flip", from > 50);
+  const dur = 1900; b.style.transition = `left ${dur}ms linear`; b.style.left = to + "%"; petX = to; $("petScene").style.setProperty("--px", to + "%");
+  crewWalk(from > 50 ? -1 : 1, dur);
+  setTimeout(() => b.classList.remove("walking", "flip"), dur + 40);
+  petBusyUntil = Date.now() + dur + 1500;
+}
+// mirada que sigue tu dedo y se gira hacia ti
+(function eyesFollow() {
+  const sc = $("petScene"); if (!sc) return; let t = 0;
+  const look = e => {
+    const b = $("petBox"); if (!b || b.classList.contains("gone")) return;
+    const r = b.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * .5;
+    const dx = Math.max(-1, Math.min(1, (e.clientX - cx) / 140)), dy = Math.max(-1, Math.min(1, (e.clientY - cy) / 140));
+    const fl = b.classList.contains("flip") ? -1 : 1;
+    b.style.setProperty("--ex", (dx * 5 * fl).toFixed(1) + "px"); b.style.setProperty("--ey", (dy * 3.5).toFixed(1) + "px");
+    clearTimeout(t); t = setTimeout(() => { b.style.setProperty("--ex", "0px"); b.style.setProperty("--ey", "0px"); }, 2500);
+  };
+  sc.addEventListener("pointermove", look); sc.addEventListener("pointerdown", look);
+})();
+// cosas que hace por su cuenta
+const LIFE = {
+  mariposa() {
+    const sc = $("petScene"), bf = document.createElement("div"); bf.className = "bfly"; bf.textContent = "🦋";
+    const y = 20 + Math.random() * 25, dir = Math.random() < .5; bf.style.top = y + "%"; bf.style.animationDirection = dir ? "normal" : "reverse"; sc.appendChild(bf);
+    say(rnd(["¡Una mariposa! 🦋", "¡Ven aquí, mariposita!", "¡Te voy a pillar! 🦋"]), 2400);
+    const tgt = dir ? [35, 60, 72] : [65, 40, 28]; tgt.forEach((x, i) => setTimeout(() => { const d = petPlace(x, 900); crewWalk(x - petX, d); anim("hopsm", 700); }, 400 + i * 1500));
+    setTimeout(() => { bf.remove(); say(rnd(["Casi la pillo… 😅", "¡Qué rápida es! 🦋", "Bueno, otro día 😌"]), 2200); }, 5600);
+    return 6200;
+  },
+  estirarse() { setPose("stretch", 2200); say(rnd(["Aaaaah… 🥱", "¡Qué a gusto! 🙆", "Estirando las alitas… 🪽"]), 2200); return 2600; },
+  sacudirse() { setPose("shake", 1300); for (let i = 0; i < 4; i++) setTimeout(() => fx("burst", "🪶", `left:${petX - 10 + Math.random() * 20}%;top:${45 + Math.random() * 15}%`, 1400), i * 180); return 1800; },
+  rascarse() { setPose("scratch", 1800); say(rnd(["Me pica un poquito… 🤭", "*rasca rasca*"]), 1800); return 2000; },
+  picotear() { setPose("peck", 2400); for (let i = 0; i < 3; i++) setTimeout(() => fx("burst", rnd(["🌱", "·", "🐛"]), `left:${petX}%;top:78%`, 900), 300 + i * 700); return 2600; },
+  bailar() { setPose("dance", 3600); for (let i = 0; i < 6; i++) setTimeout(() => fx("note", rnd(["🎵", "🎶"]), `left:${petX - 10 + Math.random() * 20}%`), i * 450); say(rnd(["¡A bailar! 💃", "🎶 La la la…", "¡Mirad qué pasos! 🕺"]), 2500); return 3900; },
+  ventana(room) { const x = furnPos(room, "ventana").x, d = petPlace(x); crewWalk(x - petX, d); setTimeout(() => { setPose("tiptoe", 3200); say(rnd(["¿Qué habrá ahí fuera? 👀", "¡Un pajarito! 🐦", `¿Vendrá ${name(other())} hoy? 🪟`]), 2800); }, d + 100); return d + 3500; },
+  comer() {
+    const sc = $("petScene"), pl = document.createElement("div"); pl.className = "plate"; pl.innerHTML = "🍽️"; pl.style.left = `calc(${petX}% + 6%)`; sc.appendChild(pl);
+    setPose("eat", 4200); say(rnd(["Ñam, ñam… 😋", "¡Qué rico! 🍓", "Mmm… migas de galleta 🍪"]), 2400);
+    for (let i = 0; i < 5; i++) setTimeout(() => fx("burst", rnd(["·", "✦", "🍪"]), `left:calc(${petX}% + ${4 + Math.random() * 8}%);top:${70 + Math.random() * 8}%`, 700), 400 + i * 700);
+    setTimeout(() => pl.remove(), 4400); return 4600;
+  },
+  sofa(room) { const x = furnPos(room, "sofa").x, d = petPlace(x); crewWalk(x - petX, d); setTimeout(() => { setPose("sofa", 7000); say(rnd(["Qué blandito… 🛋️", "Aquí me quedo un ratito 😌"]), 2400); }, d + 100); return d + 7200; },
+  mimoPareja() {
+    const m = mateOf(state.pet), mf = $("mateFig"); if (!m || !mf || mf.classList.contains("far")) return 0;
+    const sc = $("petScene"); sc.classList.add("inter-close"); crewWalk(1, 1200);
+    setTimeout(() => { hearts(mf, "💕"); react("love", 2200); say(rnd([`¡${m.name} me ha dado un mimo! 🥰`, `${m.name} me ha dado un besito 😳💗`, `Me encanta cuando ${m.name} hace eso 💞`]), 2800); }, 1300);
+    setTimeout(() => sc.classList.remove("inter-close"), 4200); return 4400;
+  }
+};
+function lifeTick(I, ex) {
+  if (Date.now() < lifeBusy || Date.now() < petBusyUntil || petPose) return false;
+  const p = I.p, inside = petView === "in", room = inside ? roomOf(p, curRoom) : null, items = room ? room.items || {} : {};
+  const opts = [];
+  if (!inside || curRoom === "jardin") opts.push(["mariposa", 3], ["picotear", 3]);
+  if (inside && curRoom === "cocina") opts.push(["comer", 4]);
+  if (inside && items.sofa && curRoom !== "jardin") opts.push(["sofa", 2]);
+  if (inside && items.ventana) opts.push(["ventana", 2]);
+  if (items.tocadiscos || Math.random() < .3) opts.push(["bailar", items.tocadiscos ? 3 : 1]);
+  opts.push(["estirarse", 2], ["sacudirse", 2], ["rascarse", 1]);
+  const m = mateOf(p); if (m && m.status !== "conocidos") opts.push(["mimoPareja", 2]);
+  if (Math.random() > .33) return false;
+  const k = pickW(opts, Math.floor(Math.random() * 1000)), ms = LIFE[k](room);
+  if (!ms) return false;
+  lifeBusy = Date.now() + ms; petBusyUntil = Date.now() + ms; return true;
+}
+window.__life = k => LIFE[k](petView === "in" ? roomOf(state.pet || {}, curRoom) : null);
+// dormir en la cama (tumbado y tapado) o hecho una bolita
+function sleepPose(expr) {
+  const b = $("petBox"); if (!b) return;
+  if (expr !== "sleep") { if (petPose === "bed" || petPose === "curl") setPose(""); return; }
+  const room = petView === "in" ? roomOf(state.pet || {}, curRoom) : null;
+  if (room && room.items && room.items.cama) { const x = furnPos(room, "cama").x; if (Math.abs(petX - Math.max(24, x)) < 3) { if (petPose !== "bed") setPose("bed"); } }
+  else if (petPose !== "curl") setPose("curl");
+}
+
+// si le das de comer, mimos, etc. y no está contigo, viene corriendo
+document.querySelector(".actions.six").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b || !["petFeed", "petBag", "petHug", "petPlay", "petBath", "petSleep", "petTricks"].includes(b.id)) return;
+  if (hatched() && !tripAway(state.pet) && !locHere()) summonPet();
+}, true);
+setInterval(() => { if (!document.hidden && !$("tab-pet").classList.contains("hidden") && state.pet) renderPet(); }, 30000);
 async function start() {
   if (S.demo) { $("demoBanner").classList.remove("hidden"); setConn("demo"); }
   if (S.needsLogin) {
