@@ -29,7 +29,7 @@ function showTab(t) {
   if (t === "mem") setMemSeg(memSeg);
   if (t === "letters") { renderLetters(); renderCaps(); renderDates(); }
   if (t === "games") { if (curGame) openGame(curGame); else renderGameMenu(); }
-  if (t === "pet") setTimeout(() => { renderPet(); petWelcome(); }, 350);
+  if (t === "pet") setTimeout(() => { renderPet(); if (!ls.get("petTour")) startTour(); else petWelcome(); }, 350);
 }
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
 
@@ -66,6 +66,7 @@ function tick() {
     }
   } else { $("countdown").textContent = "—"; $("countdownSub").textContent = "elige fecha en ⚙️"; }
   if (otdKey) watchOTD();
+  if (typeof petDiaryCheck === "function") petDiaryCheck();
   renderHome();
 }
 
@@ -413,6 +414,7 @@ function ensureDay(p) {
   p.owned = p.owned || {}; p.wear = p.wear || {}; p.inv = p.inv || {}; p.room = p.room || {}; p.album = p.album || {}; p.bday = p.bday || {};
   if (!p.rooms) p.rooms = p.room && Object.keys(p.room).length ? { salon: p.room } : {};
   p.species = p.species || "pollito"; p.stickers = p.stickers || {}; p.postcards = p.postcards || {}; p.tre = p.tre || {}; p.family = p.family || []; p.rec = p.rec || {}; p.outfits = p.outfits || []; p.lvc = p.lvc || {};
+  backfillFirsts(p);
   if (p.exp === undefined) p.exp = (p.xp || 0) * 30 + (p.hugs || 0) * 2;   // pollos anteriores: experiencia según lo ya cuidado
   if (!p.n) { const now = Date.now(); p.n = {}; for (const [k] of NEEDS) p.n[k] = { v: 75, t: now }; }
   if (stageOf(p.xp) > 0) {
@@ -435,7 +437,7 @@ function needNow(p, k, now = Date.now()) {
   return clamp(n.v - h * RATE[k] * mul);
 }
 function setNeed(p, k, delta) { if (delta > 0) { if (k === "food" && setOn(p, "chef")) delta *= 1.5; if (k === "love" && setOn(p, "heroe")) delta *= 2; } p.n = p.n || {}; p.n[k] = { v: Math.round(clamp(needNow(p, k) + delta)), t: Date.now() }; }
-function gainExp(p, n) { const b = levelOf(p.exp).l; p.exp = (p.exp || 0) + Math.round(n * expMul(p)); const a = levelOf(p.exp).l; if (a > b) { p.coins += 20 * (a - b); return a; } return 0; }
+function gainExp(p, n) { const b = levelOf(p.exp).l; p.exp = (p.exp || 0) + Math.round(n * expMul(p)); const a = levelOf(p.exp).l; if (a > b) { if (a >= 10) firstMark(p, "lvl10"); p.coins += 20 * (a - b); return a; } return 0; }
 const isNapping = p => (p.nap || 0) > Date.now();
 
 // ---------- Estado ----------
@@ -764,7 +766,24 @@ const DEST = [
 const DESTM = Object.fromEntries(DEST.map(d => [d.id, d]));
 const tripAway = p => (p && p.trip && Date.now() < p.trip.until ? DESTM[p.trip.id] || DEST[0] : null);
 const tripBack = p => !!(p && p.trip && Date.now() >= p.trip.until);
-function awayToast() { const d = tripAway(state.pet); if (!d) return false; toast(`Está de excursión en ${d.n} ${d.e} · vuelve a las ${hhmm(state.pet.trip.until)}`); return true; }
+function awayToast() {
+  const d = tripAway(state.pet); if (!d) return false;
+  const t = `Estoy de excursión en ${d.n} ${d.e} · vuelvo a las ${hhmm(state.pet.trip.until)}`;
+  if (!$("tab-pet").classList.contains("hidden")) say(t, 3500); else toast(t);
+  return true;
+}
+function awaySign(d, until) {
+  const nm = `${d.e} ${d.n}`, fs = d.n.length > 11 ? 16 : 19;
+  return `<svg viewBox="0 0 200 200" class="sign"><ellipse cx="100" cy="190" rx="66" ry="6" fill="rgba(0,0,0,.18)"/>
+    <rect x="50" y="118" width="11" height="72" rx="3" fill="#8a5a38"/><rect x="139" y="118" width="11" height="72" rx="3" fill="#8a5a38"/>
+    <rect x="18" y="50" width="164" height="94" rx="12" fill="#cf9a66" stroke="#8a5a38" stroke-width="4"/>
+    <path d="M26 74 H174 M26 98 H174 M26 122 H174" stroke="#b07a4a" stroke-width="2" opacity=".55"/>
+    ${[[30, 60], [170, 60], [30, 134], [170, 134]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#6b4a2f"/>`).join("")}
+    <text x="100" y="80" text-anchor="middle" font-size="13" font-weight="800" fill="#3a2330">¡Me he ido de excursión!</text>
+    <text x="100" y="108" text-anchor="middle" font-size="${fs}" font-weight="900" fill="#3a2330">${esc(nm)}</text>
+    <text x="100" y="131" text-anchor="middle" font-size="12.5" font-weight="700" fill="#5a3a2a">Vuelvo a las ${hhmm(until)}</text>
+    <g transform="translate(156 186)"><rect x="-17" y="-24" width="34" height="24" rx="4" fill="#a0522d"/><path d="M-7 -24 v-6 h14 v6" stroke="#6b4a2f" stroke-width="3" fill="none"/><rect x="-17" y="-15" width="34" height="3" fill="#6b4a2f"/><circle cx="-8" cy="-7" r="3.5" fill="#ffd93b"/><rect x="4" y="-10" width="8" height="6" rx="1" fill="#9fd3ff"/></g></svg>`;
+}
 function startTrip() {
   const I = petInfo(), p = I.p;
   if (I.si === 0) return toast("Primero tiene que nacer 🥚");
@@ -774,7 +793,7 @@ function startTrip() {
   if (I.nv.energy < 25) return say("Estoy muy cansado para viajar… ¿una siesta primero? 😴");
   const seen = p.postcards || {}, pool = DEST.filter(d => !seen[d.id]), d = rnd(pool.length ? pool : DEST);
   let lvl = 0;
-  petTx(q => { if (q.trip) return null; q.trip = { id: d.id, until: Date.now() + TRIP_H * (setOn(q, "playa") ? .5 : 1) * 36e5, by: who }; setNeed(q, "energy", -20); bump(q, "trip"); lvl = gainExp(q, 8); return q; })
+  petTx(q => { if (q.trip) return null; q.trip = { id: d.id, until: Date.now() + TRIP_H * (setOn(q, "playa") ? .5 : 1) * 36e5, by: who }; setNeed(q, "energy", -20); bump(q, "trip"); if (q.firsts && q.firsts.trip && !q.firsts.trip.info) q.firsts.trip.info = d.e + " " + d.n; lvl = gainExp(q, 8); return q; })
     .then(r => { if (!r) return; sceneSig = ""; petSig = ""; renderPet(); say(`¡Me voy a ${d.n}! ${d.e} Os traeré una postal 📮`, 4000); sendMsg(`🧳 ${r.name || "La mascota"} se ha ido de excursión a ${d.n} ${d.e}. Vuelve en ${setOn(r, "playa") ? TRIP_H / 2 : TRIP_H} horas con una postal`, "pet"); lvlToast(lvl); })
     .catch(offline);
 }
@@ -842,6 +861,7 @@ const MISSIONS = [
   { id: "trip", k: "trip", n: 1, e: "🧳", t: "Mándale de excursión", r: 15 }, { id: "tre", k: "treasure", n: 1, e: "✨", t: "Encuentra un tesoro", r: 15 },
   { id: "game1", k: "game", n: 1, e: "🎮", t: "Juega a un minijuego", r: 12 }, { id: "game3", k: "game", n: 3, e: "🕹️", t: "Juega 3 partidas de minijuegos", r: 20 },
   { id: "post", k: "post", n: 1, e: "✉️", t: "Envía o responde una carta con él", r: 15 },
+  { id: "teach", k: "teach", n: 1, e: "🗣️", t: "Enséñale una frase", r: 12 },
   { id: "trick", k: "trick", n: 2, e: "🎪", t: "Que haga 2 trucos", r: 12 },
   { id: "tickle", k: "tickle", n: 1, e: "😂", t: "Hazle cosquillas (5 toques rápidos)", r: 10 }, { id: "pet", k: "pet", n: 1, e: "💕", t: "Acaríciale (mantén el dedo)", r: 10 }
 ];
@@ -929,13 +949,14 @@ function renderAdventures(p, I) {
   else if (post && post.from === who && !post.read) { ps = `Tu carta está esperando a que ${o} la lea ✉️`; }
   else { ps = `${pn} le lleva una carta a ${o} volando${post ? ` · <a href="#" id="advLast">ver la última</a>` : ""}`; pb = `<button class="btn" id="advSend" ${I.si ? "" : "disabled"}>Escribir</button>`; }
   h += `<div class="advrow"><i>🕊️</i><div><b>Mensajero</b><small>${ps}</small></div>${pb}</div>`;
+  h += `<div class="advrow"><i>🗣️</i><div><b>Enséñale a hablar</b><small>Le enseñas una frase y se la suelta a ${o} cuando menos se lo espere 🤫</small></div><button class="btn" id="advTeach" ${I.si ? "" : "disabled"}>Enseñar</button></div>`;
   const tr = treasureReady(p);
   h += `<div class="advrow"><i>✨</i><div><b>Tesoro escondido</b><small>${I.si === 0 ? "Cuando nazca buscará tesoros" : away ? "Cuando vuelva de la excursión" : tr ? "¡Hay uno escondido en la escena! Búscalo y tócalo ✨" : "El próximo aparece a las " + hhmm(((p.tre || {})[who] || 0) + treH(p) * 36e5)}</small></div></div>`;
   const ow = otherWx(), k = wxKind();
   h += `<div class="advrow"><i>${WX ? WX_E[k] : "🌦️"}</i><div><b>Tiempo real</b><small>${WX ? `En tu casa: ${WX.temp}° · ${WX_T[k]}` : "La escena tendrá la lluvia, el frío o el calor que haga donde estás"}${ow ? `<br>En casa de ${o}: ${ow.temp}° ${WX_E[wxKindOf(ow.code)]}` : ""}</small></div><button class="btn ${wxOn() ? "" : "primary"}" id="advWx">${wxOn() ? "Quitar" : "Activar"}</button></div>`;
   el.innerHTML = h;
   const on = (id, f) => { const b = $(id); if (b) b.onclick = e => { e.preventDefault(); f(); }; };
-  on("advTrip", startTrip); on("advClaim", claimTrip); on("advPost", openPost); on("advSend", sendPost); on("advWx", toggleWeather);
+  on("advTrip", startTrip); on("advClaim", claimTrip); on("advPost", openPost); on("advSend", sendPost); on("advWx", toggleWeather); on("advTeach", teachWord);
   on("advLast", () => { const q = p.post; readView({ icon: "✉️", title: `Carta de ${name(q.from)}`, sub: fmtDate(q.at), text: q.text + (q.reply ? `\n\n— Respuesta de ${name(q.to)}:\n${q.reply}` : "") }); });
 }
 
@@ -1312,6 +1333,7 @@ function claimLevel(l) {
 
 // ---------- Trucos ----------
 function doTrick(id) {
+  petHome();
   if (!hatched()) return toast("Primero tiene que nacer 🥚");
   if (awayToast()) return;
   if (isNapping(state.pet || {})) return say("Zzz… luego te lo enseño 😴");
@@ -1560,6 +1582,7 @@ function renderScene(I, pvScene, pvRoom) {
     // tesoro
     if (treasureReady(p) && I.si > 0 && !away) { const x = 12 + (hashStr(String((p.tre || {})[who] || 0)) % 60); sky += `<button class="treasure" id="treasureBtn" style="left:${x}%">✨</button>`; }
   }
+  if (away && !(petView === "in" && curRoom !== "jardin")) sky += `<svg class="plane" viewBox="0 0 80 30"><path d="M4 16 Q2 12 8 12 H56 Q70 12 76 16 Q70 20 56 20 H8 Q2 20 4 16Z" fill="#fff"/><path d="M30 12 L42 0 H48 L42 12Z M30 20 L42 30 H48 L42 20Z M6 12 L2 4 H8 L14 12Z" fill="#e6ebf2"/>${[50, 44, 38, 32, 26].map(x => `<circle cx="${x}" cy="15" r="1.6" fill="#7fb7ff"/>`).join("")}<path d="M66 13 Q72 14 74 16" stroke="#7fb7ff" stroke-width="2" fill="none"/></svg>`;
   // familia (mascotas anteriores), pequeñitas a un lado
   (p.family || []).slice(-3).forEach((f, i) => { sky += `<div class="famfig" style="left:${4 + i * 14}%">${chickSVG(Math.min(6, f.stage || 6), "happy", f.wear || {}, 0, f.color, { species: f.species })}</div>`; });
   if (I.bd) sky += `<span class="deco" style="left:6%;bottom:8%;font-size:40px">🎂</span><span class="deco flutter" style="right:8%;top:20%;font-size:34px">🎈</span>`;
@@ -1568,13 +1591,13 @@ function renderScene(I, pvScene, pvRoom) {
   $("roomBar").classList.toggle("hidden", petView !== "in");
   $("roomBar").innerHTML = ROOMS.map(([id, n]) => `<button class="${id === curRoom ? "on" : ""}" data-room="${id}">${n}</button>`).join("") +
     `<button class="${editMode ? "on" : ""}" id="editBtn">${editMode ? "✅ Listo" : "✏️ Mover"}</button>` + (mode === "night" && room.items.lampara ? `<button id="lightBtn">${room.light === false ? "💡 Encender" : "🌑 Apagar"}</button>` : "");
-  $("roomBar").querySelectorAll("[data-room]").forEach(b => b.onclick = () => { curRoom = b.dataset.room; ls.set("petRoom", curRoom); editMode = false; sceneSig = ""; renderPet(); });
+  $("roomBar").querySelectorAll("[data-room]").forEach(b => b.onclick = () => { petHome(true); curRoom = b.dataset.room; ls.set("petRoom", curRoom); editMode = false; sceneSig = ""; renderPet(); });
   $("editBtn").onclick = () => { editMode = !editMode; sceneSig = ""; renderPet(); if (editMode) toast("Arrastra los muebles con el dedo ✋"); };
   const lb = $("lightBtn"); if (lb) lb.onclick = () => petTx(q => { q.rooms = q.rooms || {}; q.rooms[curRoom] = { ...roomOf(q, curRoom), light: roomOf(q, curRoom).light === false }; return q; }).then(() => { sceneSig = ""; renderPet(); }).catch(offline);
   const tb = $("treasureBtn"); if (tb) tb.onclick = e => { e.stopPropagation(); digTreasure(); };
   if (editMode) enableDrag();
 }
-$("petView").onclick = () => { petView = petView === "in" ? "out" : "in"; ls.set("petView", petView); editMode = false; sceneSig = ""; renderPet(); say(petView === "in" ? "¡Mi casita! 🏠" : "¡Qué buen día hace fuera! 🌳"); };
+$("petView").onclick = () => { petHome(true); petView = petView === "in" ? "out" : "in"; ls.set("petView", petView); editMode = false; sceneSig = ""; renderPet(); say(petView === "in" ? "¡Mi casita! 🏠" : "¡Qué buen día hace fuera! 🌳"); };
 // mover muebles con el dedo
 function enableDrag() {
   const sc = $("petScene");
@@ -1601,6 +1624,7 @@ function renderPet() {
   renderHome();
   const I = petInfo(), p = I.p, si = I.si, st = STAGES[si], nx = STAGES[si + 1];
   const away = tripAway(p);
+  if (away && petX !== 50) petHome(true);
   const expr = si === 0 ? "egg" : currentExpr(I);
   const wear = { ...(p.wear || {}) }; let color = p.color || "amarillo", pvScene = null, pvRoom = null;
   for (const pid of pvIds()) {
@@ -1614,7 +1638,7 @@ function renderPet() {
   const extra = { dirty: si > 0 && I.nv.clean < 30, party: !!I.bd && !wear.head, species: p.species || "pollito",
     cold: !!(WX && WX.temp <= 8 && petView === "out"), hot: !!(WX && WX.temp >= 28 && petView === "out") };
   const sig = [si, expr, JSON.stringify(wear), crack, color, extra.dirty, extra.party, extra.species, extra.cold, extra.hot, away ? 1 : 0].join("|");
-  if (sig !== petSig) { petSig = sig; $("petBox").innerHTML = away ? `<div class="awaynote">🧳<b>De excursión en ${esc(away.n)}</b><small>Vuelve a las ${new Date(p.trip.until).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}</small></div>` : chickSVG(si, expr, wear, crack, color, extra); }
+  if (sig !== petSig) { petSig = sig; $("petBox").innerHTML = away ? awaySign(away, p.trip.until) : chickSVG(si, expr, wear, crack, color, extra); }
   $("petZzz").classList.toggle("hidden", expr !== "sleep" || !!away);
   $("petDream").classList.toggle("hidden", expr !== "sleep" || !!away);
   if (expr === "sleep" && !$("petDream").textContent) $("petDream").textContent = dreamText();
@@ -1661,13 +1685,13 @@ function renderPet() {
   $("stages").innerHTML = STAGES.map((s, k) => `<span class="${k <= si ? "on" : ""}" title="${esc(stageName(k, p.species))}">${k <= si ? stageEmoji(k, p.species) : "?"}<small>${s.xp}</small></span>`).join("");
   renderAlbum(p, color, wear);
   renderShop(p, I);
-  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderCollections(p); renderGamesPet(p); renderFamily(p, I);
+  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderFamily(p, I);
   $("dotPet").classList.toggle("hidden", I.meT && !I.sick && I.nv.food >= 30 && !(forMe || replyForMe) && !missionsClaimable(p) && !(p.trip && tripBack(p)));
 
-  if (si > 0 && !p.sick && !setOn(p, "lluvia") && I.low >= 2 && sickChecked !== I.today && Date.now() - (p.curedAt || 0) > 12 * 36e5) { sickChecked = I.today; petTx(q => { if (q.sick) return null; q.sick = true; q.sickAt = Date.now(); return q; }).then(r => { if (r) sendMsg(`🤒 ${r.name || "El pollito"} se ha puesto malito. Necesita medicina 💊`, "pet"); }).catch(() => {}); }
+  if (si > 0 && !p.sick && !setOn(p, "lluvia") && I.low >= 2 && sickChecked !== I.today && Date.now() - (p.curedAt || 0) > 12 * 36e5) { sickChecked = I.today; petTx(q => { if (q.sick) return null; q.sick = true; q.sickAt = Date.now(); firstMark(q, "sick"); return q; }).then(r => { if (r) sendMsg(`🤒 ${r.name || "El pollito"} se ha puesto malito. Necesita medicina 💊`, "pet"); }).catch(() => {}); }
   if (I.bd && !(p.bday || {})[I.bd.key] && bdayChecked !== I.bd.key) {
     bdayChecked = I.bd.key; const gift = I.bd.years ? 200 : 30;
-    petTx(q => { q.bday = q.bday || {}; if (q.bday[I.bd.key]) return null; q.bday[I.bd.key] = true; q.coins += gift; return q; })
+    petTx(q => { q.bday = q.bday || {}; if (q.bday[I.bd.key]) return null; q.bday[I.bd.key] = true; q.coins += gift; firstMark(q, "bday"); return q; })
       .then(r => { if (r) { confetti(); say(I.bd.years ? `¡Hoy cumplo ${I.bd.years} año${I.bd.years > 1 ? "s" : ""}! 🎂 +${gift} 🪙` : `¡Hoy cumplo ${I.bd.months} mes${I.bd.months > 1 ? "es" : ""}! 🎂 +${gift} 🪙`, 5000); sendMsg(`🎂 ¡Hoy ${r.name || "nuestro pollito"} cumple ${I.bd.years ? I.bd.years + " año(s)" : I.bd.months + " mes(es)"}!`, "pet"); } }).catch(() => {});
   }
 }
@@ -1777,7 +1801,7 @@ function shopTap(id) {
     if (it.cat === "juguete") { toast(`${it.e} Ya lo tiene. Úsalo con ⚽ Jugar`); renderPet(); return; }
     const on = isOn(p, it), before = state.pet;
     petTx(q => {
-      if (it.slot) { settle(q); q.wear[it.slot] = on ? null : it.id; bump(q, "dress"); }
+      if (it.slot) { settle(q); q.wear[it.slot] = on ? null : it.id; bump(q, "dress"); if (!on && q.firsts && q.firsts.dress && !q.firsts.dress.info) q.firsts.dress.info = it.n; }
       else if (it.cat === "color") { q.color = it.id; bump(q, "dress"); }
       else if (it.cat === "lugar") q.scene = it.id;
       else if (it.cat === "casa") placeFurn(q, it, !on);
@@ -1881,6 +1905,7 @@ let lvlToast = l => { if (l) { const R = LV_REWARDS[l] || {}; setTimeout(() => {
 
 // Comer (el cuidado diario de cada uno: hace crecer al pollito)
 $("petFeed").onclick = () => {
+  petHome();
   const today = dayKey(); let evolved = false, both = false, wasEgg = false, gain = 0, lvl = 0, newStage = 0;
   petTx(p => {
     p.care = p.care || {};
@@ -1924,6 +1949,7 @@ $("petBag").onclick = () => {
   $("sheetBody").querySelectorAll("[data-use]").forEach(b => b.onclick = () => useItem(b.dataset.use));
 };
 function useItem(id) {
+  petHome();
   const it = CAT[id]; let lvl = 0, ok = false, cured = false;
   if (isNapping(state.pet || {}) && !it.eff.cure) { closeSheet(); return say("Zzz… déjame dormir 😴"); }
   petTx(p => {
@@ -1952,6 +1978,7 @@ function doHug(kind) {
   petTx(p => { p.hugs = (p.hugs || 0) + 1; p.day.hugs[who] = (p.day.hugs[who] || 0) + 1; const first = p.day.hugs[who] <= 10;
     g = first ? 1 : 0; p.coins += g; setNeed(p, "love", (pet ? 12 : 8) * (p.trait === "mimoso" ? 2 : 1)); if (tickle) setNeed(p, "fun", 6); if (first) lvl = gainExp(p, 2); bump(p, "hug"); if (tickle) bump(p, "tickle"); if (pet) bump(p, "pet"); return p; })
     .then(() => { coinFx(g); lvlToast(lvl); }).catch(offline);
+  hugSignal();
 }
 $("petHug").onclick = () => doHug("hug");
 
@@ -1981,6 +2008,7 @@ $("petPlay").onclick = () => {
   $("sheetBody").querySelectorAll("[data-toy]").forEach(b => b.onclick = () => { closeSheet(); playWith(b.dataset.toy); });
 };
 function playWith(id) {
+  petHome();
   const it = CAT[id];
   const A = {
     pelota: () => { fx("ball", "⚽", "", 1400); setTimeout(() => anim("jump", 1200), 450); },
@@ -2002,6 +2030,7 @@ function playWith(id) {
 
 // Baño
 $("petBath").onclick = () => {
+  petHome();
   if (!hatched()) return toast("Primero tiene que nacer 🥚");
   if (awayToast()) return;
   if (isNapping(state.pet || {})) return say("Zzz… luego me baño 😴");
@@ -2038,6 +2067,7 @@ setInterval(() => {
   if (document.hidden || $("tab-pet").classList.contains("hidden") || !hatched() || Date.now() < tempUntil) return;
   const I = petInfo(), ex = currentExpr(I);
   if (tripAway(I.p) || editMode) return;
+  if (petWander(I, ex)) return;
   if (ex === "sleep") { if (Math.random() < .15) say(rnd(["Zzz…", "*ronquidito*", "💤"]), 1800); return; }
   const r = Math.random();
   if (r < .3) anim(Math.random() < .5 ? "lookl" : "lookr", 1400);
@@ -2481,7 +2511,7 @@ const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 const standalone = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 function u8(b64) { b64 = b64.replace(/-/g, "+").replace(/_/g, "/"); while (b64.length % 4) b64 += "="; const s = atob(b64); return Uint8Array.from(s, c => c.charCodeAt(0)); }
 function pushState() {
-  if (S.demo || !CONFIG.pushUrl || !CONFIG.vapidPublic) return "off";
+  if (S.demo || !srvUrl() || !CONFIG.vapidPublic) return "off";
   if (isIOS && !standalone()) return "needHome";
   if (!pushSupported()) return "unsupported";
   if (Notification.permission === "denied") return "denied";
@@ -2532,9 +2562,9 @@ async function refreshPushSub() {   // si el móvil renueva la suscripción, la 
   } catch (e) { console.warn(e); }
 }
 async function pushTo(sub, title, body) {
-  if (!CONFIG.pushUrl || !sub || !sub.endpoint) return null;
+  if (!srvUrl() || !sub || !sub.endpoint) return null;
   try {
-    const r = await fetch(CONFIG.pushUrl, { method: "POST", headers: { "Content-Type": "application/json" },
+    const r = await fetch(srvUrl(), { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ secret: CONFIG.pushSecret, sub, title, body, url: location.href.split("#")[0], tag: "nosotros-" + Date.now() }) });
     return await r.json();
   } catch (e) { console.warn("push", e); return null; }
@@ -3452,6 +3482,7 @@ $("btnLetter").onclick = openIntro;
 const toLocalInput = t => { const d = new Date(t - new Date(t).getTimezoneOffset() * 6e4); return d.toISOString().slice(0, 16); };
 $("btnSettings").onclick = () => {
   $("sNext").value = state.main.next ? toLocalInput(state.main.next) : "";
+  $("sServer").value = srvUrl(); $("sServer").disabled = !!CONFIG.pushUrl;
   $("sWho").closest(".field").classList.toggle("hidden", S.needsLogin);
   renderPush();
   $("sAccount").innerHTML = S.needsLogin ? `<label>Cuenta</label><div class="row" style="align-items:center"><span style="flex:1;font-size:14px">${esc(S.userEmail || "")}</span><button class="btn" id="sLogout">Cerrar sesión</button></div>` : "";
@@ -3463,6 +3494,12 @@ $("sCancel").onclick = () => $("settings").close();
 $("sSave").onclick = () => {
   const v = $("sNext").value;
   S.merge("state/main", { next: v ? new Date(v).getTime() : null });
+  const sv = $("sServer").value.trim().replace(/\/+$/, "");
+  if (!CONFIG.pushUrl && sv !== ((state.main || {}).server || "")) {
+    if (sv && !/^https:\/\/[^\s]+$/.test(sv)) { toast("La dirección del servidor tiene que empezar por https://"); return; }
+    S.merge("state/main", { server: sv }); state.main.server = sv; renderPush();
+    if (sv) fetch(sv).then(r => r.text()).then(t => toast(/IA conectada/.test(t) ? "✅ Servidor conectado · avisos e IA listos 🐤" : /funcionando/.test(t) ? "✅ Servidor conectado · falta enlazar la IA en Cloudflare" : "⚠️ Esa dirección no parece el servidor", 4500)).catch(() => toast("⚠️ No he podido conectar con esa dirección", 4500));
+  }
   const w = $("sWho").value; $("settings").close();
   if (w !== who) { ls.set("who", w); ls.set("seenMsg", "0"); location.reload(); } else toast("Guardado");
 };
@@ -3491,7 +3528,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "32";
+const APP_VERSION = "36";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -3568,7 +3605,7 @@ let diary = [], dyLimit = 30, dyUn = null, dyEdit = null, dyPhoto, dyMood = null
 const dayAt = k => new Date(k + "T12:00:00").getTime();
 const dayNum = k => (CONFIG.start ? Math.round((new Date(k + "T00:00:00") - new Date(CONFIG.start + "T00:00:00")) / DAY) : null);
 const diaryDay = k => diary.find(d => (d.date || d.id) === k);
-function watchDiary() { if (dyUn) dyUn(); dyUn = S.watchCol("diary", l => { diary = l; renderDiary(); renderHome(); }, dyLimit); }
+function watchDiary() { if (dyUn) dyUn(); dyUn = S.watchCol("diary", l => { diary = l; diaryLoaded = true; renderDiary(); renderHome(); petDiaryCheck(); }, dyLimit); }
 function dyHead(k) { const n = dayNum(k); return `${esc(fmtDate(new Date(k + "T12:00:00"), { weekday: "short", day: "numeric", month: "short", year: "numeric" }))}${n !== null && n >= 0 ? ` <span>❤️ Día ${n}</span>` : ""}`; }
 const REACTS = ["❤️", "🥹", "😂", "🥰", "😘", "🫂"];
 function dyEntry(d, w, k, isMine, inList) {
@@ -3615,8 +3652,8 @@ function renderDiary() {
   });
   el.querySelectorAll("[data-dyedit]").forEach(b => b.onclick = () => { dyEdit = b.dataset.dyedit; dyPhoto = undefined; dyMood = null; dyDraft = null; renderDiary(); });
   // historia
-  const past = diary.filter(x => (x.date || x.id) !== k && (x.a || x.b)).sort((a, b) => ((b.date || b.id) > (a.date || a.id) ? 1 : -1));
-  $("dyList").innerHTML = past.length ? past.map(x => { const kk = x.date || x.id; return `<div class="dday"><div class="dyhead">${dyHead(kk)}</div>${[who, other()].filter(w => x[w]).map(w => dyEntry(x, w, kk, w === who, true)).join("")}</div>`; }).join("") : `<div class="empty">Aquí irá quedando vuestra historia, día a día 💞</div>`;
+  const past = diary.filter(x => (x.date || x.id) !== k && (x.a || x.b || x.pet)).sort((a, b) => ((b.date || b.id) > (a.date || a.id) ? 1 : -1));
+  $("dyList").innerHTML = past.length ? past.map(x => { const kk = x.date || x.id; return `<div class="dday"><div class="dyhead">${dyHead(kk)}</div>${[who, other()].filter(w => x[w]).map(w => dyEntry(x, w, kk, w === who, true)).join("")}${x.pet ? dyPet(x) : ""}</div>`; }).join("") : `<div class="empty">Aquí irá quedando vuestra historia, día a día 💞</div>`;
   $("dyMore").classList.toggle("hidden", diary.length < dyLimit);
   document.querySelectorAll("[data-dyre]").forEach(b => b.onclick = () => {
     const [kk, w, x] = b.dataset.dyre.split("|"), had = ((diaryDay(kk) || {}).re || {})[w];
@@ -3679,6 +3716,7 @@ function drawHome() {
   const read = +(ls.get("msgRead") || prevVisit);
   const un = (state.msgs || []).filter(m => m.from === other() && m.at > read && now - m.at < 3 * DAY && REAL_KINDS.includes(m.kind || "text"));
   if (un.length) { const m = un[0]; add(100, "💌", `${o} te ha dejado ${un.length === 1 ? "algo" : un.length + " mensajes"}`, m.kind === "snap" ? "📸 Una foto de ver una vez" : m.kind === "voice" ? "🎙️ Una nota de voz" : `“${String(m.text || "").slice(0, 80)}”`, "msgs"); }
+  if (partnerOnline()) add(93, "🟢", `${o} está en la app ahora mismo`, "Id los dos a la mascota y hacedle mimos a la vez: ¡abrazo doble! 🤗", "pet");
   // diario
   const dT = diaryDay(today) || {}, mineD = dT[who], theirD = dT[other()];
   if (theirD && !mineD) add(90, "📖", `${o} ha escrito en vuestro diario`, "Escribe lo tuyo para leerlo ✍️", "diary");
@@ -3691,6 +3729,8 @@ function drawHome() {
   if (I.sick) add(95, "🤒", `${pn} está malito`, "Necesita medicina 💊", "pet");
   else if (!I.meT && I.otT) add(80, I.si ? SPECIES[p.species || "pollito"].e : "🥚", `${o} ya le ha dado ${I.si ? "de comer" : "calor"} a ${pn}`, "¡Te toca a ti! 🍓", "pet");
   else if (!I.meT) add(50, I.si ? SPECIES[p.species || "pollito"].e : "🥚", I.si ? `${pn} tiene hambre` : "El huevo necesita calor 🔥", `Aún no le habéis ${I.si ? "dado de comer" : "dado calor"} hoy`, "pet");
+  if (pendingWord(p)) add(78, "🗣️", `${pn} ha aprendido algo para ti`, `${o} le ha enseñado una frase… ve a escucharla 🤫`, "pet");
+  for (const [k, f] of Object.entries(p.firsts || {})) if (f.by === other() && now - f.at < DAY && FIRSTM[k]) add(55, FIRSTM[k][1], `¡Primera vez! ${FIRSTM[k][2]}`, `con ${o}${f.info ? " · " + f.info : ""}`, "pet");
   const gifts = petGifts(p, I, false); if (gifts.length && I.si) add(70, "🎁", `${pn} tiene algo para vosotros`, joinY(gifts), "petgift");
   if (p.streak >= 2 && p.lastBoth && daysBetween(p.lastBoth, I.today) <= 1) add(30, "🔥", `Lleváis ${p.streak} días seguidos cuidándole juntos`, I.meT && I.otT ? "¡Hoy también! 💞" : "Que no se rompa la racha", "pet");
   // vernos
@@ -3738,16 +3778,16 @@ function feedAct(act) {
 // ---------- Personalidad del pollito ----------
 const joinY = a => (a.length > 1 ? a.slice(0, -1).join(", ") + " y " + a[a.length - 1] : a[0] || "");
 function logEv(q, k) {
-  const L = (q.log || []).slice(-29), last = L[L.length - 1], now = Date.now();
+  const L = (q.log || []).slice(-59), last = L[L.length - 1], now = Date.now();
   if (last && last.w === who && last.k === k && now - last.at < 20 * 6e4) L[L.length - 1] = { ...last, n: (last.n || 1) + 1, at: now };
   else L.push({ w: who, k, at: now, n: 1 });
-  q.log = L;
+  q.log = L; firstMark(q, k);
 }
 const EV_TXT = {
   feed: () => "me ha dado de comer 🍓", hug: n => (n > 1 ? `me ha hecho ${n} mimos` : "me ha hecho un mimito"), play: n => (n > 1 ? `hemos jugado ${n} veces ⚽` : "hemos jugado ⚽"),
   bath: () => "me ha bañado 🛁", nap: () => "me ha puesto a dormir la siesta", bag: () => "me ha dado algo rico de la mochila", buy: () => "me ha comprado cosas 🛍️",
   dress: () => "me ha cambiado de ropa 👗", trip: () => "me ha mandado de excursión", treasure: () => "hemos encontrado un tesoro ✨", game: n => `ha jugado ${n > 1 ? n + " partidas" : "una partida"} a los minijuegos`,
-  trick: () => "le he enseñado mis trucos 🎪", post: () => "me ha dado una carta para ti ✉️"
+  trick: () => "le he enseñado mis trucos 🎪", post: () => "me ha dado una carta para ti ✉️", teach: () => "me ha enseñado una frase secreta 🤫", talk: () => "ha estado charlando conmigo 💬"
 };
 function petWelcome() {
   const p = state.pet || {}; if (stageOf(p.xp || 0) === 0) return;
@@ -3757,7 +3797,7 @@ function petWelcome() {
   if (parts.length) { say(`¡Hola ${me}! Mientras no estabas, ${o} ${joinY(parts.slice(0, 3))} 🥰`, 6500); react("happy", 2500); }
   else say(phrase());
   if (Date.now() - since > 10 * 6e4) S.merge("state/pet", { seen: { [who]: Date.now() } });
-  setTimeout(() => maybeAsk(), parts.length ? 7000 : 3800);
+  const pw = pendingWord(p); if (pw) setTimeout(() => sayWord(pw), parts.length ? 6800 : 500); else setTimeout(() => maybeAsk(), parts.length ? 7000 : 3800);
 }
 function petCtx(I) {
   const p = I.p, o = name(other()), L = [], today = localKey(), now = Date.now();
@@ -3782,9 +3822,13 @@ function petCtx(I) {
   const tc = {}; (p.log || []).filter(e => e.k === "hug" && localKey(new Date(e.at)) === today).forEach(e => { tc[e.w] = (tc[e.w] || 0) + (e.n || 1); });
   if ((tc[other()] || 0) > (tc[who] || 0) + 2) L.push(`Hoy ${o} me ha hecho más mimos que tú 😜`);
   if ((tc[who] || 0) > (tc[other()] || 0) + 2) L.push(`Hoy tú me has hecho más mimos que ${o} 🥰 no se lo digas`);
+  (p.words || []).filter(w => w.said && w.from === other()).slice(-3).forEach(w => L.push(`${o} me enseñó a decir: «${w.text}» 💛`));
+  if ((p.words || []).some(w => w.from === who && w.said)) L.push(`Ya le dije a ${o} lo que me enseñaste 🤫`);
+  if (!(p.words || []).length) L.push("¿Me enseñas a decir algo bonito? 🗣️");
   return L;
 }
 function maybeAsk(force) {
+  const pw = pendingWord(state.pet); if (pw && sayWord(pw)) return;
   if (!force && Date.now() - +(ls.get("askAt") || 0) < 25 * 6e4) return;
   if ($("tab-pet").classList.contains("hidden") || !hatched() || tripAway(state.pet) || editMode) return;
   const I = petInfo(), p = I.p, o = name(other()), me = name(who), pn = p.name || "el pollito", today = localKey(), h = hourIn(myTz);
@@ -3808,6 +3852,416 @@ function petAsk(t, yes, fn) {
   say.t = setTimeout(close, 16000);
 }
 
+
+// =====================================================================
+//   v33 · Mascota viva: se mueve y usa los muebles, nota cuando estáis
+//         los dos (abrazo doble), escribe su diario, fotos y tutorial
+// =====================================================================
+// ---------- Moverse por la escena ----------
+let petX = 50, walkT = 0, petBusyUntil = 0;
+function petPlace(x, ms) {
+  const box = $("petBox"); x = Math.max(24, Math.min(76, x));
+  const dx = x - petX; if (Math.abs(dx) < 1) return 0;
+  const dur = ms != null ? ms : Math.min(3400, Math.round(Math.abs(dx) * 60));
+  box.style.transition = dur ? `left ${dur}ms linear` : "none";
+  box.classList.toggle("flip", dx < 0); if (dur > 400) box.classList.add("walking");
+  box.style.left = x + "%"; petX = x; $("petScene").style.setProperty("--px", x + "%");
+  clearTimeout(walkT); walkT = setTimeout(() => box.classList.remove("walking", "flip"), dur + 30);
+  return dur;
+}
+function petHome(instant) { petBusyUntil = 0; petPlace(50, instant ? 0 : 350); }
+const USE = {
+  sofa: ["Qué cómodo es el sofá… 🛋️", "Me quedaría aquí toda la tarde 😌"], tele: ["📺 ¡Mis dibujos favoritos!", "¿Vemos una peli juntos? 🍿"], pecera: ["¡Hola, pececito! 🐠", "Blub, blub 🫧"],
+  fogon: ["¡Qué bien huele! 🍳", "¿Cocinamos algo rico?"], frutero: ["¿Me como una manzana? 🍎"], piano: ["🎵 Do, re, mi… 🎹"], estanteria: ["Estoy leyendo un cuento 📚"],
+  espejo: ["¡Qué guapo estoy hoy! 🪞"], cama: ["Me echaría una siesta… 🛏️"], planta: ["¡Mi planta ha crecido! 🌱"], girasol: ["Los girasoles miran al sol ☀️"], piscina: ["¡Al agua, patos! 💦"],
+  fuente: ["¡Me mojo las plumas! ⛲"], sombrilla: ["Qué fresquito a la sombra ⛱️"], globos: ["¡Globos! 🎈"], cuadro: ["Me encanta esta foto vuestra 💕"], ventana: ["Mirando por la ventana… ¿vendrá alguien? 🪟"],
+  arbolnav: ["¡Ya viene Papá Noel! 🎄"], tetera: ["¿Un té calentito? 🫖"], lampara: ["Qué luz tan bonita 💡"], alfombra: ["¡Voy a rodar por la alfombra! 🌀"], velas: ["Qué romántico… 🕯️"], reloj: ["Tic, tac… ¿cuánto falta para que os veáis? 🕰️"]
+};
+const USE_FX = { tele: "📺", pecera: "🫧", fogon: "🍳", frutero: "🍎", piscina: "💦", fuente: "💧", globos: "🎈", espejo: "✨", cama: "💤", sofa: "💤", tetera: "☕", velas: "✨", alfombra: "🌀" };
+const OUT_SAY = { jardin: ["¡Mira, una flor! 🌸", "Qué bien huele el césped 🌿"], playa: ["¡Qué agua tan buena! 🌊", "Voy a hacer un castillo de arena 🏰"], bosque: ["¡Una mariposa! 🦋", "Aquí hay setas 🍄"],
+  nieve: ["¡Guerra de bolas! ❄️", "Brrr, qué frío 🥶"], montana: ["¡Qué vistas! ⛰️", "Hola, eco… ¡eco! 🗣️"], ciudad: ["¡Cuánta gente! 🏙️", "Cuidado con los coches 🚗"], mar: ["Blub, blub 🫧", "¡Un pez me ha saludado! 🐠"],
+  espacio: ["¡Estoy flotando! 🚀", "Hola, marcianos 👽"], amor: ["Aquí todo huele a amor 💕", "¡Corazones por todas partes! 💖"] };
+function petWander(I, ex) {
+  if (Date.now() < petBusyUntil) return true;
+  const p = I.p;
+  if (petView === "in") {
+    const room = roomOf(p, curRoom), ids = Object.keys(room.items || {}).filter(k => room.items[k] && FA[k]);
+    if (ex === "sleep") { if (room.items.cama) { const x = furnPos(room, "cama").x; if (Math.abs(petX - Math.max(24, x)) > 3) petPlace(x); } return false; }
+    if (Math.random() > .45) return false;
+    const pick = ids.length && Math.random() < .75 ? rnd(ids) : null, x = pick ? furnPos(room, pick).x : 25 + Math.random() * 50;
+    const dur = petPlace(x); petBusyUntil = Date.now() + dur + 2600;
+    if (pick) setTimeout(() => {
+      if (petView !== "in" || $("tab-pet").classList.contains("hidden")) return;
+      say(rnd(USE[pick] || ["¡Qué bonito! ✨"]), 2600);
+      if (USE_FX[pick]) fx("burst", USE_FX[pick], `left:${petX}%;top:38%`, 1300);
+      if (pick === "piano") for (let i = 0; i < 5; i++) setTimeout(() => fx("note", rnd(["🎵", "🎶"]), `left:${petX - 8 + Math.random() * 16}%`), i * 220);
+    }, dur + 100);
+    return true;
+  }
+  if (ex === "sleep" || Math.random() > .4) return false;
+  const dur = petPlace(28 + Math.random() * 44); petBusyUntil = Date.now() + dur + 1500;
+  if (Math.random() < .5) setTimeout(() => { if (!$("tab-pet").classList.contains("hidden")) say(rnd(OUT_SAY[p.scene || "jardin"] || OUT_SAY.jardin), 2400); }, dur + 100);
+  return true;
+}
+
+// ---------- Los dos a la vez: presencia y abrazo doble ----------
+let pres = {}, presOn = false, dhShown = 0;
+const partnerOnline = () => Date.now() - ((pres || {})[other()] || 0) < 75000;
+function beat() { if (!document.hidden) S.merge("state/presence", { [who]: Date.now() }); }
+function watchPresence() {
+  S.watchDoc("state/presence", d => {
+    const was = presOn; pres = d || {}; presOn = partnerOnline();
+    if (presOn && !was && !$("tab-pet").classList.contains("hidden") && hatched() && !tripAway(state.pet)) { say(`¡${name(other())} también está aquí! 💞`, 3500); hearts($("petBox"), "💞"); }
+    const h = (pres.hug || {})[other()], mine = (pres.hug || {})[who];
+    if (h && mine && Math.abs(h - mine) < 15000 && Date.now() - Math.max(h, mine) < 20000) doubleHug();
+    renderPresence(); renderHome();
+  });
+  beat(); setInterval(beat, 30000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(); });
+  setInterval(() => { const now = partnerOnline(); if (now !== presOn) { presOn = now; renderPresence(); renderHome(); } }, 15000);
+}
+function renderPresence() {
+  const on = partnerOnline(), o = name(other());
+  const b = $("petPartner"); if (b) { b.classList.toggle("hidden", !on); b.innerHTML = `💞 ${esc(o)} está aquí · ¡mimos a la vez!`; }
+  const hb = $("hOnline"); if (hb) { hb.classList.toggle("hidden", !on); hb.textContent = `🟢 ${o} está en la app ahora`; }
+}
+function hugSignal() {
+  const now = Date.now(), oh = (pres.hug || {})[other()];
+  S.merge("state/presence", { [who]: now, hug: { [who]: now } });
+  pres.hug = { ...(pres.hug || {}), [who]: now };
+  if (oh && now - oh < 15000) doubleHug();
+}
+function doubleHug() {
+  const key = Math.max((pres.hug || {}).a || 0, (pres.hug || {}).b || 0); if (!key || dhShown === key) return; dhShown = key;
+  if (!$("tab-pet").classList.contains("hidden")) { confetti(); for (let i = 0; i < 4; i++) setTimeout(() => hearts($("petBox"), rnd(["💞", "🤗", "💗"])), i * 250); react("love", 3200); anim("jump", 1200); }
+  say(`¡Abrazo doble! 🤗💞 ${name("a")} y ${name("b")} a la vez`, 4500); buzz([40, 60, 40, 60, 90]);
+  let got = false;
+  petTx(q => { if (q.day.dh) return null; q.day.dh = Date.now(); q.coins += 30; gainExp(q, 20); setNeed(q, "love", 40); logEv(q, "dhug"); got = true; return q; })
+    .then(r => { if (r && got) toast("💞 ¡Primer abrazo doble del día! +30 🪙", 3500); }).catch(() => {});
+}
+
+// ---------- Su propio diario: cada noche escribe cómo fue su día ----------
+let pdDone = "", diaryLoaded = false;
+function petDiaryText(k) {
+  const p = state.pet || {}, log = p.log || []; if (stageOf(p.xp || 0) === 0 || !log.length) return null;
+  const dayStart = new Date(k + "T00:00:00").getTime(), L = log.filter(e => localKey(new Date(e.at)) === k);
+  if (!L.length && log[0].at > dayStart) return null;   // el registro empezó después: no sé qué pasó
+  const by = { a: {}, b: {} }; L.forEach(e => { if (by[e.w]) by[e.w][e.k] = (by[e.w][e.k] || 0) + (e.n || 1); });
+  const parts = [];
+  for (const w of ["a", "b"]) {
+    const A = by[w], acts = [];
+    if (A.feed) acts.push("me dio de comer"); if (A.hug) acts.push(`me hizo ${A.hug} mimo${A.hug > 1 ? "s" : ""}`); if (A.play) acts.push("jugó conmigo"); if (A.bath) acts.push("me bañó");
+    if (A.trip) acts.push("me mandó de excursión"); if (A.dress) acts.push("me vistió muy guapo"); if (A.buy) acts.push("me compró cosas"); if (A.nap) acts.push("me acostó a dormir la siesta");
+    if (A.trick) acts.push("vio mis trucos"); if (A.post) acts.push("me dio una carta para llevar"); if (A.game) acts.push("jugó a los minijuegos");
+    if (acts.length) parts.push(`${name(w)} ${joinY(acts.slice(0, 4))}`);
+  }
+  let t = parts.length ? `Hoy ${joinY(parts)}.` : "Hoy nadie vino a verme… os eché mucho de menos 🥺";
+  const pcs = Object.entries(p.postcards || {}).filter(([, ts]) => localKey(new Date(ts)) === k).map(([id]) => DESTM[id]).filter(Boolean);
+  if (pcs.length) t += ` Volví de ${pcs.map(d => d.n + " " + d.e).join(" y ")}.`;
+  if (L.some(e => e.k === "treasure")) t += " ¡Encontré un tesoro! ✨";
+  if (L.some(e => e.k === "dhug")) t += " ¡Y me disteis un abrazo doble! 🤗💞";
+  if (by.a.feed && by.b.feed) t += " Me cuidasteis los dos 💞";
+  if (parts.length) t += ["", " Fue un día feliz 💛", " ¡Qué bien lo pasé! 🐤", " Os quiero mucho 💛"][hashStr(k) % 4];
+  return t.trim();
+}
+function petDiaryCheck() {
+  const y = localKey(new Date(Date.now() - DAY)); if (pdDone === y || !state.pet || !diaryLoaded) return; pdDone = y;
+  const d = diaryDay(y); if (d && d.pet) return;
+  const t = petDiaryText(y); if (!t) return;
+  S.merge("diary/" + y, { date: y, at: dayAt(y), pet: { text: t, t: Date.now() } });
+}
+function dyPet(d) {
+  const p = state.pet || {}, sp = SPECIES[p.species || "pollito"] || SPECIES.pollito;
+  return `<div class="dyent pet"><div class="dyw"><b>${sp.e} ${esc(p.name || sp.n)}</b> <small>escribe…</small></div><div class="dytx">${esc(d.pet.text)}</div></div>`;
+}
+
+// ---------- Fotos de la mascota ----------
+const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+async function sceneCanvas() {
+  const sc = $("petScene"), r = sc.getBoundingClientRect(), W = 1080, k = W / r.width, H = Math.round(r.height * k), FOOT = 96;
+  const c = document.createElement("canvas"); c.width = W; c.height = H + FOOT; const ctx = c.getContext("2d");
+  ctx.fillStyle = "#7ec8ff"; ctx.fillRect(0, 0, W, H);
+  if (petView === "in") {
+    if (curRoom === "jardin") { const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#8fd3ff"); g.addColorStop(.549, "#cdeeff"); g.addColorStop(.55, "#7cc95b"); g.addColorStop(1, "#8fd66c"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+    else { ctx.fillStyle = sc.style.getPropertyValue("--wall") || "#f6ead8"; ctx.fillRect(0, 0, W, H * .62); ctx.fillStyle = sc.style.getPropertyValue("--floor") || "#b07a4a"; ctx.fillRect(0, H * .62, W, H * .38); ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.fillRect(0, H * .62 - 9 * k, W, 10 * k); }
+  }
+  for (const s of sc.querySelectorAll("svg")) {
+    const b = s.getBoundingClientRect(); if (!b.width || s.closest(".hidden")) continue;
+    const cl = s.cloneNode(true); cl.setAttribute("width", b.width); cl.setAttribute("height", b.height); cl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    try { const img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(cl))); ctx.drawImage(img, (b.left - r.left) * k, (b.top - r.top) * k, b.width * k, b.height * k); } catch (e) { console.warn(e); }
+  }
+  const p = state.pet || {}, tt = TITLES[p.title];
+  ctx.fillStyle = "#fff"; ctx.fillRect(0, H, W, FOOT);
+  ctx.fillStyle = "#3a2330"; ctx.font = "800 40px -apple-system, system-ui, sans-serif"; ctx.textBaseline = "middle"; ctx.fillText(`${p.name || "Pollito"}${tt ? " · " + tt[1] : ""}`, 32, H + FOOT / 2);
+  ctx.fillStyle = "#b07a90"; ctx.font = "600 28px -apple-system, system-ui, sans-serif"; ctx.textAlign = "right"; ctx.fillText(`${fmtDate(Date.now(), { day: "numeric", month: "short", year: "numeric" })} · Nosotros ❤️`, W - 32, H + FOOT / 2);
+  return c;
+}
+function scaleCanvas(c, w) { const o = document.createElement("canvas"); o.width = w; o.height = Math.round(c.height * w / c.width); o.getContext("2d").drawImage(c, 0, 0, o.width, o.height); return o; }
+async function petPhoto() {
+  if (petPhoto.busy) return; petPhoto.busy = true;
+  const sc = $("petScene"), fl = document.createElement("div"); fl.className = "shotflash"; sc.appendChild(fl); setTimeout(() => fl.remove(), 600); buzz(30);
+  try {
+    const c = await sceneCanvas(), url = c.toDataURL("image/jpeg", .86);
+    S.add("petpics", { from: who, img: scaleCanvas(c, 720).toDataURL("image/jpeg", .72), at: Date.now() });
+    petTx(q => { firstMark(q, "photo"); return q; }).catch(() => {});
+    readView({ icon: "📸", title: "¡Qué foto tan bonita!", sub: "Guardada en su álbum · mantén pulsada la foto para guardarla en el móvil", img: url, nav: navigator.share ? `<button class="btn primary" id="picShare">📤 Compartir</button>` : "" });
+    const b = $("picShare"); if (b) b.onclick = async () => {
+      try { const f = new File([await (await fetch(url)).blob()], "mascota.jpg", { type: "image/jpeg" }); if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f], title: "Nuestra mascota" }); else await navigator.share({ title: "Nuestra mascota", text: "Mira a nuestra mascota 💛" }); } catch (e) {}
+    };
+  } catch (e) { console.error(e); toast("No se pudo hacer la foto 😕"); }
+  petPhoto.busy = false;
+}
+$("petCam").onclick = e => { e.stopPropagation(); openCamSheet(); };
+let petPics = [];
+function watchPetPics() { S.watchCol("petpics", l => { petPics = l; renderPetPics(); }, 30); }
+function renderPetPics() {
+  const el = $("petPics"); if (!el) return;
+  el.innerHTML = petPics.length ? petPics.map(x => `<img src="${x.img}" data-pic="${esc(x.id)}" alt="" loading="lazy">`).join("") : `<div class="empty" style="grid-column:1/-1;font-size:14px">Pulsa 📸 en la escena para hacerle fotos</div>`;
+  el.querySelectorAll("[data-pic]").forEach(i => i.onclick = () => {
+    const x = petPics.find(y => y.id === i.dataset.pic); if (!x) return;
+    readView({ icon: "📸", title: `Foto de ${name(x.from)}`, sub: fmtDate(x.at, { day: "numeric", month: "long", year: "numeric" }), img: x.img, nav: x.from === who ? `<button class="btn" id="picDel">🗑️ Borrar</button>` : "" });
+    const d = $("picDel"); if (d) d.onclick = () => { if (confirm("¿Borrar esta foto?")) { S.del("petpics/" + x.id); $("readView").classList.add("hidden"); } };
+  });
+}
+
+// ---------- Tutorial (la primera vez que entráis) ----------
+function tourSteps() {
+  const o = esc(name(other())), pn = esc((state.pet || {}).name || "Pollito"), egg = !hatched();
+  return [
+    ["petBox", `¡Hola, ${esc(name(who))}! Soy <b>${pn}</b>, vuestro hijo virtual ${egg ? "(de momento soy un huevo 🥚)" : "🐣"}. Te enseño cómo funciono.`],
+    ["petFeed", `Cada día <b>los dos</b> tenéis que ${egg ? "darme calor 🔥" : "darme de comer 🍓"}. Solo crezco los días que lo hacéis tú y ${o}. ¡Así me cuidáis juntos! 💞`],
+    egg ? null : ["petNeeds", "Aquí ves cómo estoy: hambre, cariño, diversión, limpieza y energía. Bajan con las horas aunque no abráis la app. Si descuidáis dos cosas, me pongo malito 🤒"],
+    ["petBox", "Tócame para darme mimos 🤗<br>· 5 toques rápidos = cosquillas<br>· mantener pulsado = caricia"],
+    ["petBag", "Con estos botones me cuidas: mochila, jugar, baño, siesta… y en 🎪 Trucos, 👗 Armario y 🎁 Cofres hay sorpresas."],
+    ["petSegBar", "Aquí abajo tienes: 🎯 misiones y aventuras, 🛍️ mi tienda, ⭐ niveles y premios, y 📚 mis colecciones."],
+    ["petView", "Aquí está mi casita 🏠. La podéis decorar juntos y yo me paseo por ella."],
+    ["petCam", "Con 📸 me haces fotos para guardarlas o mandarlas 💛"],
+    [null, `¡Eso es todo! Cuando ${o} y tú estéis a la vez en la app lo notaré… y si me hacéis mimos a la vez, ¡<b>abrazo doble</b>! 🤗💞`]
+  ].filter(Boolean);
+}
+function startTour() {
+  const steps = tourSteps().filter(([id]) => !id || ($(id) && $(id).offsetParent)); let i = 0;
+  const ov = $("tour"), sp = $("tourSpot"), card = $("tourCard"); ov.classList.remove("hidden");
+  const end = () => { ov.classList.add("hidden"); ls.set("petTour", "1"); setTimeout(petWelcome, 400); };
+  const show = () => {
+    const [id, txt] = steps[i], el = id && $(id);
+    if (el) el.scrollIntoView({ block: "center" });
+    setTimeout(() => {
+      const r = el ? el.getBoundingClientRect() : null;
+      if (r) Object.assign(sp.style, { display: "block", left: r.left - 6 + "px", top: r.top - 6 + "px", width: r.width + 12 + "px", height: r.height + 12 + "px" }); else sp.style.display = "none";
+      card.innerHTML = `<div class="tourtx">${txt}</div><div class="row"><button class="btn" id="tourSkip">Saltar</button><button class="btn primary" id="tourNext" style="flex:1">${i < steps.length - 1 ? "Siguiente →" : "¡Entendido! 💛"}</button></div><small>${i + 1} / ${steps.length}</small>`;
+      const below = !r || r.bottom < innerHeight * .55;
+      card.style.top = r ? (below ? Math.min(innerHeight - card.offsetHeight - 12, r.bottom + 14) : Math.max(12, r.top - card.offsetHeight - 14)) + "px" : Math.round(innerHeight * .35) + "px";
+      $("tourNext").onclick = () => { i++; if (i >= steps.length) end(); else show(); };
+      $("tourSkip").onclick = end;
+    }, 260);
+  };
+  show();
+}
+$("tourAgain").onclick = () => { window.scrollTo(0, 0); setTimeout(startTour, 300); };
+
+
+// =====================================================================
+//   v35 · Enséñale a hablar, sus primeras veces y foto contigo
+// =====================================================================
+// ---------- Sus primeras veces ----------
+const FIRSTS = [
+  ["hatch", "🐣", "Nació"], ["feed", "🍓", "Su primera comida"], ["hug", "🤗", "Su primer mimo"], ["play", "⚽", "Su primer juego"], ["bath", "🛁", "Su primer baño"],
+  ["nap", "🌙", "Su primera siesta"], ["dress", "👒", "Su primera ropa"], ["buy", "🛍️", "Su primer regalo"], ["trip", "🧳", "Su primera excursión"], ["treasure", "✨", "Su primer tesoro"],
+  ["game", "🎮", "Su primer minijuego"], ["trick", "🎪", "Su primer truco"], ["post", "✉️", "Su primera carta como mensajero"], ["word", "🗣️", "Aprendió su primera frase"],
+  ["dhug", "💞", "Su primer abrazo doble"], ["photo", "📸", "Su primera foto"], ["sick", "🤒", "Se puso malito por primera vez"], ["bday", "🎂", "Su primer cumplemés"],
+  ["stage3", "🐤", "Se hizo travieso"], ["lvl10", "⭐", "Llegó al nivel 10"], ["talk", "💬", "Su primera conversación"]
+];
+const FIRSTM = Object.fromEntries(FIRSTS.map(f => [f[0], f]));
+function firstMark(q, k, info) {
+  q.firsts = q.firsts || {};
+  if (!FIRSTM[k] || q.firsts[k] || (k !== "hatch" && stageOf(q.xp || 0) === 0)) return;
+  q.firsts[k] = { at: Date.now(), by: who, ...(info ? { info: String(info).slice(0, 80) } : {}) };
+}
+function backfillFirsts(p) {   // lo que ya había pasado antes de existir el álbum
+  p.firsts = p.firsts || {};
+  if (p.hatchedAt > 1e12 && !p.firsts.hatch) p.firsts.hatch = { at: p.hatchedAt };
+  const pc = Object.entries(p.postcards || {}).filter(([, t]) => t > 1e12).sort((a, b) => a[1] - b[1])[0];
+  if (pc && !p.firsts.trip) p.firsts.trip = { at: pc[1], info: DESTM[pc[0]] ? DESTM[pc[0]].e + " " + DESTM[pc[0]].n : "" };
+  if ((p.album || {})[3] > 1e12 && !p.firsts.stage3) p.firsts.stage3 = { at: p.album[3] };
+}
+let firstsSeen = null;
+function checkFirsts(d) {
+  const f = (d && d.firsts) || {}, keys = Object.keys(f);
+  if (firstsSeen === null) { firstsSeen = new Set(keys); return; }
+  for (const k of keys) if (!firstsSeen.has(k)) {
+    firstsSeen.add(k); const F = FIRSTM[k]; if (!F || Date.now() - f[k].at > 3 * 6e4) continue;
+    setTimeout(() => { toast(`🍼 ¡Primera vez! ${F[1]} ${F[2]}${f[k].info ? " · " + f[k].info : ""}`, 4200); if (!$("tab-pet").classList.contains("hidden")) hearts($("petBox"), F[1]); }, 1200);
+  }
+}
+function renderFirsts(p) {
+  const el = $("petFirsts"); if (!el) return;
+  const f = p.firsts || {}, got = FIRSTS.filter(([k]) => f[k]).sort((a, b) => f[a[0]].at - f[b[0]].at), miss = FIRSTS.filter(([k]) => !f[k]);
+  el.innerHTML = (got.length ? `<div class="firsts">${got.map(([k, e, n]) => `<div class="first"><i>${e}</i><div><b>${esc(n)}</b><small>${fmtDate(f[k].at, { day: "numeric", month: "short", year: "numeric" })}${f[k].info ? " · " + esc(f[k].info) : ""}${f[k].by ? " · con " + esc(name(f[k].by)) : ""}</small></div></div>`).join("")}</div>` : `<div class="empty" style="font-size:14px">Aquí se irán guardando solas sus primeras veces 🍼</div>`) +
+    (miss.length ? `<div class="slotname">Por descubrir</div><div class="tchips">${miss.map(([, e, n]) => `<span class="tchip lk">${e} ${esc(n)}</span>`).join("")}</div>` : "");
+}
+
+// ---------- Enséñale a hablar ----------
+const pendingWord = p => ((p && p.words) || []).find(w => w.from === other() && !w.said);
+function teachWord() {
+  const p = state.pet || {};
+  if (!hatched()) return toast("Primero tiene que nacer 🥚");
+  const t = prompt(`¿Qué quieres que ${p.name || "tu mascota"} le diga a ${name(other())}? Se lo soltará cuando menos se lo espere 🤫`); if (!t || !t.trim()) return;
+  petTx(q => { q.words = [...(q.words || []), { id: Date.now().toString(36), from: who, text: t.trim().slice(0, 140), at: Date.now(), said: 0 }].slice(-40); firstMark(q, "word"); bump(q, "teach"); return q; })
+    .then(r => { react("happy", 2000); say(rnd(["¡Aprendido! Se lo diré cuando menos se lo espere 🤫", "¡Me lo guardo en el piquito! 🤐", "Vale, vale… ¡será nuestro secreto! 🤫"]), 3500); sendMsg(`🗣️ Le he enseñado una frase nueva a ${r.name || "la mascota"}… ve a verle 🤫`, "pet"); })
+    .catch(offline);
+}
+function sayWord(w) {
+  if (!w || $("tab-pet").classList.contains("hidden") || tripAway(state.pet)) return false;
+  petHome(); react("love", 3500); hearts($("petBox"), "💬");
+  say(`${name(w.from)} me ha enseñado a decirte: «${w.text}» 💛`, 8000);
+  petTx(q => { const x = (q.words || []).find(y => y.id === w.id); if (!x || x.said) return null; x.said = Date.now(); return q; }).catch(() => {});
+  return true;
+}
+function renderWords(p) {
+  const el = $("petWords"); if (!el) return;
+  const ws = (p.words || []).slice().reverse();
+  el.innerHTML = ws.length ? ws.map(w => `<div class="word"><div class="wq">${w.from !== who && !w.said ? "🤫 Una frase secreta…" : `«${esc(w.text)}»`}</div><small>Se lo enseñó ${esc(name(w.from))} · ${fmtDate(w.at, { day: "numeric", month: "short" })} · ${w.said ? `✅ ya se lo dijo a ${esc(name(w.from === "a" ? "b" : "a"))}` : w.from === who ? "🤫 aún no se lo ha dicho" : "🎁 ¡tiene algo para ti! Ve a verle"}</small>${w.from === who && !w.said ? `<button class="x" data-wdel="${w.id}">✕</button>` : ""}</div>`).join("")
+    : `<div class="empty" style="font-size:14px">Aún no le habéis enseñado ninguna frase.</div>`;
+  el.innerHTML += `<button class="btn primary mt" id="wTeach" style="width:100%">🗣️ Enseñarle una frase para ${esc(name(other()))}</button>`;
+  el.querySelectorAll("[data-wdel]").forEach(b => b.onclick = () => { if (confirm("¿Olvidar esta frase?")) petTx(q => { q.words = (q.words || []).filter(w => w.id !== b.dataset.wdel); return q; }).catch(offline); });
+  $("wTeach").onclick = teachWord;
+}
+
+// ---------- Foto contigo: la mascota como pegatina en tus fotos ----------
+let stk = null;
+function openCamSheet() {
+  openSheet("📸 Fotos", `<div class="shopgrid" style="grid-template-columns:1fr 1fr"><button class="shopit" id="camScene"><i>🏞️</i><b>Foto de la escena</b><span>Tal y como está ahora</span></button><label class="shopit" id="camWith"><i>🤳</i><b>Foto contigo</b><span>Ponle en una foto tuya</span><input type="file" accept="image/*" id="camFile" hidden></label></div>`);
+  $("camScene").onclick = () => { closeSheet(); petPhoto(); };
+  $("camFile").onchange = e => { const f = e.target.files[0]; closeSheet(); if (f) openSticker(f); };
+}
+function openSticker(file) {
+  const url = URL.createObjectURL(file), img = $("stkImg");
+  img.onload = () => {
+    const p = state.pet || {}, I = petInfo(), si = Math.max(1, I.si);
+    stk = { x: 70, y: 72, s: 38, flip: false, url };
+    $("stkPet").innerHTML = chickSVG(si, "happy", p.wear || {}, 0, p.color, { species: p.species });
+    placeSticker(); $("stkView").classList.remove("hidden"); document.body.style.overflow = "hidden";
+  };
+  img.onerror = () => toast("No se pudo abrir la foto");
+  img.src = url;
+}
+function placeSticker() { const e = $("stkPet"); Object.assign(e.style, { left: stk.x + "%", top: stk.y + "%", width: stk.s + "%" }); e.classList.toggle("flip", stk.flip); }
+(() => {
+  const el = $("stkPet"), pts = new Map(); let base = null;
+  const dist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+  el.addEventListener("pointerdown", e => { e.preventDefault(); el.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); base = { ...stk, d: pts.size === 2 ? dist() : 0, px: e.clientX, py: e.clientY }; });
+  el.addEventListener("pointermove", e => {
+    if (!pts.has(e.pointerId) || !stk) return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const r = $("stkStage").getBoundingClientRect();
+    if (pts.size >= 2 && base.d) stk.s = Math.max(12, Math.min(90, base.s * dist() / base.d));
+    else if (pts.size === 1) { stk.x = Math.max(0, Math.min(100, base.x + (e.clientX - base.px) / r.width * 100)); stk.y = Math.max(0, Math.min(100, base.y + (e.clientY - base.py) / r.height * 100)); }
+    placeSticker();
+  });
+  const up = e => { pts.delete(e.pointerId); if (stk && pts.size === 1) { const [q] = [...pts.values()]; base = { ...stk, d: 0, px: q.x, py: q.y }; } };
+  el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+})();
+$("stkPlus").onclick = () => { stk.s = Math.min(90, stk.s + 6); placeSticker(); };
+$("stkMinus").onclick = () => { stk.s = Math.max(12, stk.s - 6); placeSticker(); };
+$("stkFlip").onclick = () => { stk.flip = !stk.flip; placeSticker(); };
+function closeSticker() { $("stkView").classList.add("hidden"); document.body.style.overflow = ""; if (stk) URL.revokeObjectURL(stk.url); stk = null; }
+$("stkCancel").onclick = closeSticker;
+$("stkSave").onclick = async () => {
+  if (!stk) return;
+  try {
+    const im = $("stkImg"), M = 1600, k = Math.min(1, M / Math.max(im.naturalWidth, im.naturalHeight)), W = Math.round(im.naturalWidth * k), H = Math.round(im.naturalHeight * k);
+    const c = document.createElement("canvas"); c.width = W; c.height = H; const ctx = c.getContext("2d"); ctx.drawImage(im, 0, 0, W, H);
+    const svg = $("stkPet").querySelector("svg").cloneNode(true), size = W * stk.s / 100;
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg"); svg.setAttribute("width", size); svg.setAttribute("height", size);
+    const pi = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(svg)));
+    ctx.save(); ctx.translate(W * stk.x / 100, H * stk.y / 100); if (stk.flip) ctx.scale(-1, 1); ctx.drawImage(pi, -size / 2, -size / 2, size, size); ctx.restore();
+    const url = c.toDataURL("image/jpeg", .85), small = scaleCanvas(c, Math.min(720, W)).toDataURL("image/jpeg", .72);
+    closeSticker(); buzz(30);
+    S.add("petpics", { from: who, img: small, at: Date.now() });
+    petTx(q => { firstMark(q, "photo"); return q; }).catch(() => {});
+    readView({ icon: "🤳", title: "¡Qué foto tan bonita!", sub: "Guardada en su álbum · mantén pulsada la foto para guardarla en el móvil", img: url,
+      nav: `<button class="btn" id="stkMem">💾 A Recuerdos</button>${navigator.share ? `<button class="btn primary" id="stkShare">📤 Compartir</button>` : ""}` });
+    $("stkMem").onclick = () => { S.add("memories", { from: who, text: `Con ${(state.pet || {}).name || "nuestra mascota"} 💛`, photo: scaleCanvas(c, Math.min(1000, W)).toDataURL("image/jpeg", .72), taken: Date.now(), at: Date.now() }); sendMsg(`📸 He guardado una foto con ${(state.pet || {}).name || "la mascota"} en Recuerdos`, "mem"); toast("Guardada en Recuerdos 💕"); $("stkMem").disabled = true; };
+    const sh = $("stkShare"); if (sh) sh.onclick = async () => { try { const f = new File([await (await fetch(url)).blob()], "foto-con-mascota.jpg", { type: "image/jpeg" }); if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f] }); } catch (e) {} };
+  } catch (e) { console.error(e); toast("No se pudo crear la foto 😕"); }
+};
+
+
+// =====================================================================
+//   v36 · Hablar con la mascota (IA) + servidor configurable desde ⚙️
+// =====================================================================
+const srvUrl = () => CONFIG.pushUrl || ((state.main || {}).server || "");
+let aiHist = []; try { aiHist = JSON.parse(ls.get("aiHist") || "[]"); } catch (e) { aiHist = []; }
+function aiContext() {
+  const I = petInfo(), p = I.p, sp = SPECIES[p.species || "pollito"] || SPECIES.pollito, tr = TRAITS[p.trait], o = name(other()), me = name(who), today = localKey();
+  const days = CONFIG.start ? Math.floor((Date.now() - new Date(CONFIG.start + "T00:00:00")) / DAY) : null;
+  const nx = state.main.next && state.main.next > Date.now() ? Math.ceil((state.main.next - Date.now()) / DAY) : null;
+  const md = moods[today] || {}, d = diaryDay(today) || {}, away = tripAway(p);
+  const wear = Object.values(p.wear || {}).filter(Boolean).map(id => CAT[id] && CAT[id].n).filter(Boolean);
+  const up = dates.map(x => ({ x, ...nextOcc(x) })).filter(r => r.days >= 0 && r.days <= 30).map(r => `${r.x.name} (en ${r.days} días)`);
+  const pl = (plans || []).filter(x => !x.done).slice(0, 4).map(x => x.text);
+  const said = (p.words || []).filter(w => w.said).slice(-3).map(w => `«${w.text}» (te lo enseñó ${name(w.from)})`);
+  return [
+    `Eres ${p.name || sp.n}, la mascota virtual (${sp.n.toLowerCase()}, fase «${stageName(I.si, p.species)}», nivel ${I.L.l}) que comparten ${name("a")} y ${name("b")}, una pareja que vive a distancia. Ahora hablas con ${me}.`,
+    tr ? `Tu personalidad: ${tr.n.toLowerCase()} (${tr.d}).` : "",
+    "Responde SIEMPRE en español, en 1 a 3 frases cortas, con ternura y humor y algún emoji. Eres su mascota: nunca digas que eres una IA, un modelo o un programa. No inventes cosas sobre ellos que no estén en estos datos; si no sabes algo, dilo con gracia. Anima a la pareja y nunca critiques a ninguno de los dos.",
+    `Si ${me} te pide que le digas o le lleves algo a ${o}, contesta que se lo dirás y añade al final exactamente: [RECADO: lo que tienes que decirle]`,
+    "Datos de ahora mismo:",
+    days !== null ? `- Llevan ${days} días juntos.` : "", nx ? `- Faltan ${nx} días para que se vean.` : "",
+    `- Tus necesidades (100% = perfecto): hambre ${I.nv.food}%, cariño ${I.nv.love}%, diversión ${I.nv.fun}%, limpieza ${I.nv.clean}%, energía ${I.nv.energy}%.${I.sick ? " Estás malito." : ""}`,
+    `- Hoy te ha dado de comer: ${[I.meT ? me : "", I.otT ? o : ""].filter(Boolean).join(" y ") || "nadie todavía"}. Días que te han cuidado los dos: ${p.xp}. Racha: ${p.streak || 0}.`,
+    wear.length ? `- Llevas puesto: ${wear.join(", ")}.` : "",
+    away ? `- Estás de excursión en ${away.n}.` : `- Estás en: ${petView === "in" ? "tu casita" : (CAT[p.scene || "jardin"] || {}).n || "el jardín"}.`,
+    md[who] ? `- ${me} hoy se siente ${MOOD_TXT[md[who]]}.` : "", md[other()] ? `- ${o} hoy se siente ${MOOD_TXT[md[other()]]}.` : "",
+    d[who] && d[who].text ? `- ${me} escribió hoy en el diario: «${d[who].text.slice(0, 200)}»` : "",
+    d[who] && d[other()] && d[other()].text ? `- ${o} escribió hoy en el diario: «${d[other()].text.slice(0, 200)}»` : "",
+    up.length ? `- Fechas especiales que se acercan: ${up.join(", ")}.` : "", pl.length ? `- Planes que quieren hacer juntos: ${pl.join("; ")}.` : "",
+    said.length ? `- Frases que has aprendido: ${said.join("; ")}.` : "",
+    partnerOnline() ? `- ${o} está en la app ahora mismo.` : "", `- Son las ${fmt(myTz, { hour: "2-digit", minute: "2-digit" })} para ${me}.`
+  ].filter(Boolean).join("\n");
+}
+function demoReply(t) {
+  const o = name(other()), p = state.pet || {}, x = t.toLowerCase();
+  if (/dile|dale|recado|lleva/.test(x)) return `¡Claro! Se lo diré a ${o} en cuanto venga 🤫 [RECADO: ${t.replace(/^.*?(dile|dale|lleva(le)?)\s*(a\s+\w+\s*)?(que\s*)?/i, "")}]`;
+  if (/hambre|comer|comida/.test(x)) return "¡Siempre tengo hambre! 🍓 ¿Me das una fresa?";
+  if (/quieres|quién|favorit/.test(x)) return `Os quiero a los dos igual… pero no se lo digas a ${o} 🤭💛`;
+  return rnd([`¡Pío! Qué bien que vengas a hablar conmigo, ${name(who)} 🐤`, `Hoy me siento genial 💛 ¿Y tú?`, `¿Sabes qué? Echo de menos a ${o} 🥺`, `¡Me encanta mi ${(CAT[(p.wear || {}).head] || {}).n || "plumaje"}! ✨`]);
+}
+function drawAi(typing) {
+  const el = $("aiLog"); if (!el) return;
+  el.innerHTML = (aiHist.length ? aiHist.map(m => `<div class="bub ${m.role === "user" ? "me" : "pet"}">${esc(m.content)}</div>`).join("") : `<div class="empty" style="text-align:center">¡Pío! Pregúntame lo que quieras 🐤<br><small>Por ejemplo: «¿qué tal tu día?», «¿a quién quieres más?» o «dile a ${esc(name(other()))} que la echo de menos»</small></div>`) + (typing ? `<div class="bub pet typing"><i></i><i></i><i></i></div>` : "");
+  el.scrollTop = el.scrollHeight;
+}
+function openPetChat() {
+  if (!hatched()) return toast("Primero tiene que nacer 🥚");
+  const p = state.pet || {};
+  openSheet(`💬 Hablar con ${p.name || "tu mascota"}`, `<div class="aichat" id="aiLog"></div><div class="sendrow"><input id="aiIn" placeholder="Escríbele algo…" enterkeyhint="send" maxlength="300"><button class="btn primary" id="aiSend">➤</button></div><div class="sub" style="font-size:11.5px;text-align:center">Contesta con IA según lo que pasa en la app · esta conversación solo la ves tú · <button class="linkbtn" id="aiClear" style="font-size:11.5px">borrar</button></div>`);
+  drawAi(); $("aiSend").onclick = aiSend; $("aiIn").onkeydown = e => { if (e.key === "Enter") aiSend(); };
+  $("aiClear").onclick = () => { aiHist = []; ls.set("aiHist", "[]"); drawAi(); };
+}
+async function aiSend() {
+  const inp = $("aiIn"), t = inp.value.trim(); if (!t || aiSend.busy) return; inp.value = "";
+  aiHist.push({ role: "user", content: t.slice(0, 300) }); aiHist = aiHist.slice(-20); drawAi(true); aiSend.busy = true;
+  let reply = null;
+  try {
+    if (S.demo) { aiContext.last = aiContext(); await new Promise(r => setTimeout(r, 700)); reply = demoReply(t); }
+    else if (!srvUrl()) reply = "Pío… 🥺 Aún no tengo voz: falta poner la dirección del servidor en ⚙️ Ajustes.";
+    else {
+      const r = await fetch(srvUrl(), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ secret: CONFIG.pushSecret, type: "chat", system: aiContext(), messages: aiHist.slice(-12) }) });
+      const j = await r.json(); if (!j.ok || !j.reply) throw new Error(j.error || "sin respuesta"); reply = j.reply;
+    }
+  } catch (e) { console.warn(e); reply = "Pío… me he quedado sin palabras 😵 Prueba otra vez en un ratito."; }
+  aiSend.busy = false;
+  let rec = null; reply = String(reply).replace(/\[RECADO:\s*([^\]]+)\]/i, (_, m) => { rec = m.trim(); return ""; }).trim() || "🐤💛";
+  aiHist.push({ role: "assistant", content: reply }); aiHist = aiHist.slice(-20); ls.set("aiHist", JSON.stringify(aiHist)); drawAi();
+  say(reply.length > 150 ? reply.slice(0, 147) + "…" : reply, 5000); react("happy", 1500);
+  const pn = (state.pet || {}).name || "La mascota";
+  petTx(q => { firstMark(q, "talk"); bump(q, "talk"); if (rec) { q.words = [...(q.words || []), { id: Date.now().toString(36), from: who, text: rec.slice(0, 140), at: Date.now(), said: 0 }].slice(-40); firstMark(q, "word"); } return q; })
+    .then(() => { if (rec) sendMsg(`🗣️ ${pn} tiene un recado para ti… ve a verle 🤫`, "pet"); }).catch(() => {});
+}
+$("petChat").onclick = e => { e.stopPropagation(); openPetChat(); };
+window.__aiCtx = () => aiContext.last;
+
 async function start() {
   if (S.demo) { $("demoBanner").classList.remove("hidden"); setConn("demo"); }
   if (S.needsLogin) {
@@ -3820,9 +4274,9 @@ async function start() {
   tick(); renderQuestion(); renderPet(); renderQuiz(); renderTTT(); renderMoods([]); drawWheel(); fgInfo(); renderLetters([]); renderCaps([]); renderDates([]); renderGameMenu();
   if (!S.needsLogin) { try { await S.init(); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); showRetry(); return; } }
   S.merge("state/main", { tz: { [who]: myTz } });
-  S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); });
-  S.watchDoc("state/pet", d => { state.pet = d; renderPet(); fgInfo(); });
-  watchDiary(); watchOTD();
+  S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); renderPush(); });
+  S.watchDoc("state/pet", d => { state.pet = d; checkFirsts(d); renderPet(); fgInfo(); });
+  watchDiary(); watchOTD(); watchPresence(); watchPetPics();
   loadWeather(true);
   S.watchDoc("quiz/main", d => { state.quiz = d; renderQuiz(); });
   S.watchDoc("state/ttt", d => { state.ttt = d; renderTTT(); renderQuiz(); renderGameMenu(); });
