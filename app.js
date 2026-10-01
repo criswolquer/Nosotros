@@ -1180,6 +1180,7 @@ function startTrip() {
 function claimTrip() {
   let d = null, stk = null, gift = 0, lvl = 0;
   petTx(q => {
+    d = null; stk = null; gift = 0; lvl = 0;
     if (!tripBack(q)) return null;
     d = DESTM[q.trip.id] || DEST[0]; q.postcards = q.postcards || {};
     const nw = !q.postcards[d.id]; if (nw) q.postcards[d.id] = Date.now();
@@ -2429,7 +2430,8 @@ function phrase() {
   if (state.main.next && state.main.next > Date.now()) { const d = calDays(state.main.next); L.push(`¡Faltan ${d} día${d === 1 ? "" : "s"} para que os veáis! ✈️`); }
   return rnd(L);
 }
-const petTx = fn => S.tx("state/pet", p => fn(ensureDay(p || newPet())));
+const petTx = fn => S.tx("state/pet", p => { const r = fn(ensureDay(p || newPet())); if (r) r._v = ((p && p._v) || 0) + 1; return r; })
+  .then(r => { if (r && (!state.pet || (r._v || 0) > (state.pet._v || 0))) state.pet = JSON.parse(JSON.stringify(r)); return r; });
 const hatched = () => stageOf((state.pet || {}).xp || 0) > 0;
 let lvlToast = l => { if (l) { const R = LV_REWARDS[l] || {}; setTimeout(() => { confetti(); say(`¡He subido a nivel ${l}! 🎉${R.s ? ` ¡He aprendido a ${SKILLS[R.s][2].toLowerCase()} ${SKILLS[R.s][1]}!` : " Hay premio en el camino ⭐"}`, 4500); }, 900); sendMsg(`⭐ ¡${(state.pet || {}).name || "El pollito"} ha subido a nivel ${l}! Premio: ${lvText(l)}`, "pet"); } };
 
@@ -2483,6 +2485,7 @@ function useItem(id) {
   const it = CAT[id]; let lvl = 0, ok = false, cured = false;
   if (isNapping(state.pet || {}) && !it.eff.cure) { closeSheet(); return say("Zzz… déjame dormir 😴"); }
   petTx(p => {
+    ok = false; cured = false; lvl = 0;
     if (!(p.inv[id] > 0)) return null; p.inv[id]--; ok = true;
     for (const [k, v] of Object.entries(it.eff)) { if (k === "cure") { if (p.sick) cured = true; p.sick = false; p.curedAt = Date.now(); for (const [nk] of NEEDS) if (needNow(p, nk) < 25) setNeed(p, nk, 15); } else setNeed(p, k, v); }
     lvl = gainExp(p, 5); bump(p, "bag"); return p;
@@ -4107,7 +4110,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "2.6";
+const APP_VERSION = "2.6.2";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -5188,6 +5191,8 @@ function dailyPrize() {
   const p0 = state.pet || {}; if ((p0.dprize || {})[who] === localKey()) return toast("Ya lo has recogido hoy · vuelve mañana 🎁");
   let got = null, coins = 0, food = null;
   petTx(q => {
+    got = null; coins = 0; food = null;
+    if ((q.dprize || {})[who] === localKey()) return null;
     q.dprize = { ...(q.dprize || {}), [who]: localKey() };
     const x = Math.random();
     if (x < .12) { const pool = CATALOG.filter(it => it.slot && !isOwned(q, it) && rarOf(it) <= 2 && !it.chest && !it.lv && !it.req && !it.weekly && !it.season && !it.treasure && it.c > 0); got = pool.length ? rnd(pool) : null; }
@@ -5754,6 +5759,7 @@ function bindFamScene() {
   const nf = $("nestFig"); if (nf) nf.onclick = e => { e.stopPropagation(); warmEgg(); };
   const gf = $("gardenFig"); if (gf) gf.onclick = e => { e.stopPropagation(); openGarden(); };
   const gu = $("guestFig"); if (gu) gu.onclick = e => { e.stopPropagation(); guestTap(); };
+  const gb = $("guestBye"); if (gb) gb.onclick = e => { e.stopPropagation(); guestBye(); };
 }
 
 // ---------- relación estilo Sims: amistad + romance ----------
@@ -5823,6 +5829,7 @@ function doInter(id) {
   const it = INTERM[id]; if (!it) return;
   let res = null;
   petTx(q => {
+    res = null;
     const m = relOf(mateOf(q)); if (!m || interLock(m, it)) return null;
     const today = dayKey();
     if (!m.acts || m.acts.day !== today) m.acts = { day: today };
@@ -5897,7 +5904,7 @@ function celebrate() {
 function breakUp() {
   const m = mateOf(state.pet); if (!m || m.status !== "conocidos") return;
   if (!confirm(`¿Dejar de ver a ${m.name}? Podréis presentarle a otra persona 💔`)) return;
-  petTx(q => { const x = mateOf(q); if (!x || x.status !== "conocidos") return null; q.exes = [...(q.exes || []), { name: x.name, at: Date.now() }].slice(-10); q.mate = null; return q; }).then(() => { sceneSig = ""; renderPet(); toast("Otra vez será 💔"); }).catch(offline);
+  petTx(q => { const x = mateOf(q); if (!x || x.status !== "conocidos") return null; q.exes = [...(q.exes || []), { name: x.name, at: Date.now() }].slice(-10); q.mate = null; q.mateOut = null; return q; }).then(() => { sceneSig = ""; renderPet(); toast("Otra vez será 💔"); }).catch(offline);
 }
 
 // ---------- tarjeta de amor (Hoy) ----------
@@ -5996,11 +6003,12 @@ function openMateFinder() {
 function voteMate(i) {
   let matched = null;
   petTx(q => {
+    matched = null;
     if (mateOf(q)) return null;
     const today = dayKey(), C = mateCands(q);
     q.mateVote = q.mateVote && q.mateVote.day === today ? { ...q.mateVote } : { day: today };
     q.mateVote[who] = i;
-    if (q.mateVote[other()] === i) { matched = C[i]; q.mate = { ...matched, status: "conocidos", metAt: Date.now(), f: 5, r: 0, dates: 0, lastInt: today }; relMiles(q.mate); q.mateVote = null; logEv(q, "friend"); }
+    if (q.mateVote[other()] === i) { matched = C[i]; q.mateOut = null; q.mate = { ...matched, status: "conocidos", metAt: Date.now(), f: 5, r: 0, dates: 0, lastInt: today }; relMiles(q.mate); q.mateVote = null; logEv(q, "friend"); }
     return q;
   }).then(r => {
     if (!r) return;
@@ -6062,6 +6070,7 @@ function warmEgg() {
 function hatchKid() {
   let kid = null;
   petTx(q => {
+    kid = null;
     const m = mateOf(q), N = q.nest; if (!m || !N || N.hatched || (N.n || 0) < WARM_DAYS) return null;
     const g = mixGenes(petGene(q), m), used = new Set(kidsOf(q).map(k => k.name));
     const nm = KID_NAMES.filter(n => !used.has(n))[Math.floor(Math.random() * 10)] || "Peque";
@@ -6164,7 +6173,7 @@ function petLoc(p, I) {
   if (visitOf(p)) return "visita";
   const now = Date.now();
   if (p.here && p.here.until > now && LOCN[p.here.loc]) return p.here.loc;
-  if (isNapping(p) || currentExpr(I) === "sleep") return "dorm";
+  const hh = hourIn(myTz); if (isNapping(p) || hh >= 23 || hh < 7) return "dorm";
   if (I.nv.food < 35) return "cocina";
   if (I.nv.energy < 28) return "dorm";
   const slot = Math.floor(now / LOC_SLOT);
@@ -6174,13 +6183,15 @@ function petLoc(p, I) {
 function mateLoc(p, I) {
   const m = mateOf(p); if (!m) return null;
   if (p.mateOut) return null;
-  const pl = petLoc(p, I), slot = Math.floor(Date.now() / LOC_SLOT), close = (m.f || 0) >= 60 ? 92 : 80;
+  let pl = petLoc(p, I); if (pl === "visita") pl = petLoc({ ...p, visit: null }, I);
+  const slot = Math.floor(Date.now() / LOC_SLOT), close = (m.f || 0) >= 60 ? 92 : 80;
   // de novios en adelante van siempre juntos; si solo se conocen, casi siempre
   if (m.status !== "conocidos" || pl === "dorm") return pl;
   return hashStr(slot + ":m:" + m.name) % 100 < close ? pl : pickW(schedW(hourIn(myTz)).filter(x => x[0] !== pl).concat([["jardin", 1]]), hashStr(slot + ":mw:" + m.name));
 }
 function kidLoc(p, I, k) {
-  const pl = petLoc(p, I), slot = Math.floor(Date.now() / LOC_SLOT);
+  let pl = petLoc(p, I); if (pl === "visita") pl = petLoc({ ...p, visit: null }, I);
+  const slot = Math.floor(Date.now() / LOC_SLOT);
   if (pl === "dorm" && hourIn(myTz) >= 21) return "dorm";
   return hashStr(slot + ":k:" + k.id) % 100 < 65 ? pl : (hashStr(slot + k.id) % 2 ? "jardin" : "salon");
 }
@@ -6191,7 +6202,7 @@ function summonPet(silent) {
   const vj = visitOf(state.pet); if (vj && vj.job) { if (!silent) toast(`💼 ${pn} está trabajando con ${NB[vj.nb].n} hasta las ${hhmm(vj.until)}`, 2600); return Promise.resolve(); }
   locNav = true; locCalled = true;
   if (!silent) toast(`📣 ¡${pn}! Ya viene corriendo… 🐾`, 2200);
-  return petTx(q => { q.here = { loc, until: Date.now() + 15 * 6e4, by: who }; q.visit = null; return q; }).then(() => { sceneSig = ""; petSig = ""; renderPet(); walkIn(); }).catch(offline);
+  return petTx(q => { if (q.visit && q.visit.job && !q.visit.paid && q.visit.until > Date.now()) return null; q.here = { loc, until: Date.now() + 15 * 6e4, by: who }; if (!(q.visit && q.visit.job && !q.visit.paid)) q.visit = null; return q; }).then(r => { if (!r) return; sceneSig = ""; petSig = ""; renderPet(); walkIn(); }).catch(offline);
 }
 function renderLocate(p, I) {
   const box = $("petBox"), look = $("petLook"); if (!box || !look) return true;
@@ -6201,7 +6212,7 @@ function renderLocate(p, I) {
     // se va andando de la habitación en la que la estabas mirando
     setPose(""); say(rnd(LOC_GO[pl] || ["¡Ahora vuelvo! 🐾"]), 2600);
     box.style.transition = "left 1600ms linear"; box.classList.add("walking"); box.classList.toggle("flip", petX < 50); box.style.left = (petX < 50 ? -30 : 130) + "%";
-    setTimeout(() => { box.classList.add("gone"); box.classList.remove("walking", "flip"); box.style.transition = "none"; petX = 50; box.style.left = "50%"; $("petScene").style.setProperty("--px", "50%"); }, 1650);
+    clearTimeout(renderLocate.t); renderLocate.t = setTimeout(() => { box.classList.add("gone"); box.classList.remove("walking", "flip"); box.style.transition = "none"; petX = 50; box.style.left = "50%"; $("petScene").style.setProperty("--px", "50%"); }, 1650);
   } else if (locSeen && !locSeen.here && here && !locNav && performance.now() > 5000 && !$("tab-pet").classList.contains("hidden")) {
     walkIn(); setTimeout(() => say(rnd(["¡Ya estoy aquí! 🐾", "¡Hola! ¿Me buscabas? 👋", "¡Llegué! 😊"]), 2200), 1900);
   } else box.classList.toggle("gone", !here);
@@ -6272,7 +6283,7 @@ function crewWalk(dx, dur) {
 }
 // entrar andando desde un lado
 function walkIn() {
-  const b = $("petBox"); if (!b) return;
+  const b = $("petBox"); if (!b) return; clearTimeout(renderLocate.t);
   const from = Math.random() < .5 ? -25 : 125, to = 35 + Math.random() * 30;
   b.style.transition = "none"; b.style.left = from + "%"; void b.offsetWidth;
   b.classList.remove("gone"); b.classList.add("walking"); b.classList.toggle("flip", from > 50);
@@ -7569,8 +7580,8 @@ function setTint(id, key) {
 }
 // ---- la pareja de visita: echarla o invitarla ----
 function mateVisit(out) {
-  const m = mateOf(state.pet || {}); if (!m) return;
-  petTx(q => { q.mateOut = out ? Date.now() : null; return q; }).then(() => {
+  const m = mateOf(state.pet || {}); if (!m) return Promise.resolve();
+  return petTx(q => { q.mateOut = out ? Date.now() : null; return q; }).then(() => {
     sceneSig = ""; petSig = ""; renderPet();
     toast(out ? `👋 ${m.name} se ha ido a su casa. Invítale cuando queráis` : `🏠 ${m.name} viene de visita 💕`);
   }).catch(offline);
@@ -7610,7 +7621,7 @@ function nbReq(id, p) {
 const haveOf = (p, r) => r.crop ? ((p.pantry || {})[r.item] || 0) : ((p.inv || {})[r.item] || 0);
 const itemE = (id) => CROPS[id] ? CROPS[id].e : (CAT[id] || {}).e || "❔";
 const itemN = (id) => CROPS[id] ? CROPS[id].n : (CAT[id] || {}).n || id;
-let nbCur = null, nbSay = "";
+let nbCur = null, nbSay = "", nbArrive = false;
 function nbEl() { let v = $("nbView"); if (!v) { v = document.createElement("div"); v.id = "nbView"; v.className = "nbview hidden"; document.body.appendChild(v); } return v; }
 function openBarrio() { if (!hatched()) return toast("Primero tiene que nacer 🥚"); nbCur = null; const v = nbEl(); v.classList.remove("hidden"); document.body.style.overflow = "hidden"; renderBarrio(); SFX.whoosh && SFX.whoosh(); }
 function closeBarrio() { const v = $("nbView"); if (v) { v.classList.add("hidden"); v.innerHTML = ""; } document.body.style.overflow = ""; nbCur = null; }
@@ -7646,10 +7657,10 @@ function barrioSVG() {
   s += house({ x: 180, y: 560, roof: "#ff5c8a", label: `Vuestra casa · ${pn}`, emoji: "🏡", id: "home", big: 1 });
   return s + barrioOverlay() + `</svg>`;
 }
-function nbScene(N, fig, bubble, fig2) {
+function nbScene(N, fig, bubble, fig2, arrive, sig) {
   const room = { wall: N.room.wall, floor: N.room.floor, items: Object.fromEntries(N.room.items.map(i => [i, true])), pos: {} }, W = CAT[room.wall] || CAT.w_crema, F = CAT[room.floor] || CAT.f_madera;
   const md = barrioMood().night ? "night" : "day"; let sky = roomSVG(room, md); N.room.items.filter(i => FA[i]).sort((a, b) => (FA[a].flat ? 0 : FA[a].t === "floor" ? 2 : 1) - (FA[b].flat ? 0 : FA[b].t === "floor" ? 2 : 1)).forEach(i => sky += furnHTML(i, room, md));
-  return `<div class="scene room nbscene ${md === "night" ? "nbnight" : ""} ${room.wall} ${room.floor}" style="--wall:${W.sw};--floor:${F.sw}"><div class="sky">${sky}<div class="nbfig ${fig2 ? "l" : ""}">${fig}</div>${fig2 ? `<div class="nbfig r arrive">${fig2}</div>` : ""}${bubble ? `<div class="nbbub">${bubble}</div>` : ""}</div></div>`;
+  return `<div class="scene room nbscene ${md === "night" ? "nbnight" : ""} ${room.wall} ${room.floor}" ${sig ? `data-sig="${esc(sig)}"` : ""} style="--wall:${W.sw};--floor:${F.sw}"><div class="sky">${sky}<div class="nbfig ${fig2 ? "l" : ""}">${fig}</div>${fig2 ? `<div class="nbfig r ${arrive ? "arrive" : ""}">${fig2}</div>` : ""}${bubble ? `<div class="nbbub">${bubble}</div>` : ""}</div></div>`;
 }
 function renderNbHouse() {
   if (nbCur === "lake") return renderLake(); if (nbCur === "plaza") return renderPlaza();
@@ -7663,25 +7674,31 @@ function renderNbHouse() {
       <div class="nbbox">${p.mateOut ? `<div class="sub">${esc(m.name)} está en su casa.</div><button class="btn primary" id="nbMateIn" style="width:100%">📞 Invitarle a vuestra casa</button>` : `<div class="sub">${esc(m.name)} no está: ahora mismo está de visita en vuestra casa 🏡</div><button class="btn" id="nbMateOut" style="width:100%">👋 Que vuelva a su casa</button>`}
       <button class="btn" id="nbLove" style="width:100%;margin-top:8px">💞 Ver amor y planes</button></div>`;
     $("nbBack").onclick = () => { nbCur = null; renderBarrio(); };
-    const mi = $("nbMateIn"); if (mi) mi.onclick = () => { mateVisit(false); setTimeout(renderNbHouse, 400); };
-    const mo = $("nbMateOut"); if (mo) mo.onclick = () => { mateVisit(true); setTimeout(renderNbHouse, 400); };
+    const mi = $("nbMateIn"); if (mi) mi.onclick = () => { mi.disabled = true; mateVisit(false).then(renderNbHouse); };
+    const mo = $("nbMateOut"); if (mo) mo.onclick = () => { mo.disabled = true; mateVisit(true).then(renderNbHouse); };
     $("nbLove").onclick = () => { closeBarrio(); const b = document.querySelector('#petSegBar [data-s="hoy"]'); if (b) b.click(); setTimeout(() => { const lc = $("loveCard"); if (lc) lc.scrollIntoView({ behavior: "smooth" }); }, 300); };
     return;
   }
   const N = NB[nbCur]; if (!N) { nbCur = null; return renderBarrio(); }
   const st = nbOf(p, N.id), today = dayKey(), lv = NB_LV(st.f || 0), r = nbReq(N.id, p);
-  const vis = visitOf(p), withMe = vis && vis.nb === N.id;
+  const vis = visitOf(p), withMe = vis && vis.nb === N.id, gst = guestOf(p), away = !!(gst && gst.nb === N.id);
   if (!nbSay) nbSay = barrioMood().night && !withMe ? rnd(["Zzz… 💤", "Zzz… mmm… ¿quién es a estas horas? 🥱"]) : rnd(N.hi);
-  const fig = chickSVG(4, nbSay.startsWith("Zzz") ? "sleep" : "happy", N.wear, 0, N.c, { species: N.sp });
+  const fig = away ? "" : chickSVG(4, nbSay.startsWith("Zzz") ? "sleep" : "happy", N.wear, 0, N.c, { species: N.sp });
   const fig2 = withMe ? chickSVG(Math.max(1, stageOf(p.xp || 0)), "laugh", p.wear || {}, 0, p.color, { species: p.species }) : "";
-  v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>${N.e} Casa de ${esc(N.n)}</b><span></span></div>
-    ${nbScene(N, fig, esc(nbSay), fig2)}
-    <div class="nbbox"><div class="nbwho"><b>${esc(N.n)} ${sxTag(N.sex)}</b><small>${SPECIES[N.sp].e} ${esc(N.job)} · le encanta ${esc(N.likeT)}</small></div>
+  const arrive = nbArrive && withMe; nbArrive = false;
+  const sig = [N.id, away ? 2 : nbSay.startsWith("Zzz") ? 1 : 0, withMe ? 1 : 0, barrioMood().night ? 1 : 0, JSON.stringify(p.wear || {}), p.color, p.species, stageOf(p.xp || 0)].join("|");
+  const box = `<div class="nbbox"><div class="nbwho"><b>${esc(N.n)} ${sxTag(N.sex)}</b><small>${SPECIES[N.sp].e} ${esc(N.job)} · le encanta ${esc(N.likeT)}</small></div>
       <div class="nbfr"><span>${lv[0]} ${lv[1]}</span><div class="gbar"><i style="width:${Math.min(100, st.f || 0)}%"></i></div><span>${Math.round(st.f || 0)}/100</span></div>
       ${r ? `<div class="nbreq ${r.done ? "done" : ""}"><b>📦 Encargo de hoy</b><span>${r.done ? "¡Hecho! Gracias 💛" : `Necesita ${r.n} ${itemE(r.item)} ${esc(itemN(r.item))} · tienes ${haveOf(p, r)}`}</span>${r.done ? "" : `<button class="btn primary" id="nbGive" ${haveOf(p, r) >= r.n ? "" : "disabled"}>Entregar · +${r.coins} 🪙</button>`}</div>` : `<div class="nbreq none">Hoy no necesita nada 😊</div>`}
       ${nbVisitPanel(N, p)}${jobPanel(N, p)}
       <div class="nbacts"><button class="btn ${st.talk === today ? "" : "primary"}" id="nbTalk">${st.talk === today ? "💬 Charlar" : "💬 Charlar · +5 💛"}</button><button class="btn ${st.gift === today ? "" : "primary"}" id="nbGift" ${st.gift === today ? "disabled" : ""}>${st.gift === today ? "🎁 Regalado hoy" : "🎁 Hacerle un regalo"}</button></div>
       <div class="nbgifts hidden" id="nbGifts"></div></div>`;
+  // si la escena ya está pintada, solo cambiamos el bocadillo y el panel (así no se repite la animación de llegada)
+  const oldS = v.querySelector(".nbscene"), oldB = v.querySelector(".nbbox");
+  if (!arrive && oldS && oldB && oldS.dataset.sig === sig) {
+    const bb = oldS.querySelector(".nbbub"); if (bb && !away && bb.textContent !== nbSay) { bb.textContent = nbSay; bb.style.animation = "none"; void bb.offsetWidth; bb.style.animation = ""; }
+    const sc = v.scrollTop; oldB.outerHTML = box; v.scrollTop = sc;
+  } else v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>${N.e} Casa de ${esc(N.n)}</b><span></span></div>${nbScene(N, fig, away ? `🏡 ${esc(N.n)} está en vuestra casa` : esc(nbSay), fig2, arrive, sig)}${box}`;
   $("nbBack").onclick = () => { nbCur = null; renderBarrio(); };
   $("nbTalk").onclick = () => nbTalk(N);
   $("nbGift").onclick = () => nbGiftPick(N);
@@ -7691,7 +7708,7 @@ function renderNbHouse() {
   const jc = $("jobCancel"); if (jc) jc.onclick = () => { if (confirm("¿Que vuelva ya? No cobrará el sueldo.")) nbVisitEnd(); };
 }
 let nbMsg = null;
-function nbTx(id, fn) { nbMsg = null; return petTx(q => { q.nb = { ...(q.nb || {}) }; const s = { f: 0, ...(q.nb[id] || {}) }; const before = s.f; const r = fn(q, s); if (r === null) return null; s.f = Math.min(100, s.f); q.nb[id] = s; nbMsg = nbMilestone(id, before, s.f, q); return q; }); }
+function nbTx(id, fn) { nbMsg = null; return petTx(q => { nbMsg = null; q.nb = { ...(q.nb || {}) }; const s = { f: 0, ...(q.nb[id] || {}) }; const before = s.f; const r = fn(q, s); if (r === null) return null; s.f = Math.min(100, s.f); q.nb[id] = s; nbMsg = nbMilestone(id, before, s.f, q); return q; }); }
 function nbMilestone(id, a, b, q) {
   const N = NB[id]; if (!N) return null;
   if (a < 40 && b >= 40) { q.coins = coinsOf(q) + 50; return `¡${N.n} y vosotros ya sois amigos! Os regala 50 🪙`; }
@@ -7702,7 +7719,7 @@ function nbAfter() { const m = nbMsg; nbMsg = null; if (m) setTimeout(() => { co
 function nbTalk(N) {
   const today = dayKey(); let first = false;
   nbSay = rnd(N.talk);
-  nbTx(N.id, (q, s) => { if (s.talk === today) return null; s.talk = today; s.f += 5; first = true; gainExp(q, 2); }).then(r => { if (first) { SFX.pop(); toast(`💛 +5 amistad con ${N.n}`); nbAfter(r); } renderNbHouse(); }).catch(() => renderNbHouse());
+  nbTx(N.id, (q, s) => { first = false; if (s.talk === today) return null; s.talk = today; s.f += 5; first = true; gainExp(q, 2); }).then(r => { if (first) { SFX.pop(); toast(`💛 +5 amistad con ${N.n}`); nbAfter(r); } renderNbHouse(); nbActFx("💬"); }).catch(() => renderNbHouse());
 }
 function nbGiftPick(N) {
   const p = state.pet || {}, inv = Object.entries(p.inv || {}).filter(([k, n]) => n > 0 && CAT[k] && CAT[k].cat === "comida" && k !== "medicina" && k !== "jabon"), pan = Object.entries(p.pantry || {}).filter(([, n]) => n > 0);
@@ -7713,12 +7730,12 @@ function nbGiftPick(N) {
 }
 function nbGive(N, t, k) {
   const today = dayKey(), fav = N.likes.includes(k); let ok = false;
-  nbTx(N.id, (q, s) => { if (s.gift === today) return null; const bag = t === "p" ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); if (!(bag[k] > 0)) return null; bag[k]--; s.gift = today; s.f += fav ? 12 : 6; ok = true; gainExp(q, 3); })
-    .then(r => { if (!ok) return renderNbHouse(); nbSay = fav ? `¡${itemE(k)}! ¡Me encanta, me encanta! 😍` : `Oh, ${itemE(k)}… ¡qué detalle, gracias! 😊`; SFX.ding(); toast(`💛 +${fav ? 12 : 6} amistad con ${N.n}`); nbAfter(r); renderNbHouse(); }).catch(offline);
+  nbTx(N.id, (q, s) => { ok = false; if (s.gift === today) return null; const bag = t === "p" ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); if (!(bag[k] > 0)) return null; bag[k]--; s.gift = today; s.f += fav ? 12 : 6; ok = true; gainExp(q, 3); })
+    .then(r => { if (!ok) return renderNbHouse(); nbSay = fav ? `¡${itemE(k)}! ¡Me encanta, me encanta! 😍` : `Oh, ${itemE(k)}… ¡qué detalle, gracias! 😊`; SFX.ding(); toast(`💛 +${fav ? 12 : 6} amistad con ${N.n}`); nbAfter(r); renderNbHouse(); nbActFx(itemE(k)); }).catch(offline);
 }
 function nbDeliver(N) {
   const today = dayKey(); let ok = false, rq = null;
-  nbTx(N.id, (q, s) => { const r = nbReq(N.id, q); if (!r || r.done || haveOf(q, r) < r.n) return null; const bag = r.crop ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); bag[r.item] -= r.n; s.reqDay = today; s.f += 10; q.coins = coinsOf(q) + r.coins; q.nbDone = (q.nbDone || 0) + 1; gainExp(q, 8); ok = true; rq = r; })
+  nbTx(N.id, (q, s) => { ok = false; rq = null; const r = nbReq(N.id, q); if (!r || r.done || haveOf(q, r) < r.n) return null; const bag = r.crop ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); bag[r.item] -= r.n; s.reqDay = today; s.f += 10; q.coins = coinsOf(q) + r.coins; q.nbDone = (q.nbDone || 0) + 1; gainExp(q, 8); ok = true; rq = r; })
     .then(r => { if (!ok) return renderNbHouse(); nbSay = rnd(["¡Mil gracias! Me habéis salvado el día 🥹", "¡Justo lo que necesitaba! Sois los mejores vecinos 💛", "¡Gracias, gracias! Tomad, por las molestias 🪙"]); confetti(); SFX.coin(); toast(`📦 Encargo entregado · +${rq.coins} 🪙 · +10 💛`); sendMsg(`📦 Hemos ayudado a ${N.n} con su encargo (${rq.n} ${itemE(rq.item)})`, "pet"); nbAfter(r); renderNbHouse(); }).catch(offline);
 }
 
@@ -7740,20 +7757,33 @@ function nbVisitStart(N) {
   const p = state.pet || {}, I = petInfo();
   if (tripAway(p)) return toast("Está de excursión, ¡aún no ha vuelto! 🧳");
   if (isNapping(p)) return toast("Está echándose la siesta 😴");
-  petTx(q => { q.visit = { nb: N.id, at: Date.now(), until: Date.now() + VISIT_MIN * 6e4, by: who }; q.here = null; return q; })
-    .then(() => { nbSay = rnd([`¡Hola, ${p.name || "pollito"}! ¡Pasa, pasa! 😊`, "¡Qué alegría que vengas a verme! 💛", "¡Bienvenido! Ponte cómodo 🏡"]); SFX.pop(); sceneSig = ""; petSig = ""; renderPet(); renderNbHouse(); notifyOther(`🏘️ ${p.name || "El pollito"} se ha ido de visita a casa de ${N.n}`); })
+  petTx(q => { if (q.visit && q.visit.job && !q.visit.paid) return null; q.visit = { nb: N.id, at: Date.now(), until: Date.now() + VISIT_MIN * 6e4, by: who }; q.here = null; if (q.guest && q.guest.nb === N.id) q.guest = null; return q; })
+    .then(r => { if (!r) { jobCheck(state.pet); return renderNbHouse(); } nbSay = rnd([`¡Hola, ${p.name || "pollito"}! ¡Pasa, pasa! 😊`, "¡Qué alegría que vengas a verme! 💛", "¡Bienvenido! Ponte cómodo 🏡"]); SFX.pop(); sceneSig = ""; petSig = ""; renderPet(); nbArrive = true; renderNbHouse(); notifyOther(`🏘️ ${p.name || "El pollito"} se ha ido de visita a casa de ${N.n}`); })
     .catch(offline);
 }
-function nbVisitEnd() { petTx(q => { q.visit = null; return q; }).then(() => { sceneSig = ""; petSig = ""; renderPet(); renderNbHouse(); toast("🏠 ¡De vuelta a casa!"); }).catch(offline); }
+function nbVisitEnd() { const f = document.querySelector("#nbView .nbfig.r"); if (f) { f.classList.remove("arrive", "hop"); f.classList.add("leave"); } const loc = viewLoc(); petTx(q => { q.visit = null; q.here = { loc, until: Date.now() + 15 * 6e4, by: who }; return q; }).then(() => { sceneSig = ""; petSig = ""; renderPet(); setTimeout(() => { if (nbCur) renderNbHouse(); }, f ? 700 : 0); toast("🏠 ¡De vuelta a casa!"); }).catch(offline); }
+function nbLiveRefresh() {
+  const nv = $("nbView"); if (!nv || nv.classList.contains("hidden") || !nv.innerHTML) return;
+  if (nbCur === "lake" || nv.querySelector(".nbfig.leave")) return;
+  const g = $("nbGifts"); if (g && !g.classList.contains("hidden")) return;
+  clearTimeout(nbLiveRefresh.t); nbLiveRefresh.t = setTimeout(() => { const v = $("nbView"); if (v && !v.classList.contains("hidden") && nbCur !== "lake") renderBarrio(); }, 300);
+}
+// pequeña reacción en la escena cuando hacéis algo juntos (sin volver a entrar en la sala)
+function nbActFx(e) {
+  const sky = document.querySelector("#nbView .nbscene .sky"); if (!sky) return;
+  sky.querySelectorAll(".nbfig").forEach((f, i) => { f.classList.remove("arrive", "hop"); void f.offsetWidth; setTimeout(() => f.classList.add("hop"), i * 120); });
+  [e, "💛", e].forEach((x, i) => { const el = document.createElement("i"); el.className = "nbfx"; el.textContent = x; el.style.left = (38 + i * 10) + "%"; el.style.animationDelay = (i * .18) + "s"; sky.appendChild(el); setTimeout(() => el.remove(), 2300); });
+}
 function nbDo(N, k) {
   const today = dayKey(); let ok = false, msg = "";
   nbTx(N.id, (q, s) => {
+    ok = false; msg = "";
     s.acts = s.acts && s.acts.day === today ? { ...s.acts } : { day: today }; if (s.acts[k]) return null; s.acts[k] = 1; ok = true; s.f += 6;
     if (k === "merienda") { setNeed(q, "food", 25); msg = "¡Qué merienda más rica! 🍪"; }
     else if (k === "jugar") { setNeed(q, "fun", 25); setNeed(q, "energy", -8); msg = "¡Qué bien lo habéis pasado! 🎲"; }
     else { const A = NB_ACT[N.id]; A[3](q); msg = A[2]; }
     gainExp(q, 4); bump(q, "visit");
-  }).then(() => { if (!ok) return renderNbHouse(); nbSay = msg; SFX.ding(); toast(`💛 +6 amistad con ${N.n}`); nbAfter(); renderNbHouse(); }).catch(offline);
+  }).then(() => { if (!ok) return renderNbHouse(); nbSay = msg; SFX.ding(); toast(`💛 +6 amistad con ${N.n}`); nbAfter(); renderNbHouse(); nbActFx(k === "merienda" ? "🍪" : k === "jugar" ? "🎲" : NB_ACT[N.id][0]); }).catch(offline);
 }
 function nbInvite(N) {
   petTx(q => { q.guest = { nb: N.id, at: Date.now(), until: Date.now() + GUEST_MIN * 6e4, by: who }; return q; })
@@ -7768,26 +7798,35 @@ function nbVisitPanel(N, p) {
   return here ? `<div class="nbvis"><div class="nbvhead"><b>🐤 ${pn} está de visita</b><small>hasta las ${hhmm(vis.until)}</small></div>
       <div class="nbvacts">${acts.map(([k, e, n]) => `<button class="btn ${done[k] ? "" : "primary"}" data-nbdo="${k}" ${done[k] ? "disabled" : ""}><span>${e}</span>${esc(n)}${done[k] ? " ✓" : ""}</button>`).join("")}</div>
       <button class="btn" id="nbHome" style="width:100%;margin-top:8px">🏠 Volver a casa con ${pn}</button></div>`
+    : gHere ? `<div class="nbvis"><div class="nbvhead"><b>🏡 ${esc(N.n)} está en vuestra casa</b><small>hasta las ${hhmm(g.until)}</small></div><button class="btn" id="nbGuestHome" style="width:100%">👋 Que ${esc(N.n)} vuelva a su casa</button></div>`
     : `<div class="nbvis"><button class="btn primary" id="nbVisit" style="width:100%">🐤 Quedarse de visita con ${pn}</button>
-      <button class="btn" id="nbInv" style="width:100%;margin-top:8px" ${gHere ? "disabled" : ""}>${gHere ? `🏡 ${esc(N.n)} ya está en vuestra casa` : `📨 Invitar a ${esc(N.n)} a vuestra casa`}</button></div>`;
+      <button class="btn" id="nbInv" style="width:100%;margin-top:8px">📨 Invitar a ${esc(N.n)} a vuestra casa</button></div>`;
 }
 function nbVisitBind(N) {
   const a = $("nbVisit"); if (a) a.onclick = () => nbVisitStart(N);
   const h = $("nbHome"); if (h) h.onclick = nbVisitEnd;
   const iv = $("nbInv"); if (iv) iv.onclick = () => nbInvite(N);
+  const gh = $("nbGuestHome"); if (gh) gh.onclick = () => guestBye(() => renderNbHouse());
   document.querySelectorAll("#nbView [data-nbdo]").forEach(b => b.onclick = () => nbDo(N, b.dataset.nbdo));
 }
 // invitado en vuestro salón
 function guestSceneHTML(p, vl) {
   const g = guestOf(p); if (!g || vl !== "salon") return "";
   const N = NB[g.nb];
-  return `<button class="guestfig" id="guestFig" aria-label="${esc(N.n)}">${chickSVG(4, "happy", N.wear, 0, N.c, { species: N.sp })}<b>${SPECIES[N.sp].e} ${esc(N.n)}</b></button>`;
+  return `<div class="guestwrap" id="guestWrap"><button class="guestfig" id="guestFig" aria-label="${esc(N.n)}">${chickSVG(4, "happy", N.wear, 0, N.c, { species: N.sp })}</button><div class="guestlbl"><span>${SPECIES[N.sp].e} ${esc(N.n)}</span><button id="guestBye" aria-label="Despedir a ${esc(N.n)}">👋</button></div></div>`;
+}
+function guestBye(after) {
+  const g = guestOf(state.pet || {}); if (!g) return; const N = NB[g.nb];
+  const w = $("guestWrap"); if (w) w.classList.add("leave");
+  petTx(q => { if (!q.guest) return null; q.guest = null; return q; })
+    .then(r => { setTimeout(() => { sceneSig = ""; petSig = ""; renderPet(); if (after) after(); }, w ? 650 : 0); if (r) toast(`👋 ${N.n} se ha ido a su casa. ¡Hasta pronto!`); }).catch(offline);
 }
 function guestTap() {
   const p = state.pet || {}, g = guestOf(p); if (!g) return; const N = NB[g.nb], today = dayKey();
   const gf = $("guestFig"); if (gf) hearts(gf, "💛");
   toast(`${SPECIES[N.sp].e} ${N.n}: ${rnd(N.talk)}`, 3800);
-  nbTx(N.id, (q, s) => { if (s.talk === today) return null; s.talk = today; s.f += 5; }).then(() => { toast(`💛 +5 amistad con ${N.n}`); nbAfter(); }).catch(() => { });
+  let ok = false;
+  nbTx(N.id, (q, s) => { ok = false; if (s.talk === today) return null; s.talk = today; s.f += 5; ok = true; }).then(() => { if (!ok) return; setTimeout(() => toast(`💛 +5 amistad con ${N.n}`), 3900); nbAfter(); }).catch(() => { });
 }
 LOCN.visita = "casa de un vecino"; LOC_GO.visita = ["¡Me voy de visita al barrio! 🏘️"];
 
@@ -7917,18 +7956,21 @@ function renderPlaza() {
   if (fiesta && pt.rank) {
     contest = `<div class="pzrank">${pt.table.map((r, i) => `<div class="${r.me ? "me" : ""}"><b>${["🥇", "🥈", "🥉"][i] || i + 1 + "º"}</b><span>${esc(r.n)}</span><em>${r.s} pts</em></div>`).join("")}</div>`;
   }
-  v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>${fiesta ? "🎉 Fiesta en la plaza" : "🛒 La plaza"}</b><span></span></div>
-    <div class="plaza ${fiesta ? "fiesta" : ""}"><div class="pzfont">⛲</div>${fiesta ? garl + `<i class="pzbal l">🎈</i><i class="pzbal r">🎈</i>` : ""}<div class="pzfigs">${fiesta ? figs : `<div class="pzstall"><span>🍅🧺🥕</span><b>Mercadillo</b><small>abierto todos los días</small></div>`}</div></div>
-    <div class="nbbox">${fiesta ? `<div class="slotname">🎉 ¡Es domingo de fiesta!</div>
+  const psig = [fiesta ? 1 : 0, JSON.stringify(p.wear || {}), p.color, p.species, stageOf(p.xp || 0)].join("|");
+  const top = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>${fiesta ? "🎉 Fiesta en la plaza" : "🛒 La plaza"}</b><span></span></div>
+    <div class="plaza ${fiesta ? "fiesta" : ""}" data-sig="${esc(psig)}"><div class="pzfont">⛲</div>${fiesta ? garl + `<i class="pzbal l">🎈</i><i class="pzbal r">🎈</i>` : ""}<div class="pzfigs">${fiesta ? figs : `<div class="pzstall"><span>🍅🧺🥕</span><b>Mercadillo</b><small>abierto todos los días</small></div>`}</div></div>`;
+  const box = `<div class="nbbox">${fiesta ? `<div class="slotname">🎉 ¡Es domingo de fiesta!</div>
       <div class="nbacts"><button class="btn ${pt.dance === today ? "" : "primary"}" id="pzDance" ${pt.dance === today ? "disabled" : ""}>${pt.dance === today ? "💃 Bailado ✓" : "💃 Bailar con todos"}</button><button class="btn ${pt.rank ? "" : "primary"}" id="pzContest" ${pt.rank ? "disabled" : ""}>${pt.rank ? `🏆 Quedasteis ${pt.rank}º` : `🏆 Concurso · ${homeScore(p)} pts`}</button></div>
       <div class="sub" style="font-size:12px;margin-top:6px">El concurso puntúa vuestros muebles, paredes, suelos y colores. ¡Decorad bien la casa antes de participar!</div>${contest}`
     : `<div class="sub" style="margin-bottom:8px">🎉 Los domingos hay fiesta en la plaza con todos los vecinos y un concurso de casas.</div>`}
     <div class="slotname">🛒 Mercadillo</div>${marketHTML(p)}</div>`;
+  const oldP = v.querySelector(".plaza"), oldB = v.querySelector(".nbbox");
+  if (oldP && oldB && oldP.dataset.sig === psig) { const sc = v.scrollTop; oldB.outerHTML = box; v.scrollTop = sc; } else v.innerHTML = top + box;
   $("nbBack").onclick = () => { nbCur = null; renderBarrio(); };
   v.querySelectorAll("[data-sell]").forEach(b => b.onclick = () => { const [t, k, n] = b.dataset.sell.split(":"); marketSell(t, k, +n); });
   const d = $("pzDance"); if (d) d.onclick = () => {
-    petTx(q => { const w = weekKey(); q.party = q.party && q.party.wk === w ? { ...q.party } : { wk: w }; if (q.party.dance === dayKey()) return null; q.party.dance = dayKey(); setNeed(q, "fun", 30); q.nb = { ...(q.nb || {}) }; NEIGH.forEach(N => { q.nb[N.id] = { f: 0, ...(q.nb[N.id] || {}) }; q.nb[N.id].f = Math.min(100, q.nb[N.id].f + 5); }); gainExp(q, 6); return q; })
-      .then(r => { if (!r) return; confetti(); SFX.fanfare && SFX.fanfare(); toast("💃 ¡Qué fiesta! +5 💛 con todos los vecinos"); renderPlaza(); }).catch(offline);
+    petTx(q => { const w = weekKey(); q.party = q.party && q.party.wk === w ? { ...q.party } : { wk: w }; if (q.party.dance === dayKey()) return null; q.party.dance = dayKey(); setNeed(q, "fun", 30); q.nb = { ...(q.nb || {}) }; nbMsg = null; const ms = []; NEIGH.forEach(N => { q.nb[N.id] = { f: 0, ...(q.nb[N.id] || {}) }; const f0 = q.nb[N.id].f; q.nb[N.id].f = Math.min(100, f0 + 5); const m = nbMilestone(N.id, f0, q.nb[N.id].f, q); if (m) ms.push(m); }); nbMsg = ms.join(" · ") || null; gainExp(q, 6); return q; })
+      .then(r => { if (!r) return; nbAfter(); confetti(); SFX.fanfare && SFX.fanfare(); toast("💃 ¡Qué fiesta! +5 💛 con todos los vecinos"); renderPlaza(); }).catch(offline);
   };
   const c = $("pzContest"); if (c) c.onclick = () => {
     const me = homeScore(p), w = weekKey(), table = [...NEIGH.map(N => ({ n: N.n, s: 70 + hashStr(w + N.id) % 130 })), { n: "Vuestra casa 🏡", s: me, me: 1 }].sort((a, b) => b.s - a.s), rank = table.findIndex(r => r.me) + 1, prize = [0, 120, 70, 40][rank] || 20;
@@ -7944,15 +7986,15 @@ function jobStart(N, h, pay) {
   if (tripAway(p)) return toast("Está de excursión, ¡aún no ha vuelto! 🧳");
   if (isNapping(p)) return toast("Está echándose la siesta 😴");
   if (I.nv.energy < 30) return toast("Está muy cansado para trabajar 😴 Que descanse primero");
-  petTx(q => { q.visit = { nb: N.id, at: Date.now(), until: Date.now() + h * 36e5, by: who, job: h, pay, paid: false }; q.here = null; setNeed(q, "energy", -25); return q; })
-    .then(() => { nbSay = `¡Genial! Hoy ${p.name || "tu pollito"} será mi ${NB_JOB[N.id].toLowerCase()}`; SFX.ding(); toast(`💼 A trabajar ${h} h con ${N.n} · cobrará ${pay} 🪙 al volver`); sceneSig = ""; petSig = ""; renderPet(); renderNbHouse(); }).catch(offline);
+  petTx(q => { if (q.visit && q.visit.job && !q.visit.paid) return null; q.visit = { nb: N.id, at: Date.now(), until: Date.now() + h * 36e5, by: who, job: h, pay, paid: false }; q.here = null; setNeed(q, "energy", -25); return q; })
+    .then(r => { if (!r) return renderNbHouse(); nbSay = `¡Genial! Hoy ${p.name || "tu pollito"} será mi ${NB_JOB[N.id].toLowerCase()}`; SFX.ding(); toast(`💼 A trabajar ${h} h con ${N.n} · cobrará ${pay} 🪙 al volver`); sceneSig = ""; petSig = ""; renderPet(); nbArrive = true; renderNbHouse(); }).catch(offline);
 }
 function jobCheck(p) {
   const v = p && p.visit; if (!v || !v.job || v.paid || v.until > Date.now()) return;
   if (jobCheck.busy) return; jobCheck.busy = true;
-  let paid = 0, nbn = "";
-  petTx(q => { paid = 0; const x = q.visit; if (!x || !x.job || x.paid || x.until > Date.now()) return null; paid = x.pay; nbn = (NB[x.nb] || {}).n || ""; q.coins = coinsOf(q) + x.pay; q.visit = null; q.jobs = (q.jobs || 0) + 1; gainExp(q, 4 * x.job); q.nb = { ...(q.nb || {}) }; q.nb[x.nb] = { f: 0, ...(q.nb[x.nb] || {}) }; q.nb[x.nb].f = Math.min(100, q.nb[x.nb].f + 4 * x.job); return q; })
-    .then(() => { jobCheck.busy = false; if (!paid) return; sceneSig = ""; petSig = ""; renderPet(); setTimeout(() => { coinFx(paid); readView({ icon: "💼", title: "¡Ha vuelto de trabajar!", sub: `Con ${nbn}`, text: rnd([`Ha trabajado muchísimo y ${nbn} está encantado. Trae ${paid} 🪙 de sueldo 💪`, `Dice que se lo ha pasado genial y que ${nbn} le ha invitado a merendar. Ha ganado ${paid} 🪙 🥰`, `Viene cansadito pero orgulloso: ${paid} 🪙 para la hucha 🐷`]) }); }, 600); sendMsg(`💼 ${(state.pet || {}).name || "El pollito"} ha vuelto de trabajar con ${nbn}: +${paid} 🪙`, "pet"); })
+  let paid = 0, nbn = "", jmsg = null;
+  petTx(q => { paid = 0; jmsg = null; const x = q.visit; if (!x || !x.job || x.paid || x.until > Date.now()) return null; paid = x.pay; nbn = (NB[x.nb] || {}).n || ""; q.coins = coinsOf(q) + x.pay; q.visit = null; q.jobs = (q.jobs || 0) + 1; gainExp(q, 4 * x.job); q.nb = { ...(q.nb || {}) }; q.nb[x.nb] = { f: 0, ...(q.nb[x.nb] || {}) }; const f0 = q.nb[x.nb].f; q.nb[x.nb].f = Math.min(100, f0 + 4 * x.job); jmsg = nbMilestone(x.nb, f0, q.nb[x.nb].f, q); return q; })
+    .then(() => { jobCheck.busy = false; if (!paid) return; sceneSig = ""; petSig = ""; renderPet(); setTimeout(() => { coinFx(paid); readView({ icon: "💼", title: "¡Ha vuelto de trabajar!", sub: `Con ${nbn}`, text: rnd([`Ha trabajado muchísimo y ${nbn} está encantado. Trae ${paid} 🪙 de sueldo 💪`, `Dice que se lo ha pasado genial y que ${nbn} le ha invitado a merendar. Ha ganado ${paid} 🪙 🥰`, `Viene cansadito pero orgulloso: ${paid} 🪙 para la hucha 🐷`]) + (jmsg ? `\n\n🏘️ ${jmsg}` : "") }); }, 600); sendMsg(`💼 ${(state.pet || {}).name || "El pollito"} ha vuelto de trabajar con ${nbn}: +${paid} 🪙`, "pet"); })
     .catch(() => { jobCheck.busy = false; });
 }
 function jobPanel(N, p) {
@@ -7996,7 +8038,7 @@ async function start() {
   if (!S.needsLogin) { try { await S.init(); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); showRetry(); return; } }
   S.merge("state/main", { tz: { [who]: myTz } });
   S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); renderPush(); renderMeet(); renderThink(); });
-  S.watchDoc("state/pet", d => { state.pet = d; checkFirsts(d); renderPet(); fgInfo(); });
+  S.watchDoc("state/pet", d => { state.pet = d; checkFirsts(d); renderPet(); fgInfo(); nbLiveRefresh(); if (!$("petSheet").classList.contains("hidden") && $("sheetTitle").textContent.startsWith("🌱")) renderGarden(); });
   watchDiary(); watchOTD(); watchPresence(); watchPetPics(); watchAiMem(); watchWeekly(); watchLive(); spLoadKey(); watchSpicy(); watchSpCal(); watchDuel();
   // 🎁 Una sola vez para la pareja: el pollito empieza ya en el día 7 (fase «Pequeñín»)
   setTimeout(() => {

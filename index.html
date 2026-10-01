@@ -1779,6 +1779,20 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 .nbrain.snow::after{transform:none;background-image:radial-gradient(1.8px 1.8px at 50% 50%,rgba(255,255,255,.85) 98%,transparent);background-size:89px 97px;background-position:31px 41px;animation:nbs2 11s linear infinite}
 @keyframes nbs1{to{background-position:61px 268px}}@keyframes nbs2{to{background-position:-58px 332px}}
 .nbnight .sky::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(circle at 50% 78%,rgba(255,214,140,.12),rgba(12,18,60,.45) 75%)}
+/* ===== 2.6.1 · reacciones en casa de los vecinos ===== */
+.nbfig svg{transform-origin:50% 100%}
+.nbfig.hop svg{animation:nbhop .75s cubic-bezier(.3,1.5,.5,1)}
+@keyframes nbhop{0%,100%{transform:translateY(0)}30%{transform:translateY(-24px) rotate(-5deg)}55%{transform:translateY(0) scale(1.04,.93)}75%{transform:translateY(-6px) rotate(3deg)}}
+.nbfig.leave{animation:nbleave .7s ease-in both}
+@keyframes nbleave{to{transform:translateX(150%);opacity:0}}
+.nbfx{position:absolute;bottom:48%;font-style:normal;font-size:34px;z-index:5;pointer-events:none;animation:nbfx 1.7s ease-out both}
+@keyframes nbfx{0%{transform:translateY(24px) scale(.4);opacity:0}25%{opacity:1;transform:translateY(0) scale(1.15)}100%{transform:translateY(-95px) scale(.9);opacity:0}}
+/* ===== 2.6.2 · despedir al invitado ===== */
+.guestwrap{position:absolute;right:-4%;bottom:12px;width:185px;height:185px;z-index:2;animation:mateBob 3.6s ease-in-out infinite;pointer-events:none}
+.guestwrap .guestfig{position:absolute;left:0;top:0;right:auto;bottom:auto;width:100%;height:100%;animation:none;pointer-events:auto}
+.guestwrap.leave{animation:nbleave .65s ease-in both}
+.guestlbl{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;white-space:nowrap;font-size:11px;font-weight:800;background:rgba(255,255,255,.92);color:#3a2330;border-radius:99px;padding:2px 3px 2px 9px;pointer-events:auto;z-index:3;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.guestlbl button{border:0;background:#ffe3ec;border-radius:99px;width:24px;height:24px;padding:0;font-size:13px;line-height:24px;cursor:pointer}
 </style>
 </head>
 <body>
