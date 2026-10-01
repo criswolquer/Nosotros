@@ -197,7 +197,7 @@ function watchAnswers() {
 // ================= Mascota =================
 // Crece por fases con los DÍAS que le cuidáis los dos; sube de NIVEL con la experiencia de cada cuidado.
 const STAGES = [
-  { xp: 0, n: "Huevo" }, { xp: 2, n: "Recién nacido" }, { xp: 7, n: "Pollito" }, { xp: 21, n: "Pollito travieso" },
+  { xp: 0, n: "Huevo" }, { xp: 2, n: "Recién nacido" }, { xp: 7, n: "Pequeñín" }, { xp: 21, n: "Pollito travieso" },
   { xp: 45, n: "Pollo joven" }, { xp: 90, n: "Gran pollo" }, { xp: 180, n: "Pollo legendario ✨" }
 ];
 const STAGE_E = ["🥚", "🐣", "🐥", "🐤", "🐔", "🐓", "✨"];
@@ -819,7 +819,7 @@ function chickSVG(si, expr, wear, crackLevel, colorId, extra = {}) {
   const line = hexMix(dark, "#3a1a00", .45);
   const foot = x => `<path d="M${x} 164 L${x} 178" stroke="#f28a00" stroke-width="5" stroke-linecap="round"/><path d="M${x} 178 L${x - 8} 183 M${x} 178 L${x} 185 M${x} 178 L${x + 8} 183" stroke="#ff9f1c" stroke-width="4.2" stroke-linecap="round"/>`;
   const paw = x => `<ellipse cx="${x}" cy="174" rx="13" ry="8.5" fill="${dark}"/><ellipse cx="${x}" cy="174" rx="13" ry="8.5" fill="url(#${u}s)"/><path d="M${x - 4} 179 v-4 M${x + 4} 179 v-4" stroke="${line}" stroke-width="1.6" stroke-linecap="round" opacity=".5"/>`;
-  const feet = si === 1 ? "" : `<g class="leg ll">${bird ? foot(86) : paw(84)}</g><g class="leg lr">${bird ? foot(114) : paw(116)}</g>`;
+  const feet = si === 1 || extra.nofeet ? "" : `<g class="leg ll">${bird ? foot(86) : paw(84)}</g><g class="leg lr">${bird ? foot(114) : paw(116)}</g>`;
   // cola (detrás)
   let tail = "";
   if (sp === "pollito" && si >= 5) tail = `<g fill="${dark}"><ellipse cx="146" cy="96" rx="10" ry="26" transform="rotate(20 146 96)"/><ellipse cx="156" cy="106" rx="10" ry="26" transform="rotate(45 156 106)"/><ellipse cx="160" cy="120" rx="9" ry="22" transform="rotate(70 160 120)"/></g>`;
@@ -1607,7 +1607,7 @@ const petals = (cx, cy, r, n, col) => { let s = ""; for (let i = 0; i < n; i++) 
 const FA = {
   alfombra: { t: "floor", flat: 1, w: 230, h: 40, p: { x: 50, y: 98 }, d: () => `<ellipse cx="115" cy="20" rx="113" ry="19" fill="#8e6cc8"/><ellipse cx="115" cy="20" rx="100" ry="14" fill="#b48be0"/><ellipse cx="115" cy="20" rx="76" ry="9" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="7 6" opacity=".55"/>` },
   sofa: { t: "floor", w: 150, h: 82, p: { x: 80, y: 90 }, d: () => `<rect x="12" y="8" width="126" height="46" rx="16" fill="#5b8def"/><rect x="18" y="10" width="114" height="9" rx="4.5" fill="#8fb5ff" opacity=".6"/><rect x="26" y="20" width="30" height="24" rx="8" fill="#ffd166" transform="rotate(-8 41 32)"/><rect x="94" y="20" width="30" height="24" rx="8" fill="#ff8fab" transform="rotate(8 109 32)"/><rect x="16" y="42" width="118" height="24" rx="9" fill="#7aa6ff"/><path d="M75 44 V64" stroke="#5b8def" stroke-width="2"/><rect x="0" y="32" width="24" height="40" rx="11" fill="#4a78d6"/><rect x="126" y="32" width="24" height="40" rx="11" fill="#4a78d6"/><rect x="6" y="62" width="138" height="12" rx="5" fill="#3f67bd"/><rect x="16" y="74" width="7" height="8" rx="2" fill="#6b4a2f"/><rect x="127" y="74" width="7" height="8" rx="2" fill="#6b4a2f"/>` },
-  cama: { t: "floor", w: 170, h: 92, p: { x: 20, y: 92 }, d: () => `<rect x="0" y="4" width="22" height="84" rx="9" fill="#a86f45"/><rect x="4" y="12" width="14" height="30" rx="5" fill="#c08457"/><rect x="8" y="56" width="158" height="24" rx="6" fill="#c08457"/><rect x="14" y="40" width="150" height="20" rx="9" fill="#fffaf2"/><rect x="22" y="29" width="38" height="18" rx="9" fill="#eef0ff"/><path d="M66 36 H158 Q166 36 166 44 V66 H66 Z" fill="#ff8fab"/><rect x="66" y="36" width="14" height="30" fill="#ff6f93"/><path d="M92 47 h58 M92 56 h58" stroke="#ffb3c6" stroke-width="3" stroke-linecap="round"/><rect x="158" y="44" width="12" height="44" rx="5" fill="#a86f45"/><rect x="10" y="80" width="7" height="12" rx="2" fill="#8a5a38"/><rect x="150" y="80" width="7" height="12" rx="2" fill="#8a5a38"/>` },
+  cama: { t: "floor", w: 170, h: 92, p: { x: 20, y: 92 }, d: (o = {}) => `<rect x="0" y="4" width="22" height="84" rx="9" fill="#a86f45"/><rect x="4" y="12" width="14" height="30" rx="5" fill="#c08457"/><rect x="8" y="56" width="158" height="24" rx="6" fill="#c08457"/><rect x="14" y="40" width="150" height="20" rx="9" fill="#fffaf2"/><rect x="22" y="29" width="38" height="18" rx="9" fill="#eef0ff"/>${o.sleep ? o.sleep : `<path d="M66 36 H158 Q166 36 166 44 V66 H66 Z" fill="#ff8fab"/><rect x="66" y="36" width="14" height="30" fill="#ff6f93"/><path d="M92 47 h58 M92 56 h58" stroke="#ffb3c6" stroke-width="3" stroke-linecap="round"/>`}<rect x="158" y="44" width="12" height="44" rx="5" fill="#a86f45"/><rect x="10" y="80" width="7" height="12" rx="2" fill="#8a5a38"/><rect x="150" y="80" width="7" height="12" rx="2" fill="#8a5a38"/>` },
   lampara: { t: "floor", w: 56, h: 150, p: { x: 66, y: 68 }, d: o => `${o.mode === "night" && o.lit ? `<ellipse cx="28" cy="30" rx="30" ry="26" fill="#fff3b0" opacity=".45"/>` : ""}<ellipse cx="28" cy="146" rx="18" ry="4.5" fill="#4a4a55"/><rect x="26" y="42" width="4" height="104" fill="#8a8a96"/><path d="M8 46 L18 6 H38 L48 46 Z" fill="#ffe29a"/><path d="M8 46 L18 6 H24 L16 46 Z" fill="#fff3c9" opacity=".7"/><rect x="6" y="44" width="44" height="5" rx="2.5" fill="#f2c35a"/>` },
   planta: { t: "floor", w: 70, h: 100, p: { x: 7, y: 80 }, d: () => `<g fill="#3fa34d"><ellipse cx="35" cy="30" rx="9" ry="26"/><ellipse cx="20" cy="40" rx="8" ry="22" transform="rotate(-35 20 40)"/><ellipse cx="50" cy="40" rx="8" ry="22" transform="rotate(35 50 40)"/></g><g fill="#2d8a3e"><ellipse cx="12" cy="54" rx="7" ry="18" transform="rotate(-60 12 54)"/><ellipse cx="58" cy="54" rx="7" ry="18" transform="rotate(60 58 54)"/><ellipse cx="35" cy="46" rx="5" ry="16"/></g><path d="M17 64 H53 L47 98 H23 Z" fill="#d9774b"/><rect x="13" y="60" width="44" height="9" rx="3" fill="#e8895a"/><path d="M24 70 L27 96" stroke="#c4653c" stroke-width="3" opacity=".5"/>` },
   estanteria: { t: "floor", w: 84, h: 126, p: { x: 13, y: 72 }, d: () => `<rect x="0" y="0" width="84" height="122" rx="4" fill="#a86f45"/><rect x="6" y="6" width="72" height="110" fill="#6e4429"/><rect x="6" y="42" width="72" height="5" fill="#a86f45"/><rect x="6" y="80" width="72" height="5" fill="#a86f45"/><rect x="9" y="16" width="8" height="26" fill="#ef476f"/><rect x="18" y="12" width="9" height="30" fill="#ffd166"/><rect x="28" y="18" width="7" height="24" fill="#06d6a0"/><rect x="36" y="14" width="10" height="28" fill="#118ab2"/><rect x="48" y="22" width="6" height="20" fill="#f78c6b" transform="rotate(-14 51 42)"/><circle cx="68" cy="35" r="7" fill="#9b5de5"/><rect x="9" y="52" width="10" height="28" fill="#8338ec"/><rect x="20" y="56" width="8" height="24" fill="#ff8fab"/><rect x="29" y="50" width="9" height="30" fill="#3a86ff"/><path d="M54 80 v-10 a9 9 0 0 1 18 0 v10 z" fill="#d9774b"/><ellipse cx="63" cy="60" rx="9" ry="8" fill="#3fa34d"/><rect x="10" y="92" width="26" height="24" rx="2" fill="#d9a066"/><rect x="42" y="88" width="8" height="28" fill="#ffd166"/><rect x="51" y="90" width="8" height="26" fill="#ef476f"/><rect x="60" y="86" width="9" height="30" fill="#06d6a0"/><rect x="2" y="120" width="8" height="6" fill="#8a5a38"/><rect x="74" y="120" width="8" height="6" fill="#8a5a38"/>` },
@@ -1683,10 +1683,30 @@ function roomSVG(room, mode) {
   </svg>`;
 }
 function furnSVG(id, o = {}) { const A = FA[id]; return `<svg viewBox="0 0 ${A.w} ${A.h}">${A.d(o)}</svg>`; }
+// quién duerme en la cama: la mascota (y su pareja) tumbados en la almohada y tapados
+function bedSleeper(room) {
+  const p = state.pet || {}, I = petInfo();
+  if (!I.si || petView !== "in" || tripAway(p) || currentExpr(I) !== "sleep" || petLoc(p, I) !== viewLoc()) return "";
+  const eyeY = k => 182 - (182 - 107) * [0, .74, .84, .94, 1.0, 1.06, 1.1][k];
+  const put = (svg, x, y, w) => svg.replace('<svg viewBox="0 0 200 200"', `<svg x="${x}" y="${y}" width="${w}" height="${w}" viewBox="0 0 200 200" overflow="visible"`);
+  const wear = { ...(p.wear || {}) }; delete wear.feet; delete wear.hand; delete wear.back;
+  let h = `<defs><clipPath id="bedclip"><rect x="-10" y="-70" width="190" height="136"/></clipPath></defs><g clip-path="url(#bedclip)">`;
+  const m = mateOf(p);
+  const ms = Math.max(2, I.si);
+  if (m && m.status !== "conocidos" && mateLoc(p, I) === viewLoc()) h += `<g transform="rotate(8 74 30)">${put(chickSVG(ms, "sleep", { head: (m.wear || {}).head, mark: m.mark }, 0, geneColor(m), { species: m.species, nofeet: 1 }), 38, 31 - eyeY(ms) * 74 / 200, 74)}</g>`;
+  h += `<g transform="rotate(-10 40 30)">${put(chickSVG(I.si, "sleep", wear, 0, p.color, { species: p.species, nofeet: 1 }), 2, 33 - eyeY(I.si) * 80 / 200, 80)}</g>`;
+  const hearts = [[96, 55], [120, 50], [144, 57], [108, 62], [134, 64]].map(([x, y]) => `<path d="M${x} ${y + 2} c-3 -2 -4 -5 -1.6 -6 c1 -.4 1.6 .2 1.6 .8 c0 -.6 .6 -1.2 1.6 -.8 c2.4 1 1.4 4 -1.6 6z" fill="#fff" opacity=".55"/>`).join("");
+  h += `</g><defs><linearGradient id="bedq" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb0c8"/><stop offset="1" stop-color="#f27aa0"/></linearGradient></defs>
+    <path d="M20 44 Q60 36 100 39 Q140 42 164 40 Q168 41 168 46 L166 70 Q92 74 20 70 Z" fill="url(#bedq)"/>
+    <path d="M20 44 Q60 36 100 39 Q140 42 164 40 L164 47 Q140 49 100 46 Q60 43 20 51 Z" fill="#fffaf2"/>
+    <path d="M22 50 Q60 43 100 46 Q140 49 164 47" stroke="#e8dcc8" stroke-width="1.2" fill="none"/>${hearts}
+    <path d="M60 66 Q62 58 70 54" stroke="#e46a92" stroke-width="1.4" fill="none" opacity=".6"/>`;
+  return h;
+}
 function furnHTML(id, room, mode, photo) {
-  const A = FA[id], P = furnPos(room, id), s = furnScale(id, P);
+  const A = FA[id], P = furnPos(room, id), sl = id === "cama" ? bedSleeper(room) : "", s = furnScale(id, P) * (sl ? 1.22 : 1);
   const sh = A.t === "floor" && !A.flat ? `<ellipse cx="${A.w / 2}" cy="${A.h - 2}" rx="${A.w * .46}" ry="4.5" fill="rgba(0,0,0,.2)"/>` : "";
-  return `<div class="fi f-${A.t}${A.flat ? " flat" : ""}" data-id="${id}" style="left:${P.x}%;top:${P.y}%;width:${A.w}px;--s:${s.toFixed(3)}"><svg viewBox="0 0 ${A.w} ${A.h}">${sh}${A.d({ mode, photo, lit: room.light !== false })}</svg></div>`;
+  return `<div class="fi f-${A.t}${A.flat ? " flat" : ""}" data-id="${id}" style="left:${P.x}%;top:${P.y}%;width:${A.w}px;--s:${s.toFixed(3)}"><svg viewBox="0 0 ${A.w} ${A.h}">${sh}${A.d({ mode, photo, lit: room.light !== false, sleep: sl })}</svg></div>`;
 }
 
 // ---------- Escenario: exterior (lugares) o casita (habitaciones) ----------
@@ -1781,7 +1801,7 @@ function landscape(scene, mode, wk = "", month = new Date().getMonth()) {
   const gid = "lsk" + scene + mode + wk;
   let s = `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s1}"/><stop offset="1" stop-color="${s2}"/></linearGradient></defs><rect width="400" height="300" fill="url(#${gid})"/>`;
   if (out && N) s += starsSVG(34, "n" + scene, 160);
-  if (out && !["rain", "storm", "snow"].includes(wk)) s += N ? `<defs><mask id="moonM"><rect width="400" height="300" fill="#fff"/><circle cx="301" cy="37" r="15" fill="#000"/></mask></defs><circle cx="292" cy="44" r="28" fill="#fff6c2" opacity=".12"/><circle cx="292" cy="44" r="18" fill="#fff6c2" mask="url(#moonM)"/>` : Dw ? `<circle cx="300" cy="176" r="40" fill="#ffcf73" opacity=".35"/><circle cx="300" cy="176" r="26" fill="#ffb347"/>` : `<circle cx="292" cy="44" r="30" fill="#fff3b0" opacity=".45"/><circle cx="292" cy="44" r="20" fill="#ffd93b"/>`;
+  if (out && !["rain", "storm", "snow"].includes(wk)) s += N ? `<defs><mask id="moonM"><rect width="400" height="300" fill="#fff"/><circle cx="249" cy="75" r="15" fill="#000"/></mask></defs><circle cx="240" cy="82" r="28" fill="#fff6c2" opacity=".12"/><circle cx="240" cy="82" r="18" fill="#fff6c2" mask="url(#moonM)"/>` : Dw ? `<circle cx="300" cy="176" r="40" fill="#ffcf73" opacity=".35"/><circle cx="300" cy="176" r="26" fill="#ffb347"/>` : `<circle cx="236" cy="80" r="30" fill="#fff3b0" opacity=".45"/><circle cx="236" cy="80" r="20" fill="#ffd93b"/>`;
   if (out && (!N || wk === "cloud" || wk === "rain" || wk === "storm")) { const c = wk === "rain" || wk === "storm" ? "#9aa3b0" : N ? "#8b86b8" : "#fff"; s += `<g class="drift" opacity=".92">${L_.cloud(150, 52, 1, c)}${L_.cloud(236, 96, .7, c)}${wk ? L_.cloud(66, 118, .8, c) + L_.cloud(340, 128, .9, c) : ""}</g>`; }
   s += (SCN[scene] || SCN.jardin)(N, Dw);
   if (out) s += seasonalSVG(month);
@@ -1814,6 +1834,7 @@ function renderScene(I, pvScene, pvRoom) {
     S0.className = "scene land-on sc-" + scene + " " + (mode === "day" ? "" : mode);
     S0.style.removeProperty("--wall"); S0.style.removeProperty("--floor");
     sky += landscape(scene, mode, wk, month);
+    if (mode !== "day") sky += `<div class="landveil ${mode}"></div>`;
     if (scene === "nieve" || wk === "snow") for (let i = 0; i < 16; i++) sky += `<i class="flake" style="left:${(Math.random() * 100).toFixed(0)}%;animation-delay:${(Math.random() * 6).toFixed(1)}s;animation-duration:${(5 + Math.random() * 4).toFixed(1)}s">❄</i>`;
     if ((wk === "rain" || wk === "storm") && scene !== "mar" && scene !== "espacio") { for (let i = 0; i < 30; i++) sky += `<i class="drop" style="left:${(Math.random() * 100).toFixed(0)}%;animation-delay:${(Math.random() * 1.2).toFixed(2)}s"></i>`; sky += `<span class="umbrella">☂️</span>`; }
     if (wk === "storm") sky += `<div class="flash"></div>`;
@@ -1901,7 +1922,7 @@ function renderPet() {
   $("petFrame").className = "pframe fr-" + (p.frame || "ninguno");
   $("petMood").textContent = stageName(si, p.species) + " · " + (away ? `Está de excursión en ${away.n} ${away.e}` : moodText(I)) + (si && !away && here ? ` · 📍 ${LOCE[petLoc(p, I)]} ${LOCN[petLoc(p, I)]}` : "");
   const tr = TRAITS[p.trait], spc = SPECIES[p.species || "pollito"];
-  $("petTrait").innerHTML = si > 0 && tr ? `${spc.e} ${spc.n} · ${tr.e} ${tr.n} <small>· ${esc(tr.d)}</small>` : si === 0 && p.species && p.species !== "pollito" ? `Huevo de ${spc.n.toLowerCase()} ${spc.e}` : "";
+  $("petTrait").innerHTML = si > 0 && tr ? `${(p.species || "pollito") === "pollito" ? "" : spc.e + " " + spc.n + " · "}${tr.e} ${tr.n} <small>· ${esc(tr.d)}</small>` : si === 0 && p.species && p.species !== "pollito" ? `Huevo de ${spc.n.toLowerCase()} ${spc.e}` : "";
   const act = si > 0 ? activeSets(p) : []; if (act.length) $("petTrait").innerHTML += act.map(s => `<div class="setline">✨ Set ${esc(s.n)} · ${esc(s.d)}</div>`).join("");
   $("petToday").innerHTML = `<span>${esc(name(who))} ${I.meT ? "✅" : "⏳"}</span><span>${esc(name(other()))} ${I.otT ? "✅" : "⏳"}</span>`;
 
@@ -1921,7 +1942,7 @@ function renderPet() {
   $("petHug").classList.toggle("need", si > 0 && I.nv.love < 30);
 
   $("petBar").style.width = nx ? Math.round((p.xp - st.xp) / (nx.xp - st.xp) * 100) + "%" : "100%";
-  $("petNext").textContent = nx ? `${p.xp} días cuidándole juntos · faltan ${nx.xp - p.xp} para: ${stageName(si + 1, p.species)}` : "¡Fase máxima! 👑";
+  $("petNext").textContent = nx ? `${p.xp} días cuidándole juntos · faltan ${nx.xp - p.xp} para la fase «${stageName(si + 1, p.species)}»` : "¡Fase máxima! 👑";
   $("lvlBar").style.width = Math.round(I.L.into / I.L.need * 100) + "%";
   $("lvlTxt").textContent = I.L.max ? "¡Nivel máximo! 👑" : `Nivel ${I.L.l} · ${I.L.into}/${I.L.need} de experiencia · cada nivel +20 🪙 y un premio en el camino ⭐`;
   const streakAlive = p.lastBoth && daysBetween(p.lastBoth, I.today) <= 1;
@@ -2007,7 +2028,8 @@ function renderHearts() {
 function react(expr, ms) { tempExpr = expr; tempUntil = Date.now() + ms; renderPet(); setTimeout(renderPet, ms + 50); }
 function anim(cls, ms) { const b = $("petBox"); b.classList.remove(cls); void b.offsetWidth; b.classList.add(cls); setTimeout(() => b.classList.remove(cls), ms); }
 function fx(cls, e, style = "", ms = 1800) { const s = document.createElement("span"); s.className = "fx " + cls; s.textContent = e; s.style.cssText = style; $("petScene").appendChild(s); setTimeout(() => s.remove(), ms); }
-function say(t, ms = 3200) { if (typeof locHere === "function" && state.pet && hatched() && !tripAway(state.pet) && !locHere() && !/^🔊/.test(t)) t = `🔊 A lo lejos: «${t}»`; const b = $("petSay"); b.classList.remove("ask"); b.textContent = t; b.classList.remove("hidden"); b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; clearTimeout(say.t); say.t = setTimeout(() => b.classList.add("hidden"), ms); }
+let lastTouch = 0; document.addEventListener("pointerdown", () => { lastTouch = Date.now(); }, true);
+function say(t, ms = 3200) { if (state.pet && hatched() && Date.now() - lastTouch > 4000 && typeof currentExpr === "function" && currentExpr(petInfo()) === "sleep" && !/^(Zzz|\*ronq|💤|🔊)/.test(t)) return; if (typeof locHere === "function" && state.pet && hatched() && !tripAway(state.pet) && !locHere()) return; const b = $("petSay"); b.classList.remove("ask"); b.textContent = t; b.classList.remove("hidden"); b.style.animation = "none"; void b.offsetWidth; b.style.animation = ""; clearTimeout(say.t); say.t = setTimeout(() => b.classList.add("hidden"), ms); }
 function phrase() {
   const I = petInfo(), o = name(other()), me = name(who), h = hourIn(myTz), p = I.p, tr = p.trait;
   const L = ["¡Pío pío! 🐤", "¡Os quiero a los dos! 💛", `Dile a ${o} que le echo de menos`, "Me encantan los mimos 🥰", "¿Jugamos? ⚽", "Cuando os veáis, ¡llevadme! 🧳", "¿Me compráis algo bonito? 🛍️", `${me}, ¡eres mi favorito! 🤫 (no se lo digas a ${o})`];
@@ -2972,7 +2994,7 @@ const GAMES = [
   { id: "quiz", e: "💭", n: "¿Me conoces?" }, { id: "ttt", e: "❌", n: "Tres en raya" }, { id: "c4", e: "🔴", n: "Conecta 4" },
   { id: "bs", e: "🚢", n: "Hundir la flota" }, { id: "wordle", e: "🔤", n: "Wordle" }, { id: "draw", e: "🎨", n: "Dibuja y adivina" },
   { id: "wyr", e: "⚖️", n: "¿Qué prefieres?" }, { id: "tod", e: "🤫", n: "Verdad o reto" }, { id: "memory", e: "🧩", n: "Memory" },
-  { id: "scratch", e: "🎟️", n: "Rasca y gana" }, { id: "shop", e: "🛍️", n: "Tienda de vales" }, { id: "wheel", e: "🎡", n: "Ruleta" },
+  { id: "scratch", e: "🎟️", n: "Rasca y gana" }, { id: "shop", e: "🛍️", n: "Tienda de vales" }, { id: "wheel", e: "🎯", n: "Ruleta" },
   { id: "ach", e: "🏅", n: "Logros" }
 ];
 function gameBadge(id) {
@@ -3676,7 +3698,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "44";
+const APP_VERSION = "47";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -4376,7 +4398,7 @@ function aiContext() {
     `- Tus necesidades (100% = perfecto): hambre ${I.nv.food}%, cariño ${I.nv.love}%, diversión ${I.nv.fun}%, limpieza ${I.nv.clean}%, energía ${I.nv.energy}%.${I.sick ? " Estás malito." : ""}`,
     `- Hoy te ha dado de comer: ${[I.meT ? me : "", I.otT ? o : ""].filter(Boolean).join(" y ") || "nadie todavía"}. Días que te han cuidado los dos: ${p.xp}. Racha: ${p.streak || 0}.`,
     wear.length ? `- Llevas puesto: ${wear.join(", ")}.` : "", familyCtx(p),
-    away ? `- Estás de excursión en ${away.n}.` : `- Estás en ${petLoc(p) === "out" ? (CAT[p.scene || "jardin"] || {}).n || "el jardín" : LOCN[petLoc(p)] + " de vuestra casita"}. ${petLoc(p) === viewLoc() ? name(who) + " está mirándote ahí." : name(who) + " te está buscando por otra habitación (dale pistas de dónde estás, sin decirlo del todo)."}`,
+    away ? `- Estás de excursión en ${away.n}.` : `- Estás en ${petLoc(p) === "out" ? (CAT[p.scene || "jardin"] || {}).n || "el jardín" : LOCN[petLoc(p)] + " de vuestra casita"}. ${petLoc(p) === viewLoc() ? name(who) + " está mirándote ahí." : name(who) + " te está buscando por la casa: no le digas dónde estás, que lo descubra."}`,
     md[who] ? `- ${me} hoy se siente ${MOOD_TXT[md[who]]}.` : "", md[other()] ? `- ${o} hoy se siente ${MOOD_TXT[md[other()]]}.` : "",
     d[who] && d[who].text ? `- ${me} escribió hoy en el diario: «${d[who].text.slice(0, 200)}»` : "",
     d[who] && d[other()] && d[other()].text ? `- ${o} escribió hoy en el diario: «${d[other()].text.slice(0, 200)}»` : "",
@@ -5093,7 +5115,7 @@ function renderMeet() {
     <div class="sub" style="text-align:center;margin-top:6px">${esc(fmtD(nx, { weekday: "long", day: "numeric", month: "long" }))} · ${esc(fmt(myTz, { hour: "2-digit", minute: "2-digit" }))} ahora</div>
     <div class="slotname">📝 Lo que haremos ese día</div>
     ${plan.length ? plan.map((x, i) => `<div class="lrow"><span>${esc(x.t)} <small>· ${esc(name(x.by))}</small></span>${x.by === who ? `<button class="x" data-mp="${i}">✕</button>` : ""}</div>`).join("") : `<div class="empty" style="font-size:13.5px">Apuntad todo lo que queréis hacer cuando os veáis 💞</div>`}
-    <div class="sendrow"><input id="mpIn" placeholder="Ir a cenar a…, un abrazo de 10 minutos…" maxlength="80"><button class="btn primary" id="mpAdd">+</button></div>
+    <div class="sendrow"><input id="mpIn" placeholder="Cenar juntos, un abrazo…" maxlength="80"><button class="btn primary" id="mpAdd">+</button></div>
     <div class="slotname">💌 Sobres para ese día</div>
     <div class="mnotes"><div class="mnote2 ${theirN ? "has" : ""}">${theirN ? (here ? `<b>De ${esc(o)}:</b> ${esc(theirN.t)}` : `🔒 ${esc(o)} te ha dejado un sobre. Se abre cuando os veáis`) : `${esc(o)} aún no ha dejado sobre`}</div>
     <div class="mnote2 mine">${mineN ? `✅ Tu sobre está guardado${here ? `: ${esc(mineN.t)}` : " 🤫"}` : `<textarea id="mnIn" rows="2" maxlength="300" placeholder="Escribe algo para que ${esc(o)} lo lea ese día…"></textarea><button class="btn" id="mnSave">Guardar sobre 💌</button>`}</div></div>
@@ -5268,8 +5290,9 @@ function famScene(p, I) {
   if (m && mateLoc(p, I) === vl) {
     const wed = m.weddingAt && Date.now() - m.weddingAt < DAY, wear = geneWear(m), far = pl !== vl, sleep = I.si && currentExpr(I) === "sleep";
     const snug = !far && sleep && m.status !== "conocidos";
+    const inBed = snug && petView === "in" && (roomOf(p, curRoom).items || {}).cama;
     if (wed && !wear.head) wear.head = sexOf(m) === "m" ? "chistera" : "tiara";
-    h += `<button class="matefig${far ? " far" : ""}${snug ? " snug" : ""}" id="mateFig" aria-label="${esc(m.name)}">${chickSVG(Math.max(2, Math.min(5, I.si || 4)), snug || (sleep && !far) ? "sleep" : "idle", wear, 0, geneColor(m), { species: m.species })}<b>${relStatus(relOf(m))[0]} ${esc(m.name)}</b></button>`;
+    if (!inBed) h += `<button class="matefig${far ? " far" : ""}${snug ? " snug" : ""}" id="mateFig" aria-label="${esc(m.name)}">${chickSVG(Math.max(2, Math.min(5, I.si || 4)), snug || (sleep && !far) ? "sleep" : "idle", wear, 0, geneColor(m), { species: m.species })}<b>${relStatus(relOf(m))[0]} ${esc(m.name)}</b></button>`;
   }
   let ki = 0;
   kidsOf(p).slice(0, MAX_KIDS).forEach((k, i) => {
@@ -5738,8 +5761,7 @@ function renderLocate(p, I) {
   } else box.classList.toggle("gone", !here);
   look.classList.toggle("hidden", here);
   if (!here) {
-    const clue = rnd(LOCCLUE[pl] || ["¿Dónde se habrá metido? 🐾"]);
-    if (look.dataset.loc !== pl + vl) { look.dataset.loc = pl + vl; look.innerHTML = `<div class="lkpaw">🐾 🐾</div><b>${pn} no está aquí</b><small>${esc(clue)}</small><button class="btn" id="lookCall">📣 Llamarle</button>`; $("lookCall").onclick = e => { e.stopPropagation(); summonPet(); }; }
+    if (look.dataset.loc !== vl) { look.dataset.loc = vl; look.innerHTML = `<b>${pn} no está aquí</b><button class="btn" id="lookCall">📣 Llamarle</button>`; $("lookCall").onclick = e => { e.stopPropagation(); summonPet(); }; }
     locMiss = true;
   } else if (locMiss && !locCalled && I.si) {
     locMiss = false;
@@ -5875,10 +5897,12 @@ window.__life = k => LIFE[k](petView === "in" ? roomOf(state.pet || {}, curRoom)
 // dormir en la cama (tumbado y tapado) o hecho una bolita
 function sleepPose(expr) {
   const b = $("petBox"); if (!b) return;
-  if (expr !== "sleep") { if (petPose === "bed" || petPose === "curl") setPose(""); return; }
-  const room = petView === "in" ? roomOf(state.pet || {}, curRoom) : null;
-  if (room && room.items && room.items.cama) { const x = furnPos(room, "cama").x; if (Math.abs(petX - Math.max(24, x)) < 3) { if (petPose !== "bed") setPose("bed"); } }
-  else if (petPose !== "curl") setPose("curl");
+  const room = petView === "in" ? roomOf(state.pet || {}, curRoom) : null, bed = room && room.items && room.items.cama;
+  b.classList.toggle("inbed", expr === "sleep" && !!bed && locHere());
+  const zz = $("petZzz"); if (zz) zz.style.left = expr === "sleep" && bed ? `calc(${furnPos(room, "cama").x}% + 10px)` : "";
+  const dr = $("petDream"); if (dr) { dr.style.left = expr === "sleep" && bed ? `calc(${furnPos(room, "cama").x}% + 30px)` : ""; dr.style.right = expr === "sleep" && bed ? "auto" : ""; }
+  if (expr !== "sleep") { if (petPose === "curl") setPose(""); return; }
+  if (!bed && petPose !== "curl") setPose("curl");
 }
 
 // si le das de comer, mimos, etc. y no está contigo, viene corriendo

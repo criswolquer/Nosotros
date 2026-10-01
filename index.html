@@ -825,7 +825,8 @@ nav button i{font-size:22px}
   background:radial-gradient(120% 90% at 0% 0%,rgba(255,179,138,.55),transparent 60%),radial-gradient(120% 90% at 100% 100%,rgba(123,97,255,.45),transparent 60%),linear-gradient(135deg,#ff6b8b,#b6437a)}
 .hero::after{content:"❤";position:absolute;right:-18px;top:-30px;font-size:150px;opacity:.09;transform:rotate(14deg)}
 .hgreet{font-size:19px;font-weight:800}
-.hgreet small{display:block;font-size:13px;font-weight:600;opacity:.85;text-transform:capitalize;margin-top:2px}
+.hgreet small{display:block;font-size:13px;font-weight:600;opacity:.85;margin-top:2px}
+.hgreet small::first-letter{text-transform:uppercase}
 .hmain{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:14px 0 12px}
 .htog b{display:block;font-size:54px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .htog span{font-size:14px;font-weight:700;opacity:.9}
@@ -1268,7 +1269,7 @@ label.shopit{cursor:pointer}
 .petbox.arrive svg{animation:arrive .8s ease-out}
 @keyframes arrive{0%{transform:translateY(-30px) scale(.8);opacity:0}60%{transform:translateY(6px) scale(1.04);opacity:1}100%{transform:none}}
 .lookfor{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;background:rgba(24,14,32,.74);color:#fff;border-radius:18px;padding:12px 16px 14px;text-align:center;width:min(78%,290px);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 8px 24px rgba(0,0,0,.25);animation:lkin .5s ease-out}
-.lookfor b{display:block;font-size:15px}.lookfor small{display:block;font-size:12.5px;opacity:.85;margin:4px 0 10px;line-height:1.35}
+.lookfor b{display:block;font-size:15px;margin-bottom:10px}.lookfor small{display:block;font-size:12.5px;opacity:.85;margin:4px 0 10px;line-height:1.35}
 .lookfor .btn{padding:8px 16px;font-size:13px}
 .lkpaw{font-size:20px;opacity:.7;letter-spacing:8px;animation:paw 2s ease-in-out infinite}
 @keyframes paw{0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
@@ -1292,9 +1293,6 @@ label.shopit{cursor:pointer}
 .petbox .eyesg{transform:translate(var(--ex,0px),var(--ey,0px));transition:transform .18s ease-out}
 .petbox{transition:bottom .6s ease}
 .petbox svg{transition:transform .5s ease}
-.petbox.pose-bed{bottom:40px}
-.petbox.pose-bed svg{transform:scale(.8) rotate(-7deg);transform-origin:50% 90%}
-.petbox.pose-bed::after{content:"";position:absolute;left:23%;right:23%;bottom:9%;height:23%;background:linear-gradient(#ffa9c6,#ff7fa8);border-radius:44% 44% 18px 18px;box-shadow:inset 0 7px 0 rgba(255,255,255,.4),0 3px 6px rgba(0,0,0,.15);z-index:2}
 .petbox.pose-bed .leg,.petbox.pose-sofa .leg,.petbox.pose-eat .leg,.petbox.pose-curl .leg{opacity:0}
 .petbox.pose-curl svg{transform:scale(1.04,.86);transform-origin:50% 96%}
 .petbox.pose-sofa{bottom:36px}.petbox.pose-sofa svg{transform:scale(.86,.8);transform-origin:50% 96%}
@@ -1317,6 +1315,20 @@ label.shopit{cursor:pointer}
 .bfly{position:absolute;left:-8%;font-size:28px;z-index:4;pointer-events:none;animation:bfly 5.6s linear forwards}
 @keyframes bfly{0%{left:-8%;transform:translateY(0) scaleX(1)}20%{transform:translateY(-22px) scaleX(.7)}40%{transform:translateY(12px) scaleX(1)}60%{transform:translateY(-16px) scaleX(.7)}80%{transform:translateY(8px) scaleX(1)}100%{left:106%;transform:translateY(0)}}
 .plate{position:absolute;bottom:12px;font-size:30px;z-index:3;transform:translateX(-50%);pointer-events:none;animation:dpin .5s ease-out}
+.petbox.inbed{visibility:hidden;pointer-events:none}
+.zzz{transition:left .4s}
+
+/* ===== v46 · pulido ===== */
+body{text-wrap:pretty}
+.landveil{position:absolute;inset:0;pointer-events:none;z-index:0}
+.landveil.night{background:linear-gradient(rgba(8,10,40,0) 30%,rgba(8,10,40,.42) 60%,rgba(8,10,40,.5))}
+.landveil.dawn{background:linear-gradient(rgba(255,140,90,0) 30%,rgba(120,60,90,.18) 65%,rgba(80,40,80,.22))}
+.dream{top:auto;bottom:62%;right:auto;left:calc(var(--px,50%) + 40px);max-width:46%}
+
+.shopit.v2.r2,.shopit.v2.r3,.shopit.v2.r4{box-shadow:none;border-top-width:3px}
+.shopit.v2.r2{border-top-color:#4d9dff}.shopit.v2.r3{border-top-color:#b45cff}.shopit.v2.r4{border-top-color:#ffc629}
+.vitrina,.lvpath,.tchips.one,.kidrow{margin-left:-18px;margin-right:-18px;padding-left:18px;padding-right:18px;scroll-padding:0 18px}
+.gbadge{top:6px;right:6px;font-size:10px;padding:2px 7px}
 </style>
 </head>
 <body>
@@ -1398,7 +1410,7 @@ label.shopit{cursor:pointer}
     <div class="sendrow">
       <label class="btn snapbtn" title="Foto de ver una vez">📸<input id="snapInput" type="file" accept="image/*" hidden></label>
       <button class="btn snapbtn" id="voiceBtn" title="Nota de voz">🎙️</button>
-      <input id="msgInput" placeholder="Escribe algo bonito…" enterkeyhint="send">
+      <input id="msgInput" placeholder="Escribe algo…" enterkeyhint="send">
       <button class="btn primary" id="msgSend">➤</button>
     </div>
   </section>
@@ -1501,7 +1513,7 @@ label.shopit{cursor:pointer}
     <div class="bar"><div id="lvlBar" style="width:0;background:linear-gradient(90deg,#7b61ff,#4dd2ff)"></div></div>
     <div class="sub" style="font-size:13px" id="lvlTxt"></div>
     <div class="stats four">
-      <div><b id="stDays">0</b><span>días juntos</span></div>
+      <div><b id="stDays">0</b><span>días cuidándole</span></div>
       <div><b id="stStreak">0</b><span>racha 🔥</span></div>
       <div><b id="stHugs">0</b><span>mimos</span></div>
       <div><b id="stAge">—</b><span>días de vida</span></div>
@@ -1571,7 +1583,7 @@ label.shopit{cursor:pointer}
     🎯 <b>Misiones</b>: cada uno tiene 3 al día (+ premio y pegatina si hacéis las 3).<br>
     ✨ Cada 3 horas esconde un <b>tesoro</b> en la escena: búscalo y tócalo.<br>
     🧳 <b>Excursiones</b> de 3 horas por el mundo: vuelve con una postal 📮.<br>
-    🕊️ <b>Mensajero</b>: escribe una carta y él se la lleva a tu pareja.<br>
+    🕊️ <b>Mensajero</b>: escribe una carta y tu mascota se la lleva a tu pareja.<br>
     🌦️ <b>Tiempo real</b>: si lo activas, en la escena llueve, nieva o hace calor como donde estás.<br>
     🎃 Hay ropa de <b>temporada</b> (Halloween, Navidad, San Valentín, primavera, verano).<br>
     🏠 La casita tiene <b>salón, cocina, dormitorio y jardín</b>; pulsa ✏️ Mover para colocar los muebles con el dedo.<br>
@@ -1580,7 +1592,7 @@ label.shopit{cursor:pointer}
     🎁 Los <b>cofres</b> dan accesorios al azar (común, raro, épico o legendario) y algunos solo salen ahí. Cada semana hay un <b>exclusivo</b> nuevo.<br>
     🚶 Se pasea por la escena y usa los muebles de la casita; de noche se va a su cama.<br>
     💞 Si los dos estáis en la app a la vez lo nota, y si le hacéis mimos a la vez… ¡<b>abrazo doble</b>! (+30 🪙 el primero del día).<br>
-    💬 Puedes <b>hablar con ella</b> (con IA): sabe lo que pasa en la app y si le pides que le diga algo a tu pareja, se lo lleva.<br>
+    💬 Puedes <b>hablar con tu mascota</b> (con IA): sabe lo que pasa en la app y si le pides que le diga algo a tu pareja, se lo lleva.<br>
     🗣️ Enséñale frases y se las dirá a tu pareja por sorpresa. Sus <b>primeras veces</b> se guardan solas en 📚 Colección.<br>
     📖 Cada noche escribe en vuestro diario cómo ha sido su día. Con 📸 le hacéis fotos.<br>
     🥚 Al llegar a <b>legendario</b> podéis adoptar un huevo nuevo (pollito, gatito, perrito, conejito o pingüino) y el anterior se queda en la familia.<br><br>
@@ -1588,7 +1600,7 @@ label.shopit{cursor:pointer}
     🍓 Darle de comer: +10 · si ya comió del otro: +15 extra · 🔥 cada 7 días de racha: +50<br>
     🤗 Mimos: +1 (hasta 10 al día) · ⚽ Jugar: +3 (hasta 5) · 🛁 Baño: +5 · ⭐ subir de nivel: +20<br>
     🍓 Atrapa fresas: hasta +30 al día · 🪽 Vuelo y 🎵 Canta conmigo: hasta +20 cada uno<br>
-    🎯 Misiones: +10 a +20 cada una · ✨ Tesoros · 📮 Postales: +25<br><br>
+    🎯 Misiones: +10 a +20 cada una · ✨ Tesoros: premio sorpresa · 📮 Postales: +25<br><br>
     <b>Corazones de pareja 💖</b> (para la Tienda de vales) se ganan en <b>Juegos</b>, con la pregunta del día y cumpliendo planes.</div>
       <button class="btn mt" id="tourAgain" style="width:100%">🎓 Ver el tutorial otra vez</button>
   </section>
