@@ -4013,7 +4013,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "1.1";
+const APP_VERSION = "1.2";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -6374,17 +6374,13 @@ let spState = {}, spCoupons = [], spLetters = [], spOpen = false, spTab = "juego
 const spOpted = w => !!((spState.opt || {})[w]);
 const spOn = () => spOpted("a") && spOpted("b");
 async function spHash(t) { try { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("nosotros:" + t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); } catch (e) { return "x" + t; } }
-function watchSpicy() {
-  S.watchDoc("state/spicy", d => { spState = d || {}; renderSpEntry(); renderSpSettings(); if (spOpen) renderSp(); });
-  S.watchCol("spcoupons", l => { spCoupons = l; if (spOpen) renderSp(); }, 60);
-  S.watchCol("spletters", l => { spLetters = l; if (spOpen) renderSp(); renderSpEntry(); }, 40);
-}
 function renderSpSettings() {
   const el = $("sSpicy"); if (!el) return;
   const me = spOpted(who), ot = spOpted(other()), o = esc(name(other()));
   el.innerHTML = `<label class="sndrow"><span>🌶️ Zona privada para los dos</span><input type="checkbox" id="spOpt" ${me ? "checked" : ""}></label>
     <div class="sub" style="font-size:12px;margin-top:4px">${me && ot ? "Activada por los dos ✅ La encontrarás en la pestaña Nosotros, con PIN." : me ? `Tú la has activado. Falta que ${o} la active en su móvil.` : ot ? `${o} la ha activado. Actívala tú también si te apetece 😏` : "Juegos y mensajes íntimos solo para vosotros. Solo aparece si la activáis los dos."}${me ? ` · <button class="linkbtn" id="spPinReset" style="font-size:12px">cambiar PIN</button>` : ""}</div>`;
   $("spOpt").onchange = e => { S.merge("state/spicy", { opt: { [who]: e.target.checked } }); if (e.target.checked && !ot) notifyOther("🌶️ Te he propuesto algo… mira en ⚙️ Ajustes"); };
+  if (me && ot) { const ce = document.createElement("div"); ce.className = "sub"; ce.style.cssText = "font-size:12px;margin-top:6px"; ce.textContent = SPK.key ? "🔐 Cifrado de extremo a extremo activo en este móvil" : spState.kchk ? "🔐 Zona cifrada: te pedirá la frase secreta al entrar" : "🔐 Al entrar elegiréis una frase secreta para cifrarla"; el.appendChild(ce); }
   const pr = $("spPinReset"); if (pr) pr.onclick = () => { ls.set("spPinH", ""); toast("PIN borrado. Pondrás uno nuevo al entrar 🔒"); };
 }
 function renderSpEntry() {
@@ -6422,6 +6418,8 @@ function spClose() { spOpen = false; $("spView").classList.add("hidden"); docume
 document.addEventListener("visibilitychange", () => { if (document.hidden && spOpen) { spClose(); spUnlockedAt = 0; } });
 function renderSp() {
   const v = $("spBody"); if (!v) return;
+  $("spTabs").classList.toggle("hidden", !SPK.key);
+  if (!SPK.key) { v.innerHTML = spKeyHTML(); spKeyBind(); return; }
   document.querySelectorAll("#spTabs button").forEach(b => b.classList.toggle("on", b.dataset.t === spTab));
   { const cb = document.querySelector('#spTabs [data-t="cal"]'); if (cb) cb.classList.toggle("dot", !!wrNewKey()); }
   const o = esc(name(other())), me = esc(name(who));
@@ -6473,16 +6471,16 @@ function renderSp() {
   let last = null;
   const showQ = kind => { const L = (kind === "t" ? SP_TRUTH : SP_DARE)[spLevel]; const q = rnd(L); last = { kind, q }; const c = $("spCard"); c.classList.remove("flip"); void c.offsetWidth; c.classList.add("flip"); c.innerHTML = `<div class="spk">${kind === "t" ? "🗣️ Verdad" : "🔥 Reto"} · ${SP_LV.find(x => x[0] === spLevel)[1]}</div><div class="spq">${esc(q)}</div>`; SFX.pop(); };
   on("spTruth", () => showQ("t")); on("spDare", () => showQ("d"));
-  on("spSendQ", () => { if (!last) return toast("Primero saca una verdad o un reto 😏"); S.add("spletters", { from: who, to: other(), text: `${last.kind === "t" ? "🗣️ Verdad" : "🔥 Reto"} para ti: ${last.q}`, at: Date.now(), read: 0 }); notifyOther("🔒 Tienes algo nuevo en la zona privada 😏"); toast(`Enviado a ${name(other())} en secreto 🔒`); });
+  on("spSendQ", () => { if (!last) return toast("Primero saca una verdad o un reto 😏"); spAddText("spletters", { from: who, to: other(), text: `${last.kind === "t" ? "🗣️ Verdad" : "🔥 Reto"} para ti: ${last.q}`, at: Date.now(), read: 0 }); notifyOther("🔒 Tienes algo nuevo en la zona privada 😏"); toast(`Enviado a ${name(other())} en secreto 🔒`); });
   on("dRoll", () => {
     const a = $("d1"), b = $("d2"); a.classList.add("roll"); b.classList.add("roll"); SFX.bounce(); let n = 0;
     const it = setInterval(() => { a.textContent = rnd(["💋", "🤲", "👄", "😘", "💆", "🤗"]); b.textContent = rnd(["✨", "🌙", "🔥", "💫", "❤️", "🌶️"]); if (++n > 10) { clearInterval(it); a.classList.remove("roll"); b.classList.remove("roll"); const x = rnd(SP_DICE_A), y = rnd(SP_DICE_B); $("dRes").innerHTML = `<b>${x}</b> ${y}`; SFX.ding(); } }, 90);
   });
-  v.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { const i = b.dataset.i, val = +b.dataset.v; S.merge("state/spicy", { dare: { [who]: { [i]: val } } }); SFX.tap(); });
+  v.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { const i = b.dataset.i, val = +b.dataset.v; spSaveMine({ dare: { [i]: val } }); SFX.tap(); });
   v.querySelectorAll("[data-cp]").forEach(b => b.onclick = () => { $("cpTxt").value = SP_COUPONS[+b.dataset.cp]; });
-  on("cpSend", () => { const t = ($("cpTxt").value || "").trim(); if (!t) return toast("Elige o escribe un cupón 🎟️"); S.add("spcoupons", { from: who, to: other(), text: t.slice(0, 80), at: Date.now(), used: 0, seen: 0 }); notifyOther("🎟️ Te han regalado algo en la zona privada 😏"); toast("Cupón regalado 🎟️🔥"); SFX.coin(); });
+  on("cpSend", () => { const t = ($("cpTxt").value || "").trim(); if (!t) return toast("Elige o escribe un cupón 🎟️"); spAddText("spcoupons", { from: who, to: other(), text: t.slice(0, 80), at: Date.now(), used: 0, seen: 0 }); notifyOther("🎟️ Te han regalado algo en la zona privada 😏"); toast("Cupón regalado 🎟️🔥"); SFX.coin(); });
   v.querySelectorAll("[data-use]").forEach(b => b.onclick = () => { if (!confirm("¿Canjear este cupón? 😏")) return; S.merge("spcoupons/" + b.dataset.use, { used: Date.now() }); notifyOther("🎟️ Han canjeado un cupón… 🔥"); confetti(); });
-  on("slSend", () => { const t = ($("slTxt").value || "").trim(); if (!t) return; S.add("spletters", { from: who, to: other(), text: t.slice(0, 1500), at: Date.now(), read: 0 }); notifyOther("🔒 Tienes un mensaje secreto 💌"); $("slTxt").value = ""; toast("Enviado en secreto 🔒"); });
+  on("slSend", () => { const t = ($("slTxt").value || "").trim(); if (!t) return; spAddText("spletters", { from: who, to: other(), text: t.slice(0, 1500), at: Date.now(), read: 0 }); notifyOther("🔒 Tienes un mensaje secreto 💌"); $("slTxt").value = ""; toast("Enviado en secreto 🔒"); });
 }
 document.querySelectorAll("#spTabs button").forEach(b => b.onclick = () => { spTab = b.dataset.t; renderSp(); $("spBody").scrollTop = 0; });
 $("spClose").onclick = spClose;
@@ -6517,7 +6515,6 @@ const SP_TIMES = [["manana", "🌅 Mañana"], ["tarde", "☀️ Tarde"], ["noche
 let spCal = [], spCalMonth = null, spCalSel = null, ksFilter = "todas";
 const calEntry = k => spCal.find(e => e.id === k) || null;
 let spCalLoaded = false;
-function watchSpCal() { S.watchCol("spcal", l => { spCal = l; spCalLoaded = true; if (spOpen && (spTab === "cal" || spTab === "ks")) renderSp(); }, 500); }
 function calStats() {
   const now = new Date(), y = now.getFullYear(), m = now.getMonth(), E = spCal.filter(e => e.n > 0);
   const inMonth = (e, yy, mm) => { const d = new Date(e.id + "T12:00:00"); return d.getFullYear() === yy && d.getMonth() === mm; };
@@ -6714,7 +6711,7 @@ function renderKsSheet(anim) {
   s.querySelectorAll("[data-x]").forEach(b => b.onclick = ksCloseSheet); $("ksX").onclick = ksCloseSheet;
   s.querySelectorAll("[data-nav]").forEach(b => b.onclick = () => { ksOpenId = KS[(i + +b.dataset.nav + KS.length) % KS.length].id; SFX.tap(); renderKsSheet(); });
   $("ksWant").onclick = () => {
-    const nv = !me; S.merge("state/spicy", { ksw: { [who]: { [k.id]: nv } } }); SFX.tap();
+    const nv = !me; spSaveMine({ ksw: { [k.id]: nv } }); SFX.tap();
     if (nv && ksWant(other(), k.id)) { confetti(); toast(`💞 ¡${name(other())} también quiere probar «${k.n}»!`); notifyOther("💞 Tenéis algo nuevo en común en la zona privada 😏"); }
     else if (nv) toast("Guardado en tus deseos ❤️ (en secreto)");
   };
@@ -6891,10 +6888,10 @@ function renderCalSheet() {
   s.querySelectorAll("[data-r]").forEach(b => b.onclick = () => { D.rating = +b.dataset.r === D.rating ? 0 : +b.dataset.r; s.querySelectorAll("[data-r]").forEach(c => c.classList.toggle("on", D.rating >= +c.dataset.r)); SFX.tap(); });
   $("cfSave").onclick = () => {
     const kk = spCalSel, note = (D.note || "").trim().slice(0, 300), isNew = !base;
-    S.merge("spcal/" + kk, { at: Date.parse(kk + "T12:00:00"), n: D.n, pos: D.pos, times: D.times, place: D.place, rating: D.rating, note, by: (base && base.by) || who, upd: Date.now() });
+    spCalSave(kk, { n: D.n, pos: D.pos, times: D.times, place: D.place, rating: D.rating, note, by: (base && base.by) || who, upd: Date.now() });
     calCloseSheet(); SFX.ding(); toast(isNew ? "Apuntado 🔥" : "Cambios guardados ✓"); renderSp();
   };
-  const dl = $("cfDel"); if (dl) dl.onclick = () => { if (!confirm("¿Eliminar el registro de este día?")) return; S.del("spcal/" + spCalSel); calCloseSheet(); renderSp(); };
+  const dl = $("cfDel"); if (dl) dl.onclick = () => { if (!confirm("¿Eliminar el registro de este día?")) return; spCalDel(spCalSel); calCloseSheet(); renderSp(); };
 }
 
 
@@ -6994,6 +6991,139 @@ function wrCardHTML() {
     ${L.length > 1 ? `<div class="wrmonths">${L.filter(k => k !== main).map(k => { const [a, b] = k.split("-").map(Number); return `<button class="chip" data-wr="${k}">🎬 ${cap(new Date(a, b - 1, 1).toLocaleDateString("es-ES", { month: "short" }).replace(".", ""))} ${String(a).slice(2)}</button>`; }).join("")}</div>` : ""}`;
 }
 
+
+// ---------- 🔐 v1.2 · Cifrado de extremo a extremo de la zona privada ----------
+// Todo lo íntimo se cifra en el móvil con AES-256 (clave sacada de una frase que solo sabéis vosotros).
+// En Firebase solo se guarda texto ilegible.
+const SPK = { key: null, raw: null };
+const spRaw = { spicy: null, cal: [], coupons: [], letters: [] }, spSeq = { spicy: 0, cal: 0, coupons: 0, letters: 0 };
+let spMigrating = false;
+const b64e = u8 => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const isEnc = s => typeof s === "string" && s.startsWith("e1:");
+const spNorm = p => (p || "").normalize("NFC").trim().replace(/\s+/g, " ").toLowerCase();
+async function spDeriveRaw(phrase) {
+  const enc = new TextEncoder(), base = await crypto.subtle.importKey("raw", enc.encode(spNorm(phrase)), "PBKDF2", false, ["deriveBits"]);
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt: enc.encode("nosotros-zona-privada|" + CONFIG.couple), iterations: 250000, hash: "SHA-256" }, base, 256));
+}
+async function spUseRaw(raw) { SPK.key = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]); SPK.raw = b64e(raw); }
+async function spEnc(obj) {
+  const iv = crypto.getRandomValues(new Uint8Array(12)), ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, SPK.key, new TextEncoder().encode(JSON.stringify(obj))));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return "e1:" + b64e(out);
+}
+async function spDec(s) {
+  if (!isEnc(s) || !SPK.key) return null;
+  try { const u = b64d(s.slice(3)); return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: u.slice(0, 12) }, SPK.key, u.slice(12)))); } catch (e) { return null; }
+}
+async function spDocId(day) { const h = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(SPK.raw + "|cal|" + day))); return "c" + Array.from(h.slice(0, 12), x => x.toString(16).padStart(2, "0")).join(""); }
+async function spLoadKey() { const r = ls.get("spK"); if (!r) return; try { await spUseRaw(b64d(r)); spDecodeAll(); } catch (e) { ls.set("spK", ""); } }
+const spRender = () => { if (spOpen) renderSp(); renderSpEntry(); };
+// ---- descifrar lo que llega de Firebase ----
+async function spDecodeSpicy() {
+  const my = ++spSeq.spicy, d = spRaw.spicy || {}, st = { ...d, dare: {}, ksw: {} };
+  for (const u of ["a", "b"]) {
+    const x = d["x" + u] ? await spDec(d["x" + u]) : null;
+    st.dare[u] = (x && x.dare) || (!d["x" + u] && d.dare && d.dare[u]) || {};
+    st.ksw[u] = (x && x.ksw) || (!d["x" + u] && d.ksw && d.ksw[u]) || {};
+  }
+  if (my !== spSeq.spicy) return; spState = st; renderSpSettings(); spRender(); spMigrate();
+}
+async function spDecodeCal() {
+  const my = ++spSeq.cal, out = {}, plain = [];
+  for (const e of spRaw.cal) {
+    if (e.x) { const o = await spDec(e.x); if (o && o.d) out[o.d] = { ...o, id: o.d, _doc: e.id }; }
+    else if (e.n != null) plain.push({ ...e, _doc: e.id });
+  }
+  plain.forEach(e => { if (!out[e.id]) out[e.id] = e; });
+  if (my !== spSeq.cal) return; spCal = Object.values(out); spCalLoaded = true; if (spOpen && (spTab === "cal" || spTab === "ks")) renderSp(); spMigrate();
+}
+async function spDecodeTexts(kind) {
+  const my = ++spSeq[kind], L = [];
+  for (const e of spRaw[kind]) { if (isEnc(e.text)) { const o = await spDec(e.text); L.push({ ...e, text: o ? o.t : "🔒 (cifrado)", _enc: 1 }); } else L.push(e); }
+  if (my !== spSeq[kind]) return; if (kind === "coupons") spCoupons = L; else spLetters = L; spRender(); spMigrate();
+}
+function spDecodeAll() { spDecodeSpicy(); spDecodeCal(); spDecodeTexts("coupons"); spDecodeTexts("letters"); }
+function watchSpicy() {
+  S.watchDoc("state/spicy", d => { spRaw.spicy = d || {}; spState = { ...spState, opt: (d || {}).opt, kchk: (d || {}).kchk, kby: (d || {}).kby }; renderSpEntry(); renderSpSettings(); spDecodeSpicy(); });
+  S.watchCol("spcoupons", l => { spRaw.coupons = l; spDecodeTexts("coupons"); }, 60);
+  S.watchCol("spletters", l => { spRaw.letters = l; spDecodeTexts("letters"); }, 40);
+}
+function watchSpCal() { S.watchCol("spcal", l => { spRaw.cal = l; spDecodeCal(); }, 500); }
+// ---- guardar cifrado ----
+async function spSaveMine(patch) {
+  if (!SPK.key) return toast("Primero desbloquea el cifrado 🔐");
+  const mine = { dare: { ...((spState.dare || {})[who] || {}), ...(patch.dare || {}) }, ksw: { ...((spState.ksw || {})[who] || {}), ...(patch.ksw || {}) } };
+  spState = { ...spState, dare: { ...(spState.dare || {}), [who]: mine.dare }, ksw: { ...(spState.ksw || {}), [who]: mine.ksw } }; spRender();
+  await S.merge("state/spicy", { ["x" + who]: await spEnc(mine) });
+}
+async function spCalSave(day, data) {
+  const id = await spDocId(day), old = calEntry(day);
+  await S.merge("spcal/" + id, { x: await spEnc({ d: day, ...data }), at: Date.now() });
+  if (old && old._doc && old._doc !== id) S.del("spcal/" + old._doc);
+}
+function spCalDel(day) { const e = calEntry(day); if (e && e._doc) S.del("spcal/" + e._doc); }
+async function spAddText(col, data) { return S.add(col, { ...data, text: await spEnc({ t: data.text }) }); }
+// ---- pasar a cifrado lo que había antes ----
+async function spMigrate() {
+  if (!SPK.key || spMigrating) return;
+  const d = spRaw.spicy || {}, plainCal = spRaw.cal.filter(e => !e.x && e.n != null), pc = spRaw.coupons.filter(e => e.text && !isEnc(e.text)), pl = spRaw.letters.filter(e => e.text && !isEnc(e.text));
+  const plainSp = ["a", "b"].filter(u => !d["x" + u] && ((d.dare && d.dare[u] && Object.keys(d.dare[u]).length) || (d.ksw && d.ksw[u] && Object.keys(d.ksw[u]).length)));
+  const leftovers = (d.dare && Object.keys(d.dare).length) || (d.ksw && Object.keys(d.ksw).length);
+  if (!plainCal.length && !pc.length && !pl.length && !plainSp.length && !leftovers) return;
+  spMigrating = true;
+  try {
+    for (const e of plainCal) { const { id, at, x, ...rest } = e; const nid = await spDocId(id); await S.merge("spcal/" + nid, { x: await spEnc({ d: id, ...rest }), at: Date.now() }); await S.del("spcal/" + id); }
+    for (const e of pc) await S.merge("spcoupons/" + e.id, { text: await spEnc({ t: e.text }) });
+    for (const e of pl) await S.merge("spletters/" + e.id, { text: await spEnc({ t: e.text }) });
+    const up = {}; for (const u of plainSp) up["x" + u] = await spEnc({ dare: (d.dare || {})[u] || {}, ksw: (d.ksw || {})[u] || {} });
+    if (plainSp.length || leftovers) await S.merge("state/spicy", { ...up, dare: null, ksw: null });
+  } catch (e) { console.error("migrar", e); }
+  spMigrating = false;
+}
+// ---- pantalla de la frase secreta ----
+function spKeyHTML() {
+  const has = !!spState.kchk, by = spState.kby ? esc(name(spState.kby)) : esc(name(other()));
+  return `<div class="spkey"><div class="spkeyico">🔐</div>
+    ${has ? `<h3>Frase secreta</h3><p>Vuestra zona privada está <b>cifrada</b>. Para abrirla en este móvil, escribe la frase secreta que eligió ${by}.</p>
+      <input id="spk1" type="password" autocomplete="off" autocapitalize="off" placeholder="Frase secreta"><button class="spb hot" id="spkGo">Desbloquear</button>`
+    : `<h3>Protege vuestra intimidad</h3><p>Antes de entrar, elegid una <b>frase secreta</b> que sepáis solo vosotros dos. Con ella se cifra en el móvil todo lo de aquí: calendario, deseos, cupones y mensajes secretos.</p>
+      <ul><li>🔒 En internet solo se guarda texto ilegible: ni Google ni nadie con acceso a la base de datos puede leerlo.</li><li>🗣️ Dísela a ${esc(name(other()))} en persona o por llamada, nunca por escrito.</li><li>⚠️ Si la olvidáis los dos, lo cifrado no se puede recuperar.</li></ul>
+      <input id="spk1" type="password" autocomplete="off" autocapitalize="off" placeholder="Frase secreta (mín. 8 caracteres)"><input id="spk2" type="password" autocomplete="off" autocapitalize="off" placeholder="Repítela">
+      <button class="spb hot" id="spkGo">🔐 Activar el cifrado</button>`}
+    <label class="spkshow"><input type="checkbox" id="spkShow"> Mostrar lo que escribo</label><div class="spkerr" id="spkErr"></div></div>`;
+}
+function spKeyBind() {
+  $("spkShow").onchange = e => document.querySelectorAll(".spkey input[type=password],.spkey input[data-pw]").forEach(i => { i.dataset.pw = 1; i.type = e.target.checked ? "text" : "password"; });
+  const err = t => { $("spkErr").textContent = t; buzz([40, 30, 40]); };
+  $("spkGo").onclick = async () => {
+    const p1 = $("spk1").value, has = !!spState.kchk, b = $("spkGo");
+    if (spNorm(p1).length < (has ? 1 : 8)) return err(has ? "Escribe la frase" : "Mínimo 8 caracteres");
+    if (!has && spNorm(p1) !== spNorm($("spk2").value)) return err("Las dos frases no coinciden");
+    b.disabled = true; b.textContent = "🔐 Un momento…";
+    try {
+      const raw = await spDeriveRaw(p1); await spUseRaw(raw);
+      if (has) {
+        const ok = await spDec(spState.kchk);
+        if (!ok || ok.ok !== "nosotros") { SPK.key = null; SPK.raw = null; b.disabled = false; b.textContent = "Desbloquear"; return err("Esa frase no es la correcta"); }
+      } else {
+        if (spRaw.spicy && spRaw.spicy.kchk) { SPK.key = null; b.disabled = false; renderSp(); return toast(`${name(other())} acaba de crear la frase: pídesela 🔐`); }
+        await S.merge("state/spicy", { kchk: await spEnc({ ok: "nosotros" }), kby: who, kat: Date.now() });
+        notifyOther("🔒 Hay novedades en la zona privada");
+      }
+      ls.set("spK", b64e(raw)); SFX.ding(); toast(has ? "Desbloqueado 🔓" : "Cifrado activado 🔐"); confetti();
+      spDecodeAll(); renderSp();
+    } catch (e) { console.error(e); SPK.key = null; b.disabled = false; b.textContent = has ? "Desbloquear" : "🔐 Activar el cifrado"; err("Algo falló, prueba otra vez"); }
+  };
+}
+// ---- tapar la pantalla en el selector de apps del iPhone ----
+(() => {
+  const cover = () => { if (spOpen || !$("spPin").classList.contains("hidden")) document.body.classList.add("spcover"); };
+  const uncover = () => setTimeout(() => { if (!document.hidden) document.body.classList.remove("spcover"); }, 60);
+  window.addEventListener("blur", cover); window.addEventListener("pagehide", cover);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { cover(); $("spPin").classList.add("hidden"); } else uncover(); });
+  window.addEventListener("focus", uncover); window.addEventListener("pageshow", uncover);
+})();
+
 // si le das de comer, mimos, etc. y no está contigo, viene corriendo
 document.querySelector(".actions.six").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || !["petFeed", "petBag", "petHug", "petPlay", "petBath", "petSleep", "petTricks"].includes(b.id)) return;
@@ -7014,7 +7144,7 @@ async function start() {
   S.merge("state/main", { tz: { [who]: myTz } });
   S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); renderPush(); renderMeet(); });
   S.watchDoc("state/pet", d => { state.pet = d; checkFirsts(d); renderPet(); fgInfo(); });
-  watchDiary(); watchOTD(); watchPresence(); watchPetPics(); watchAiMem(); watchWeekly(); watchLive(); watchSpicy(); watchSpCal();
+  watchDiary(); watchOTD(); watchPresence(); watchPetPics(); watchAiMem(); watchWeekly(); watchLive(); spLoadKey(); watchSpicy(); watchSpCal();
   loadWeather(true);
   S.watchDoc("quiz/main", d => { state.quiz = d; renderQuiz(); });
   S.watchDoc("state/ttt", d => { state.ttt = d; renderTTT(); renderQuiz(); renderGameMenu(); });
