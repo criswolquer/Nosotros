@@ -56,7 +56,7 @@ function tick() {
     $("together").textContent = days; $("togetherSub").textContent = days === 1 ? "día juntos" : "días juntos";
   } else { $("together").textContent = "—"; $("togetherSub").textContent = "días"; }
 
-  const next = state.main.next && !(state.main.nextSet && state.main.next - state.main.nextSet < 30 * 6e4) && state.main.next > Date.now() - DAY ? state.main.next : null;
+  const next = !state.main.together && state.main.next && !(state.main.nextSet && state.main.next - state.main.nextSet < 30 * 6e4) && state.main.next > Date.now() - DAY ? state.main.next : null;
   if (next) {
     const ms = next - Date.now();
     if (ms <= 0) { $("countdown").textContent = "¡Ya!"; $("countdownSub").textContent = "🥹"; }
@@ -65,7 +65,8 @@ function tick() {
       $("countdown").innerHTML = dd > 0 ? dd + "<small> d</small>" : hh + "<small> h</small> " + mm + "<small> m</small>";
       $("countdownSub").textContent = dd > 0 ? hh + " h " + mm + " min" : "¡ya casi!";
     }
-  } else { $("countdown").textContent = "—"; $("countdownSub").textContent = "elige fecha en ⚙️"; }
+  } else if (state.main.together) { $("countdown").textContent = "💞"; $("countdownSub").textContent = "¡estáis juntos!"; }
+  else { $("countdown").textContent = "—"; $("countdownSub").textContent = "elige fecha en ⚙️"; }
   if (otdKey) watchOTD();
   if (typeof petDiaryCheck === "function") petDiaryCheck();
   if (typeof weeklyCheck === "function") weeklyCheck().catch(e => console.warn(e));
@@ -4026,7 +4027,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "1.8";
+const APP_VERSION = "2.0";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -5433,8 +5434,17 @@ function renderMeet() {
   const el = $("meetCard"); if (!el) return;
   const nx = state.main.next, now = Date.now(), o = name(other()), m = state.main;
   const bogus = nx && m.nextSet && nx - m.nextSet < 30 * 6e4;
+  const setTog = () => { S.merge("state/main", { together: true, togetherAt: Date.now(), next: null, nextSet: null }); confetti(); toast("💞 ¡A disfrutar juntos!"); };
+  if (m.together) {
+    const d = Math.max(0, -calDays(m.togetherAt || now));
+    el.innerHTML = `<div class="label">Ahora estáis juntos 💞</div><div class="togeth"><span>🥰</span><b>¡Disfrutad mucho!</b><small>${d ? `Juntos desde hace ${d} ${d === 1 ? "día" : "días"}` : "Juntos desde hoy"}</small></div>
+      <button class="btn primary" id="meetApart" style="width:100%">✈️ Ya nos hemos separado · poner la próxima fecha</button>`;
+    $("meetApart").onclick = () => S.merge("state/main", { together: false, togetherAt: null });
+    return;
+  }
   if (!nx || nx < now - DAY || bogus) {
     el.innerHTML = `<div class="label">¿Cuándo os veis? ✈️</div><div class="sub">Poned la fecha y empezará la cuenta atrás para los dos.</div><div class="row mt"><input type="datetime-local" id="meetIn"><button class="btn primary" id="meetSet">Guardar</button></div>`;
+    el.insertAdjacentHTML("beforeend", `<button class="linkbtn" id="meetTog" style="display:block;margin:10px auto 0">💞 Ahora mismo estamos juntos</button>`); $("meetTog").onclick = setTog;
     $("meetSet").onclick = () => { const v = $("meetIn").value; if (!v) return toast("Elige fecha y hora"); if (new Date(v).getTime() < Date.now() + 10 * 6e4) return toast("Esa fecha ya ha pasado: elige una futura ✈️"); S.merge("state/main", { next: new Date(v).getTime(), nextSet: Date.now(), meetPlan: [], meetNote: {} }); sendMsg(`✈️ ¡Ya tenemos fecha! Nos vemos el ${fmtD(new Date(v).getTime(), { weekday: "long", day: "numeric", month: "long" })} 🥹`, "text"); };
     return;
   }
@@ -5442,6 +5452,7 @@ function renderMeet() {
   const plan = m.meetPlan || [], notes = m.meetNote || {}, mineN = notes[who], theirN = notes[other()];
   el.innerHTML = `<div class="label">${here ? "¡Hoy os veis! 🥹" : "Cuenta atrás para veros ✈️"}</div>
     <div class="cdown" id="cdown"></div>
+    ${here ? `<div class="row" style="gap:8px;margin-top:10px"><button class="btn primary" id="meetYes" style="flex:1">💞 ¡Ya estamos juntos!</button><button class="btn" id="meetNo" style="flex:1">😕 Hoy no nos vemos</button></div>` : ""}
     <div class="cdbar"><i style="width:${pct.toFixed(1)}%"></i><span style="left:${pct.toFixed(1)}%">✈️</span></div>
     <div class="sub" style="text-align:center;margin-top:6px">${esc(fmtD(nx, { weekday: "long", day: "numeric", month: "long" }))} · ${esc(fmt(myTz, { hour: "2-digit", minute: "2-digit" }))} ahora</div>
     ${meetPetHTML(nx)}
@@ -5452,7 +5463,10 @@ function renderMeet() {
     <div class="mnotes"><div class="mnote2 ${theirN ? "has" : ""}">${theirN ? (here ? `<b>De ${esc(o)}:</b> ${esc(theirN.t)}` : `🔒 ${esc(o)} te ha dejado un sobre. Se abre cuando os veáis`) : `${esc(o)} aún no ha dejado sobre`}</div>
     <div class="mnote2 mine">${mineN ? `✅ Tu sobre está guardado${here ? `: ${esc(mineN.t)}` : " 🤫"}` : `<textarea id="mnIn" rows="2" maxlength="300" placeholder="Escribe algo para que ${esc(o)} lo lea ese día…"></textarea><button class="btn" id="mnSave">Guardar sobre 💌</button>`}</div></div>
     ${spOn() ? `<button class="meetsp" id="meetSp">🌶️ <span><b>Vuestro plan privado</b><small>Las posturas que queréis probar los dos</small></span><i>›</i></button>` : ""}
-    <div style="display:flex;justify-content:center;gap:18px;margin-top:8px"><button class="linkbtn" id="meetEdit">Cambiar la fecha</button><button class="linkbtn" id="meetDel">Quitar la fecha</button></div>`;
+    <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:6px 18px;margin-top:8px"><button class="linkbtn" id="meetEdit">Cambiar la fecha</button><button class="linkbtn" id="meetDel">Quitar la fecha</button><button class="linkbtn" id="meetTog">💞 Ya estamos juntos</button></div>`;
+  $("meetTog").onclick = setTog;
+  const myes = $("meetYes"); if (myes) myes.onclick = setTog;
+  const mno = $("meetNo"); if (mno) mno.onclick = () => { S.merge("state/main", { next: null, nextSet: null }); toast("Fecha quitada. Poned la buena cuando la tengáis ✈️", 3500); };
   $("meetDel").onclick = () => { if (!confirm("¿Quitar la fecha en la que os veis?")) return; S.merge("state/main", { next: null, nextSet: null }); toast("Fecha quitada"); };
   const msp = $("meetSp"); if (msp) msp.onclick = () => { spTab = "ks"; ksFilter = "lista"; spEnter(); };
   if (here && !ls.get("meetParty:" + nx)) { ls.set("meetParty:" + nx, "1"); setTimeout(() => { confetti(); toast(`¡Hoy os veis! 🥹💞 Disfrutadlo mucho`, 4000); }, 700); }
@@ -6425,12 +6439,13 @@ function spEnter() {
 function spPinPad(title, cb) {
   const v = $("spPin"); let code = "";
   const draw = (err) => { v.classList.remove("hidden"); v.innerHTML = `<div class="pinbox"><div class="pinlock">🔒</div><b>${esc(title)}</b><div class="pindots ${err ? "err" : ""}">${[0, 1, 2, 3].map(i => `<i class="${i < code.length ? "on" : ""}"></i>`).join("")}</div>
-    <div class="pinpad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "⌫"].map(k => k === "" ? "<span></span>" : `<button data-k="${k}">${k}</button>`).join("")}</div><button class="linkbtn" id="pinX">Cancelar</button></div>`;
+    <div class="pinpad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "⌫"].map(k => k === "" ? "<span></span>" : `<button data-k="${k}">${k}</button>`).join("")}</div>${title === "Escribe tu PIN" ? `<button class="linkbtn" id="pinForgot" style="display:block;margin:6px auto 0">¿Has olvidado el PIN?</button>` : ""}<button class="linkbtn" id="pinX">Cancelar</button></div>`;
     v.querySelectorAll("[data-k]").forEach(b => b.onclick = async () => {
       const k = b.dataset.k; if (k === "⌫") code = code.slice(0, -1); else if (code.length < 4) code += k; SFX.tap(); draw();
       if (code.length === 4) { const c = code; code = ""; const r = await cb(c); if (r === false) { draw(true); } else if (r !== undefined) v.classList.add("hidden"); else v.classList.add("hidden"); }
     });
     $("pinX").onclick = () => { v.classList.add("hidden"); };
+    const pf = $("pinForgot"); if (pf) pf.onclick = () => { if (!confirm("Se borrará el PIN de este móvil y elegirás uno nuevo. No se pierde nada de la zona privada. ¿Seguimos?")) return; ls.set("spPinH", ""); v.classList.add("hidden"); setTimeout(spEnter, 150); };
   };
   v.classList.remove("hidden"); draw();
 }
@@ -6531,6 +6546,8 @@ const KS = [
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const KSM = Object.fromEntries(KS.map(k => [k.id, k]));
 const SP_PLACES = [["cama", "🛏️ Cama"], ["sofa", "🛋️ Sofá"], ["ducha", "🚿 Ducha"], ["cocina", "🍳 Cocina"], ["hotel", "🏨 Hotel"], ["coche", "🚗 Coche"], ["fuera", "🌲 Al aire libre"], ["otro", "✨ Otro"]];
+const SP_DUR = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180];
+const durTxt = (m, short) => m >= 60 ? (m % 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m / 60} h`) + (short && m >= 180 ? " o más" : "") : `${m} min`;
 const SP_TIMES = [["manana", "🌅 Mañana"], ["tarde", "☀️ Tarde"], ["noche", "🌙 Noche"], ["madrugada", "🌌 Madrugada"]];
 let spCal = [], spCalMonth = null, spCalSel = null, ksFilter = "todas";
 const calEntry = k => spCal.find(e => e.id === k) || null;
@@ -6853,6 +6870,7 @@ function renderSpCal() {
       <div class="irow"><span>🔥 Total</span><em>${st.total} ${st.total === 1 ? "vez" : "veces"}</em></div>
       <div class="irow"><span>📍 Sitio favorito</span><em>${st.favPl ? (SP_PLACES.find(p => p[0] === st.favPl[0]) || ["", st.favPl[0]])[1] : "—"}</em></div>
       <div class="irow"><span>📖 Posturas probadas</span><em>${st.tried}/${KS.length}</em></div>
+      ${(() => { const L = spCal.filter(e => e.n > 0 && e.dur > 0); if (!L.length) return ""; const avg = Math.round(L.reduce((a, e) => a + e.dur, 0) / L.length), top = L.slice().sort((a, b) => b.dur - a.dur)[0]; return `<div class="irow"><span>⏱️ Duración media</span><em>${durTxt(avg)}</em></div><div class="irow"><span>🏆 La más larga</span><em>${durTxt(top.dur)} · ${fmtDate(new Date(top.id + "T12:00:00"), { day: "numeric", month: "short" })}</em></div>`; })()}
       <div class="irow"><span>🗓️ Última vez</span><em>${st.last ? fmtDate(new Date(st.last + "T12:00:00"), { day: "numeric", month: "long" }) : "—"}</em></div></div>
     ${spCalExtraHTML()}`;
 }
@@ -6865,6 +6883,7 @@ function icAgenda(k) {
   return `<div class="icag">${head}<button class="icev" data-edit="1"><div class="icevbar"></div><div class="icevb">
       <div class="icevt"><b>🔥 ${e.n} ${e.n === 1 ? "vez" : "veces"}</b>${e.rating ? `<span class="icstars">${"★".repeat(e.rating)}<i>${"★".repeat(5 - e.rating)}</i></span>` : ""}</div>
       ${tm || pl ? `<small>${[tm, pl].filter(Boolean).join(" · ")}</small>` : ""}
+      ${e.hora || e.dur ? `<div class="ictime">${e.hora ? `<span>🕐 ${esc(e.hora)}</span>` : ""}${e.dur ? `<span>⏱️ ${durTxt(e.dur)}</span>` : ""}</div>` : ""}
       ${P.length ? `<div class="icpos">${P.map(p => `<span>${ksSVG(p, "kthumb")}<em>${esc(KSM[p].n)}</em></span>`).join("")}</div>` : ""}
       ${e.note ? `<p>“${esc(e.note)}”</p>` : ""}
       <div class="icevf"><span>${e.by ? `Apuntado por ${esc(name(e.by))}` : ""}</span><span class="ed">Editar ›</span></div></div></button></div>`;
@@ -6882,7 +6901,7 @@ function bindSpCal() {
 function calOpenSheet() {
   const k = spCalSel; if (!k || k > localKey()) return;
   const base = calEntry(k) || {};
-  spDraft = spDraft || { n: base.n || 1, pos: [...(base.pos || [])], times: [...(base.times || [])], place: base.place || "", rating: base.rating || 0, note: base.note || "" };
+  spDraft = spDraft || { n: base.n || 1, pos: [...(base.pos || [])], times: [...(base.times || [])], place: base.place || "", rating: base.rating || 0, note: base.note || "", hora: base.hora || "", dur: base.dur || 0 };
   const s = ksSheetEl("calSheet", "kssheet"); s.classList.remove("hidden"); renderCalSheet(); SFX.pop();
 }
 function calCloseSheet() { spDraft = null; const s = $("calSheet"); if (s) s.classList.add("hidden"); }
@@ -6891,7 +6910,9 @@ function renderCalSheet() {
   s.innerHTML = `<div class="ksbg" data-x="1"></div><div class="kspanel icsheet in">
     <div class="icsh"><button data-x="1">Cancelar</button><b>${base ? "Editar registro" : "Nuevo registro"}</b><button class="ok" id="cfSave">Guardar</button></div>
     <div class="igroup"><div class="irow"><span>📅 Fecha</span><em>${cap(fmtDate(new Date(k + "T12:00:00"), { weekday: "long", day: "numeric", month: "long" }))}</em></div>
-      <div class="irow"><span>🔥 Veces</span><div class="stepper"><button data-n="-1" aria-label="Menos">−</button><b id="cfN">${D.n}</b><button data-n="1" aria-label="Más">+</button></div></div></div>
+      <div class="irow"><span>🔥 Veces</span><div class="stepper"><button data-n="-1" aria-label="Menos">−</button><b id="cfN">${D.n}</b><button data-n="1" aria-label="Más">+</button></div></div>
+      <div class="irow"><span>🕐 Hora</span><input type="time" id="cfHora" class="itime" value="${esc(D.hora || "")}"></div></div>
+    <div class="ilabel">¿Cuánto duró? <small id="cfDurL">${D.dur ? durTxt(D.dur) : ""}</small></div><div class="chips durchips">${SP_DUR.map(v => `<button class="chip ${D.dur === v ? "on" : ""}" data-du="${v}">${durTxt(v, 1)}</button>`).join("")}</div>
     <div class="ilabel">Momento del día</div><div class="iseg">${SP_TIMES.map(([id, t]) => `<button class="${D.times.includes(id) ? "on" : ""}" data-tm="${id}">${t.replace(" ", "<br>")}</button>`).join("")}</div>
     <div class="ilabel">Dónde</div><div class="chips">${SP_PLACES.map(([id, t]) => `<button class="chip ${D.place === id ? "on" : ""}" data-pl="${id}">${t}</button>`).join("")}</div>
     <div class="ilabel">Posturas <small id="cfPc">${D.pos.length ? D.pos.length + (D.pos.length === 1 ? " elegida" : " elegidas") : ""}</small></div>
@@ -6901,6 +6922,8 @@ function renderCalSheet() {
     ${base ? `<button class="idel" id="cfDel">Eliminar registro</button>` : ""}</div>`;
   s.querySelectorAll("[data-x]").forEach(b => b.onclick = calCloseSheet);
   $("cfNote").oninput = e => { D.note = e.target.value; };
+  $("cfHora").onchange = e => { D.hora = e.target.value; const h = +(D.hora || "").split(":")[0]; if (D.hora && !D.times.length) { const t = h < 6 ? "madrugada" : h < 13 ? "manana" : h < 20 ? "tarde" : "noche"; D.times = [t]; s.querySelectorAll("[data-tm]").forEach(c => c.classList.toggle("on", c.dataset.tm === t)); } };
+  s.querySelectorAll("[data-du]").forEach(b => b.onclick = () => { const v = +b.dataset.du; D.dur = D.dur === v ? 0 : v; s.querySelectorAll("[data-du]").forEach(c => c.classList.toggle("on", +c.dataset.du === D.dur)); $("cfDurL").textContent = D.dur ? durTxt(D.dur) : ""; SFX.tap(); });
   s.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { D.n = Math.max(1, Math.min(20, D.n + +b.dataset.n)); $("cfN").textContent = D.n; SFX.tap(); });
   s.querySelectorAll("[data-tm]").forEach(b => b.onclick = () => { const x = b.dataset.tm; D.times = D.times.includes(x) ? D.times.filter(y => y !== x) : [...D.times, x]; b.classList.toggle("on", D.times.includes(x)); SFX.tap(); });
   s.querySelectorAll("[data-pl]").forEach(b => b.onclick = () => { D.place = D.place === b.dataset.pl ? "" : b.dataset.pl; s.querySelectorAll("[data-pl]").forEach(c => c.classList.toggle("on", c.dataset.pl === D.place)); SFX.tap(); });
@@ -6908,7 +6931,7 @@ function renderCalSheet() {
   s.querySelectorAll("[data-r]").forEach(b => b.onclick = () => { D.rating = +b.dataset.r === D.rating ? 0 : +b.dataset.r; s.querySelectorAll("[data-r]").forEach(c => c.classList.toggle("on", D.rating >= +c.dataset.r)); SFX.tap(); });
   $("cfSave").onclick = () => {
     const kk = spCalSel, note = (D.note || "").trim().slice(0, 300), isNew = !base;
-    spCalSave(kk, { n: D.n, pos: D.pos, times: D.times, place: D.place, rating: D.rating, note, by: (base && base.by) || who, upd: Date.now() });
+    spCalSave(kk, { n: D.n, pos: D.pos, times: D.times, place: D.place, rating: D.rating, note, hora: D.hora || "", dur: D.dur || 0, by: (base && base.by) || who, upd: Date.now() });
     calCloseSheet(); SFX.ding(); toast(isNew ? "Apuntado 🔥" : "Cambios guardados ✓"); renderSp();
   };
   const dl = $("cfDel"); if (dl) dl.onclick = () => { if (!confirm("¿Eliminar el registro de este día?")) return; spCalDel(spCalSel); calCloseSheet(); renderSp(); };
