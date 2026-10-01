@@ -650,6 +650,68 @@ CATALOG.push(
   { id: "f_terrazo", cat: "casa", kind: "floor", n: "Terrazo", c: 90, lvl: 2, sw: "#e8ddd2", fs: "tiles", nw: 3 },
   { id: "f_alfombra", cat: "casa", kind: "floor", n: "Moqueta azul", c: 60, lvl: 1, sw: "#7f9fd9", fs: "carpet", nw: 3 }
 );
+// ---- 2.2: comidas que solo se cocinan y premios de eventos ----
+CATALOG.push(
+  { id: "ensalada", cat: "comida", e: "🥗", n: "Ensalada del huerto", c: 0, lvl: 1, cook: 1, eff: { food: 30, clean: 10, energy: 10 } },
+  { id: "mazorca", cat: "comida", e: "🌽", n: "Mazorca asada", c: 0, lvl: 1, cook: 1, eff: { food: 22, fun: 6 } },
+  { id: "bombones", cat: "comida", e: "💝", n: "Bombones de amor", c: 0, lvl: 1, cook: 1, eff: { love: 28, fun: 10 } },
+  { id: "cremacal", cat: "comida", e: "🥣", n: "Crema de calabaza", c: 0, lvl: 1, cook: 1, eff: { food: 45, love: 15, energy: 10 } },
+  { id: "pastelcal", cat: "comida", e: "🥧", n: "Pastel de calabaza", c: 0, lvl: 1, cook: 1, eff: { food: 35, fun: 15, love: 10 } },
+  { id: "festin", cat: "comida", e: "🍱", n: "Festín para dos", c: 0, lvl: 1, cook: 1, eff: { food: 70, love: 20, fun: 15, energy: 15 } },
+  { id: "orejasgato", cat: "ropa", slot: "head", e: "🐈‍⬛", n: "Orejas de gatito negro", c: 0, lvl: 1, ev: "halloween" },
+  { id: "capavampiro", cat: "ropa", slot: "neck", e: "🧛", n: "Capa de vampiro", c: 0, lvl: 1, ev: "halloween" },
+  { id: "cuernosreno", cat: "ropa", slot: "head", e: "🦌", n: "Cuernos de reno", c: 0, lvl: 1, ev: "navidad" },
+  { id: "bufestrella", cat: "ropa", slot: "neck", e: "⭐", n: "Bufanda de estrellas", c: 0, lvl: 1, ev: "navidad" },
+  { id: "diademacor", cat: "ropa", slot: "head", e: "💘", n: "Diadema de corazones", c: 0, lvl: 1, ev: "sanvalentin" },
+  { id: "collarcor", cat: "ropa", slot: "neck", e: "💗", n: "Collar de corazón", c: 0, lvl: 1, ev: "sanvalentin" },
+  { id: "coronaaniv", cat: "ropa", slot: "head", e: "👑", n: "Corona del aniversario", c: 0, lvl: 1, ev: "aniversario" },
+  { id: "medallaamor", cat: "ropa", slot: "neck", e: "🏅", n: "Medalla del amor", c: 0, lvl: 1, ev: "aniversario" }
+);
+// ---- 2.3: más cosas para la tienda ----
+CATALOG.push(
+  { id: "x_burrito", cat: "comida", e: "🌯", n: "Burrito", c: 28, lvl: 1, eff: { food: 35, fun: 5 }, nw: 4 },
+  { id: "x_curry", cat: "comida", e: "🍛", n: "Curry con arroz", c: 32, lvl: 2, eff: { food: 48, energy: 6 }, nw: 4 },
+  { id: "x_empanada", cat: "comida", e: "🥟", n: "Empanadillas", c: 20, lvl: 1, eff: { food: 24, love: 4 }, nw: 4 },
+  { id: "x_espagueti", cat: "comida", e: "🍝", n: "Espaguetis", c: 30, lvl: 1, eff: { food: 42, fun: 4 }, nw: 4 },
+  { id: "x_gofre", cat: "comida", e: "🧇", n: "Gofre", c: 18, lvl: 1, eff: { food: 18, fun: 10 }, nw: 4 },
+  { id: "x_dango", cat: "comida", e: "🍡", n: "Dango", c: 14, lvl: 1, eff: { food: 10, fun: 12 }, nw: 4 },
+  { id: "x_limonada", cat: "comida", e: "🍋", n: "Limonada fresquita", c: 12, lvl: 1, eff: { energy: 14, clean: 4 }, nw: 4 },
+  { id: "x_leche", cat: "comida", e: "🥛", n: "Leche con galletas", c: 14, lvl: 1, eff: { food: 12, energy: 10, love: 4 }, nw: 4 },
+  { id: "x_miel", cat: "comida", e: "🍯", n: "Tostada con miel", c: 16, lvl: 1, eff: { food: 16, love: 8 }, nw: 4 },
+  { id: "x_arandanos", cat: "comida", e: "🫐", n: "Arándanos", c: 12, lvl: 1, eff: { food: 10, energy: 8, clean: 4 }, nw: 4 },
+  { id: "x_mango", cat: "comida", e: "🥭", n: "Mango", c: 14, lvl: 1, eff: { food: 16, fun: 6 }, nw: 4 },
+  { id: "x_bubbletea", cat: "comida", e: "🧋", n: "Té de burbujas", c: 22, lvl: 2, eff: { fun: 16, energy: 12 }, nw: 4 },
+  { id: "x_bagel", cat: "comida", e: "🥯", n: "Bagel", c: 16, lvl: 1, eff: { food: 22 }, nw: 4 },
+  { id: "x_gambas", cat: "comida", e: "🍤", n: "Gambas rebozadas", c: 34, lvl: 3, eff: { food: 40, love: 6 }, nw: 4 },
+  { id: "x_bucket", cat: "ropa", slot: "head", e: "🎣", n: "Gorro de pescador", c: 90, lvl: 1, nw: 4 },
+  { id: "x_gorrolana", cat: "ropa", slot: "head", e: "🧶", n: "Gorro de lana con pompón", c: 100, lvl: 1, nw: 4 },
+  { id: "x_lazopelo", cat: "ropa", slot: "head", e: "🎀", n: "Lacito rojo", c: 60, lvl: 1, nw: 4 },
+  { id: "x_estrellita", cat: "ropa", slot: "face", e: "⭐", n: "Estrellitas en la cara", c: 70, lvl: 1, nw: 4 },
+  { id: "x_bandana", cat: "ropa", slot: "neck", e: "🧣", n: "Bandana de cuadros", c: 70, lvl: 1, nw: 4 },
+  { id: "x_vaquera", cat: "ropa", slot: "body", e: "🧥", n: "Chaqueta vaquera", c: 140, lvl: 2, nw: 4 },
+  { id: "estrellasfluor", cat: "casa", kind: "furn", e: "✨", n: "Estrellas que brillan", c: 70, lvl: 1, nw: 4 },
+  { id: "neoncorazon", cat: "casa", kind: "furn", e: "💗", n: "Corazón de neón", c: 150, lvl: 2, nw: 4 },
+  { id: "pizarra", cat: "casa", kind: "furn", e: "📝", n: "Pizarra «Te quiero»", c: 80, lvl: 1, nw: 4 },
+  { id: "baul", cat: "casa", kind: "furn", e: "🧰", n: "Baúl de los recuerdos", c: 110, lvl: 2, nw: 4 },
+  { id: "monstera", cat: "casa", kind: "furn", e: "🌿", n: "Monstera gigante", c: 90, lvl: 1, nw: 4 },
+  { id: "camamascota", cat: "casa", kind: "furn", e: "🛌", n: "Camita para la mascota", c: 100, lvl: 1, nw: 4 },
+  { id: "telescopio", cat: "casa", kind: "furn", e: "🔭", n: "Telescopio", c: 180, lvl: 3, nw: 4 },
+  { id: "lamparalava", cat: "casa", kind: "furn", e: "🫧", n: "Lámpara de lava", c: 90, lvl: 2, nw: 4 },
+  { id: "alfombracor", cat: "casa", kind: "furn", e: "💞", n: "Alfombra de corazón", c: 90, lvl: 1, nw: 4 },
+  { id: "cojines", cat: "casa", kind: "furn", e: "🛋️", n: "Montaña de cojines", c: 70, lvl: 1, nw: 4 },
+  { id: "w_lila", cat: "casa", kind: "wall", n: "Pared lila", c: 50, lvl: 1, sw: "#e2d4f5", nw: 4 },
+  { id: "w_melocoton", cat: "casa", kind: "wall", n: "Pared melocotón", c: 50, lvl: 1, sw: "#ffd9c2", nw: 4 },
+  { id: "w_menta", cat: "casa", kind: "wall", n: "Pared menta", c: 50, lvl: 1, sw: "#c9f0e1", nw: 4 },
+  { id: "w_coral", cat: "casa", kind: "wall", n: "Pared coral", c: 50, lvl: 1, sw: "#ffb8ab", nw: 4 },
+  { id: "w_gris", cat: "casa", kind: "wall", n: "Pared gris perla", c: 50, lvl: 1, sw: "#e4e4ea", nw: 4 },
+  { id: "w_noche", cat: "casa", kind: "wall", n: "Pared azul noche", c: 80, lvl: 2, sw: "#3a4372", nw: 4 },
+  { id: "f_cerezo", cat: "casa", kind: "floor", n: "Madera de cerezo", c: 80, lvl: 1, sw: "#a8583a", fs: "planks", nw: 4 },
+  { id: "f_grisroble", cat: "casa", kind: "floor", n: "Roble gris", c: 80, lvl: 1, sw: "#9c968f", fs: "planks", nw: 4 },
+  { id: "f_menta", cat: "casa", kind: "floor", n: "Baldosa menta", c: 70, lvl: 1, sw: "#bfe9d6", fs: "tiles", nw: 4 },
+  { id: "f_lila", cat: "casa", kind: "floor", n: "Moqueta lila", c: 60, lvl: 1, sw: "#c7b3e8", fs: "carpet", nw: 4 },
+  { id: "f_blanco", cat: "casa", kind: "floor", n: "Baldosa blanca", c: 70, lvl: 1, sw: "#f7f5f2", fs: "tiles", nw: 4 },
+  { id: "f_rosa2", cat: "casa", kind: "floor", n: "Ajedrez rosa", c: 110, lvl: 2, sw: "#f6c9d6", fs: "check", nw: 4 }
+);
 const CAT = Object.fromEntries(CATALOG.map(x => [x.id, x]));
 const COLM = Object.fromEntries(CATALOG.filter(x => x.cat === "color").map(x => [x.id, x]));   // los colores tienen ids que chocan (rosa)
 const ITEMS = CATALOG.filter(x => x.cat === "ropa");
@@ -1478,7 +1540,7 @@ function mgEnd() {
   }).then(() => {
     const beat = score > prevO && prevO > 0 && prevM <= prevO, rec = score > prevM;
     $("fgMsg").innerHTML = `<div style="font-size:40px">${beat ? "🏆" : rec ? "🥳" : info.e}</div>${g === "vuelo" ? `Has pasado <b>${score}</b> nube${score === 1 ? "" : "s"}` : `Has repetido <b>${score}</b> nota${score === 1 ? "" : "s"}`}<br>${gain ? `+${gain} 🪙 para la mascota` : score ? "Hoy ya no ganas más monedas aquí" : "¡Casi! Inténtalo otra vez 💪"}<br><small>${rec ? "¡Nuevo récord tuyo! " : ""}${beat ? `¡Has superado a ${esc(name(other()))}! ` : ""}Récords: ${esc(name(who))} ${Math.max(prevM, score)} · ${esc(name(other()))} ${prevO}</small><button class="btn primary" id="mgAgain">Otra vez 🔁</button><button class="btn" id="mgOut">Salir</button>`;
-    $("mgAgain").onclick = () => mgOpen(g); $("mgOut").onclick = mgClose;
+    $("mgAgain").onclick = () => mgOpen(g); $("mgOut").onclick = mgClose; duelAfter(g, score);
     if (beat) sendMsg(`🏆 ¡He batido tu récord en ${info.n}: ${score}! ${info.e} Te toca superarlo`, "game");
   }).catch(() => { $("fgMsg").innerHTML = `Puntos: <b>${score}</b><button class="btn" id="mgOut">Salir</button>`; $("mgOut").onclick = mgClose; });
 }
@@ -1594,7 +1656,7 @@ const CHESTS = [
   { id: "plata", e: "🎁", n: "Cofre de plata", c: 160, odds: [20, 50, 25, 5], col: "#d7dde4", dk: "#8e9aa8" },
   { id: "oro", e: "👑", n: "Cofre de oro", c: 360, odds: [0, 20, 50, 30], col: "#ffd23f", dk: "#d49a00" }
 ];
-function chestPool(q) { const m = new Date().getMonth(); return CATALOG.filter(it => (it.slot || it.cat === "color") && !isOwned(q, it) && !it.treasure && !it.lv && !it.req && it.id !== "dorado" && !(it.season && !it.season.includes(m))); }
+function chestPool(q) { const m = new Date().getMonth(); return CATALOG.filter(it => (it.slot || it.cat === "color") && !isOwned(q, it) && !it.ev && !it.treasure && !it.lv && !it.req && it.id !== "dorado" && !(it.season && !it.season.includes(m))); }
 function rollChest(q, ch) {
   const pool = chestPool(q); if (!pool.length) return null;
   const pickR = () => { let x = Math.random() * 100; for (let i = 0; i < 4; i++) if ((x -= ch.odds[i]) < 0) return i + 1; return 1; };
@@ -1806,6 +1868,22 @@ const FA = {
 // dibujos de la ropa nueva (v48)
 function items2(id) {
   switch (id) {
+    // ---- 2.3 ropa nueva ----
+    case "x_bucket": return `<g transform="translate(100 70)"><ellipse cx="0" cy="0" rx="48" ry="11" fill="#5f7a54"/><path d="M-32 -2 Q-30 -34 0 -35 Q30 -34 32 -2 Z" fill="#7d9a6e"/><path d="M-31 -8 Q0 -2 31 -8" stroke="#5f7a54" stroke-width="3" fill="none"/><path d="M-20 -26 Q0 -30 20 -26" stroke="#9db58f" stroke-width="2" fill="none" opacity=".7"/></g>`;
+    case "x_gorrolana": return `<g transform="translate(100 70)"><path d="M-36 4 Q-38 -36 0 -40 Q38 -36 36 4 Z" fill="#e2574c"/>${[-28, -14, 0, 14, 28].map(x => `<path d="M${x} 2 L${x} -30" stroke="#c43d33" stroke-width="3" opacity=".6"/>`).join("")}<rect x="-38" y="-4" width="76" height="13" rx="6" fill="#f5efe6"/><circle cy="-44" r="11" fill="#f5efe6"/><circle cx="-3" cy="-47" r="4" fill="#fff" opacity=".8"/></g>`;
+    case "x_lazopelo": return `<g transform="translate(128 60) rotate(18)"><path d="M0 0 L-18 -12 Q-22 0 -18 12 Z" fill="#e8213d"/><path d="M0 0 L18 -12 Q22 0 18 12 Z" fill="#e8213d"/><circle r="5" fill="#b3122a"/><path d="M-14 -6 Q-12 0 -14 6 M14 -6 Q12 0 14 6" stroke="#ff7a8c" stroke-width="2" fill="none"/></g>`;
+    case "x_estrellita": return `<g><path d="${starP(62, 112, 6)}" fill="#ffd23f" stroke="#e8a200" stroke-width="1"/><path d="${starP(140, 110, 5)}" fill="#ffd23f" stroke="#e8a200" stroke-width="1"/><path d="${starP(150, 122, 3)}" fill="#ffe680"/></g>`;
+    case "x_bandana": return `<g><path d="M58 140 Q100 158 142 140 L130 170 Q100 182 70 170 Z" fill="#d7263d"/>${[72, 86, 100, 114, 128].map(x => `<path d="M${x} 146 L${x} 172" stroke="#fff" stroke-width="2" opacity=".45"/>`).join("")}<path d="M66 154 Q100 166 134 154" stroke="#fff" stroke-width="2" opacity=".45" fill="none"/><circle cx="142" cy="142" r="5" fill="#b01c2f"/></g>`;
+    case "x_vaquera": return `<g><path d="M40 130 Q70 122 86 128 L100 150 L114 128 Q130 122 160 130 V176 H40Z" fill="#4f7bb5"/><path d="M86 128 L100 150 L114 128" stroke="#2f5590" stroke-width="3" fill="none"/><path d="M100 150 V176" stroke="#2f5590" stroke-width="2.5" stroke-dasharray="4 3"/><rect x="58" y="146" width="20" height="14" rx="3" fill="none" stroke="#e6b35a" stroke-width="2"/><rect x="122" y="146" width="20" height="14" rx="3" fill="none" stroke="#e6b35a" stroke-width="2"/><circle cx="106" cy="160" r="2.5" fill="#e6b35a"/><circle cx="106" cy="170" r="2.5" fill="#e6b35a"/></g>`;
+    // ---- 2.2 premios de eventos ----
+    case "orejasgato": return `<g><path d="M62 78 L66 40 L90 66 Z" fill="#1d1b26"/><path d="M68 70 L70 50 L84 64 Z" fill="#ff8fb0"/><path d="M138 78 L134 40 L110 66 Z" fill="#1d1b26"/><path d="M132 70 L130 50 L116 64 Z" fill="#ff8fb0"/><path d="M60 80 Q100 62 140 80" stroke="#1d1b26" stroke-width="5" fill="none"/></g>`;
+    case "capavampiro": return `<g><path d="M56 142 Q40 176 30 186 L70 176 Q86 166 92 150 Z" fill="#7a0f1f"/><path d="M144 142 Q160 176 170 186 L130 176 Q114 166 108 150 Z" fill="#7a0f1f"/><path d="M58 140 Q100 156 142 140 L146 128 Q100 146 54 128 Z" fill="#1d1b26"/><path d="M54 128 L46 112 L66 134 Z M146 128 L154 112 L134 134 Z" fill="#1d1b26"/><circle cx="100" cy="150" r="5" fill="#ffd23f" stroke="#c99a00" stroke-width="1.5"/></g>`;
+    case "cuernosreno": return `<g stroke="#8a5a38" stroke-width="6" stroke-linecap="round" fill="none"><path d="M76 70 Q66 46 70 30 M70 46 Q58 44 54 34 M71 38 Q80 30 84 22"/><path d="M124 70 Q134 46 130 30 M130 46 Q142 44 146 34 M129 38 Q120 30 116 22"/><circle cx="100" cy="58" r="0" /></g>`;
+    case "bufestrella": return `<g><path d="M58 140 Q100 160 142 140 L143 152 Q100 172 57 152 Z" fill="#2a3f8f"/>${[66, 84, 100, 116, 134].map((x, i) => `<path d="${starP(x, 148 + (i % 2 ? 5 : 2), 4.5)}" fill="#ffd23f"/>`).join("")}<path d="M120 150 L130 150 L133 178 L121 178 Z" fill="#2a3f8f"/><path d="${starP(127, 172, 4)}" fill="#ffd23f"/></g>`;
+    case "diademacor": return `<g><path d="M60 80 Q100 58 140 80" stroke="#ff4d7e" stroke-width="5" fill="none"/>${[[70, 60, 7], [100, 48, 9], [130, 60, 7]].map(([x, y, s]) => `<path d="M${x} ${y + 12} L${x} ${y + 26}" stroke="#ff4d7e" stroke-width="2"/><path d="${heartP(x, y, s)}" fill="#ff4d7e"/>`).join("")}</g>`;
+    case "collarcor": return `<g><path d="M62 140 Q100 160 138 140" stroke="#ffd23f" stroke-width="3" fill="none"/><path d="${heartP(100, 152, 9)}" fill="#ff4d7e" stroke="#c9174a" stroke-width="1.5"/></g>`;
+    case "coronaaniv": return `<g transform="translate(100 64)"><path d="M-30 6 L-34 -22 L-16 -8 L0 -30 L16 -8 L34 -22 L30 6 Z" fill="#ffd23f" stroke="#c99a00" stroke-width="2"/><rect x="-30" y="2" width="60" height="9" rx="3" fill="#f2b705"/><path d="${heartP(0, -8, 6)}" fill="#ff4d7e"/><circle cx="-34" cy="-22" r="3.5" fill="#ff8fb0"/><circle cx="34" cy="-22" r="3.5" fill="#ff8fb0"/></g>`;
+    case "medallaamor": return `<g><path d="M86 136 L94 160 M114 136 L106 160" stroke="#d62828" stroke-width="7"/><circle cx="100" cy="166" r="11" fill="#ffd23f" stroke="#c99a00" stroke-width="2"/><path d="${heartP(100, 162, 5)}" fill="#ff4d7e"/></g>`;
     // ---- cabeza ----
     case "boinamar": return `<g transform="translate(100 70)"><ellipse cx="0" cy="-2" rx="34" ry="9" fill="#1f3b73"/><path d="M-30 -4 Q-28 -30 0 -32 Q28 -30 30 -4 Z" fill="#fff"/><rect x="-31" y="-9" width="62" height="7" rx="3" fill="#1f3b73"/><circle cy="-33" r="5" fill="#e63946"/><path d="M-6 -20 l6 -6 l6 6" stroke="#1f3b73" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`;
     case "cascovik": return `<g transform="translate(100 70)"><path d="M-36 0 Q-36 -36 0 -38 Q36 -36 36 0 Z" fill="#9aa4b2"/><path d="M-36 0 Q0 6 36 0 L36 6 Q0 12 -36 6Z" fill="#7d8796"/><circle cx="-18" cy="-14" r="2.5" fill="#cfd6df"/><circle cx="18" cy="-14" r="2.5" fill="#cfd6df"/><path d="M-30 -14 Q-56 -26 -50 -54 Q-44 -34 -24 -26Z" fill="#fff6e0" stroke="#e8d9bf" stroke-width="2"/><path d="M30 -14 Q56 -26 50 -54 Q44 -34 24 -26Z" fill="#fff6e0" stroke="#e8d9bf" stroke-width="2"/></g>`;
@@ -1987,7 +2065,7 @@ function bedSleeper(room) {
 function furnHTML(id, room, mode, photo) {
   const A = FA[id], P = furnPos(room, id), sl = id === "cama" ? bedSleeper(room) : "", s = furnScale(id, P) * (sl ? 1.22 : 1);
   const sh = A.t === "floor" && !A.flat ? `<ellipse cx="${A.w / 2}" cy="${A.h - 2}" rx="${A.w * .46}" ry="4.5" fill="rgba(0,0,0,.2)"/>` : "";
-  return `<div class="fi f-${A.t}${A.flat ? " flat" : ""}" data-id="${id}" style="left:${P.x}%;top:${P.y}%;width:${A.w}px;--s:${s.toFixed(3)}"><svg viewBox="0 0 ${A.w} ${A.h}">${sh}${A.d({ mode, photo, lit: room.light !== false, sleep: sl })}</svg></div>`;
+  return `<div class="fi f-${A.t}${A.flat ? " flat" : ""}" data-id="${id}" style="left:${P.x}%;top:${P.y}%;width:${A.w}px;--s:${s.toFixed(3)}"><svg viewBox="0 0 ${A.w} ${A.h}">${sh}${tintWrap(A.d({ mode, photo, lit: room.light !== false, sleep: sl }), (room.tint || {})[id], sl)}</svg></div>`;
 }
 
 // ---------- Escenario: exterior (lugares) o casita (habitaciones) ----------
@@ -2235,7 +2313,7 @@ function renderPet() {
   $("stages").innerHTML = STAGES.map((s, k) => `<span class="${k <= si ? "on" : ""}" title="${esc(stageName(k, p.species))}">${k <= si ? stageEmoji(k, p.species) : "?"}<small>${s.xp}</small></span>`).join("");
   renderAlbum(p, color, wear);
   renderShop(p, I);
-  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderFamily(p, I); renderLove(p, I); renderTree(p);
+  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderEvent(p); renderDuelBadge(); renderFamily(p, I); renderLove(p, I); renderTree(p);
   $("dotPet").classList.toggle("hidden", I.meT && !I.sick && I.nv.food >= 30 && !(forMe || replyForMe) && !missionsClaimable(p) && !(p.trip && tripBack(p)));
 
   if (si > 0 && !p.sick && !setOn(p, "lluvia") && I.low >= 2 && sickChecked !== I.today && Date.now() - (p.curedAt || 0) > 12 * 36e5) { sickChecked = I.today; petTx(q => { if (q.sick) return null; q.sick = true; q.sickAt = Date.now(); firstMark(q, "sick"); return q; }).then(r => { if (r) sendMsg(`🤒 ${r.name || "El pollito"} se ha puesto malito. Necesita medicina 💊`, "pet"); }).catch(() => {}); }
@@ -2255,6 +2333,8 @@ function renderAlbum(p, color, wear) {
 
 // ---------- Tienda ----------
 function itemLock(it, p, I) {
+  if (it.cook) return "🍳 Se cocina en la cocina";
+  if (it.ev) { const E = EVENTS.find(x => x.id === it.ev); return "🔒 Premio del evento " + (E ? E.e + " " + E.n : ""); }
   if (it.treasure) return "🔒 Solo sale en tesoros ✨";
   if (it.chest) return "🔒 Solo sale en cofres 🎁";
   if (it.lv) return I.L.l >= it.lv ? "🎁 Recógelo en el camino de premios" : "🔒 Premio del nivel " + it.lv;
@@ -3289,7 +3369,7 @@ function fgEnd() {
       const best = (state.pet && state.pet.best_game) || score;
       $("fgMsg").innerHTML = `<div style="font-size:40px">${score >= 20 ? "🏆" : score >= 10 ? "🥳" : "🐤"}</div>¡Has atrapado <b>${score}</b>!<br>${gain ? `+${gain} 🪙 para la mascota` : "Hoy ya no ganas más monedas"}<br><small>Récord: ${best}</small>
         <button class="btn primary" id="fgAgain">Otra vez 🔁</button><button class="btn" id="fgOut">Salir</button>`;
-      $("fgAgain").onclick = () => $("fgPlay").click(); $("fgOut").onclick = fgClose;
+      $("fgAgain").onclick = () => $("fgPlay").click(); $("fgOut").onclick = fgClose; duelAfter("fresas", score);
       if (score > prevOther && prevMine <= prevOther && prevOther > 0) sendMsg(`🏆 ¡He batido tu récord en Atrapa fresas: ${score}! 🍓`, "game");
       else if (score >= 15) sendMsg(`🍓 He atrapado ${score} fresas en el minijuego. ¡Supérame!`, "game");
     }).catch(() => { $("fgMsg").innerHTML = `¡Has atrapado <b>${score}</b>!<button class="btn" id="fgOut">Salir</button>`; $("fgOut").onclick = fgClose; });
@@ -4027,7 +4107,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "2.0";
+const APP_VERSION = "2.4";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -4901,7 +4981,7 @@ function renderShop(p, I) {
   const grid = list => { const ok = list.filter(it => isOwned(p, it) || !itemLock(it, p, I) || it.cat === "comida").sort((a, b) => order(a) - order(b) || a.c - b.c), lk = list.filter(it => !ok.includes(it));
     return (ok.length ? `<div class="shopgrid">${ok.map(cell).join("")}</div>` : "") + (lk.length ? `<details class="lockd"><summary>🔒 Se desbloquean más adelante (${lk.length})</summary><div class="shopgrid">${lk.map(cell).join("")}</div></details>` : ""); };
   let h = "";
-  const list = CATALOG.filter(it => it.cat === shopTab);
+  const list = CATALOG.filter(it => it.cat === shopTab && !it.cook);
   const month = new Date().getMonth(), seasonal = CATALOG.filter(it => it.season && it.season.includes(month));
   if (shopTab === "ropa") {
     const act = activeSets(p);
@@ -4915,7 +4995,7 @@ function renderShop(p, I) {
   else if (shopTab === "armario") h = renderWardrobe(p);
   else if (shopTab === "cofres") h = renderChests(p, coins);
   else if (shopTab === "deseos") h = renderWishes(p, I, offers);
-  else if (shopTab === "casa") h = [["furn", "🛋️ Muebles"], ["wall", "🎨 Paredes"], ["floor", "🟫 Suelos"]].map(([k, n]) => `<div class="slotname">${n}</div>${grid(list.filter(i => i.kind === k))}`).join("") + `<div class="sub dsub">Se pone en: <b>${esc((ROOMS.find(r => r[0] === curRoom) || ROOMS[0])[1])}</b>. Cambia de habitación debajo de la escena y usa ✏️ Mover para colocar los muebles.</div>`;
+  else if (shopTab === "casa") h = tintPanelHTML(p) + [["furn", "🛋️ Muebles"], ["wall", "🎨 Paredes"], ["floor", "🟫 Suelos"]].map(([k, n]) => `<div class="slotname">${n}</div>${grid(list.filter(i => i.kind === k))}`).join("") + `<div class="sub dsub">Se pone en: <b>${esc((ROOMS.find(r => r[0] === curRoom) || ROOMS[0])[1])}</b>. Cambia de habitación debajo de la escena y usa ✏️ Mover para colocar los muebles.</div>`;
   else if (shopTab === "comida") h = `${grid(list)}<div class="sub dsub">La comida va a la 🎒 Mochila. Dásela cuando quieras.</div>`;
   else if (shopTab === "juguete") h = `${grid(list)}<div class="sub dsub">Cada juguete le divierte distinto. Elígelo al pulsar ⚽ Jugar.</div>`;
   else if (shopTab === "color") h = `<div class="slotname">🎨 Colores y degradados</div>${grid(list)}<div class="slotname">🐾 Marcas y dibujos del pelaje</div><div class="sub dsub" style="margin-top:0">Se combinan con cualquier color. ¡Y las crías las heredan! 🐣</div>${grid(CATALOG.filter(i => i.cat === "marca"))}<div class="sub dsub">✨ El dorado es gratis al llegar a legendario. Sirena solo sale en cofres y Diamante es el premio del nivel 40.</div>`;
@@ -4929,6 +5009,8 @@ function renderShop(p, I) {
   $("shopBody").querySelectorAll("[data-slot]").forEach(b => b.onclick = () => { shopSlot = b.dataset.slot; ls.set("shopSlot", shopSlot); renderPet(); });
   fitIcons($("shopCard"));
   $("shopBody").querySelectorAll("[data-chest]").forEach(b => b.onclick = () => openChest(b.dataset.chest));
+  $("shopBody").querySelectorAll("[data-tint]").forEach(b => b.onclick = () => { const [id, k] = b.dataset.tint.split(":"); setTint(id, k); });
+  const tb = $("shopBody").querySelector(".tintbox"); if (tb) tb.ontoggle = () => ls.set("tintOpen", tb.open ? "1" : "0");
   $("shopBuy").innerHTML = "";
 }
 const si0 = I => I.si === 0;
@@ -5635,7 +5717,7 @@ function markIcon(it) {
 }
 
 // ---------- en la escena ----------
-function famSig(p) { const m = mateOf(p), I0 = petInfo(); return JSON.stringify([viewLoc(), petLoc(p, I0), mateLoc(p, I0), kidsOf(p).map(k => kidLoc(p, I0, k)).join(), I0.si && currentExpr(I0) === "sleep",m && [m.name, m.c, m.mark, m.status, relStatus(relOf(m))[1], m.weddingAt && Date.now() - m.weddingAt < DAY], kidsOf(p).map(k => [k.id, kidStage(k), k.name, JSON.stringify(k.wear || {})]), p.nest && [p.nest.n, p.nest.at]]); }
+function famSig(p) { const m = mateOf(p), I0 = petInfo(); return Array.from({ length: PLOTS }, (_, i) => { const G0 = plotInfo(plotOf(p, i)); return G0 ? G0.st + (G0.wilt ? "w" : "") : "-"; }).join("") + ((curEvent() || {}).id || "") + JSON.stringify([viewLoc(), petLoc(p, I0), mateLoc(p, I0), kidsOf(p).map(k => kidLoc(p, I0, k)).join(), I0.si && currentExpr(I0) === "sleep",m && [m.name, m.c, m.mark, m.status, relStatus(relOf(m))[1], m.weddingAt && Date.now() - m.weddingAt < DAY], kidsOf(p).map(k => [k.id, kidStage(k), k.name, JSON.stringify(k.wear || {})]), p.nest && [p.nest.n, p.nest.at]]); }
 function famScene(p, I) {
   let h = "";
   const m = mateOf(p), vl = viewLoc(), pl = petLoc(p, I);
@@ -5653,6 +5735,8 @@ function famScene(p, I) {
     h += `<button class="kidfig kst${kidStage(k)}${alone ? " alone" : ""}" data-kid="${k.id}" style="--ki:${ki++};animation-delay:${-i * .7}s">${chickSVG(kidStage(k), pl === "dorm" && vl === "dorm" && hourIn(myTz) >= 21 ? "sleep" : "happy", geneWear(k), 0, geneColor(k), { species: k.species })}<em class="kidsx">${sxTag(sexOf(k))}</em></button>`;
   });
   if (p.nest && !p.nest.hatched && (vl === "dorm" || vl === "jardin" || vl === "out")) h += `<button class="nestfig" id="nestFig" aria-label="Huevo">${nestSVG(p)}</button>`;
+  if (vl === "jardin" || vl === "out") h += gardenSceneHTML(p);
+  h += evDecoHTML();
   return h;
 }
 function nestSVG(p) {
@@ -5667,6 +5751,7 @@ function bindFamScene() {
   const mf = $("mateFig"); if (mf) mf.onclick = e => { e.stopPropagation(); const m = mateOf(state.pet); if (!m) return; hearts(mf, "💕"); buzz(20); say(rnd([`¡${m.name} es lo más bonito del mundo! 😍`, `${m.name} y yo os queremos mucho 💞`, `¿Nos lleváis de cita? 🌹`, `¡Mira qué guap${hashStr(m.name) % 2 ? "o" : "a"} está ${m.name}! ✨`])); react("love", 1800); };
   document.querySelectorAll("#petSky [data-kid]").forEach(b => b.onclick = e => { e.stopPropagation(); openKid(b.dataset.kid); });
   const nf = $("nestFig"); if (nf) nf.onclick = e => { e.stopPropagation(); warmEgg(); };
+  const gf = $("gardenFig"); if (gf) gf.onclick = e => { e.stopPropagation(); openGarden(); };
 }
 
 // ---------- relación estilo Sims: amistad + romance ----------
@@ -5857,7 +5942,8 @@ function renderLove(p, I) {
     h = `<div class="couple"><div class="cfig">${chickSVG(Math.max(2, I.si), "happy", p.wear || {}, 0, p.color, { species: p.species })}<b>${pn} ${sxTag(p.sex)}</b></div><div class="cheart">${se}<small>${esc(sn)}</small></div><div class="cfig">${chickSVG(Math.max(2, I.si), "happy", geneWear(m), 0, geneColor(m), { species: m.species })}<b>${esc(m.name)} ${sxTag(sexOf(m))}</b></div></div>
       ${relBars(m)}
       <div class="chem">${m.f >= 35 || st !== "conocidos" ? `Química: <b>${CHEM[m.chem][0]} ${CHEM[m.chem][1]}</b> · ${CHEM[m.chem][2]}` : "Química: ❓ se descubre cuando sean amigos"}</div>
-      <div class="sub" style="text-align:center;margin:6px 0 8px;font-size:12.5px">${SEXW[sexOf(m)][1]} ${esc(m.name)} es ${SEXW[sexOf(m)][0]} · se conocen desde el ${fmtDate(m.metAt, { day: "numeric", month: "long" })}${m.like ? ` · a ${esc(m.name)} le encantan ${esc(m.like)}` : ""}</div>`;
+      <div class="sub" style="text-align:center;margin:6px 0 8px;font-size:12.5px">${SEXW[sexOf(m)][1]} ${esc(m.name)} es ${SEXW[sexOf(m)][0]} · se conocen desde el ${fmtDate(m.metAt, { day: "numeric", month: "long" })}${m.like ? ` · a ${esc(m.name)} le encantan ${esc(m.like)}` : ""}</div>
+      <div class="mvisit">${p.mateOut ? `<span>🏡 ${esc(m.name)} está en su casa</span><button class="btn primary" id="mateInB">📞 Invitarle a casa</button>` : `<span>🏠 ${esc(m.name)} está de visita</span><button class="btn" id="mateOutB">👋 Que se vaya a su casa</button>`}</div>`;
     // momentos especiales
     let big = "";
     if (st === "conocidos" && m.fz) big = `<div class="sub" style="text-align:center;margin:0">🤝 Entre ${pn} y ${esc(m.name)} no hay química: serán grandes amigos. Si queréis buscarle el amor, podéis dejar de verse abajo.</div>`;
@@ -5893,6 +5979,7 @@ function renderLove(p, I) {
   el.innerHTML = h;
   const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
   on("loveFind", openMateFinder); on("loveDeclare", declare); on("lovePropose", propose); on("loveYes", acceptWedding); on("loveCelebrate", celebrate);
+  on("mateOutB", () => mateVisit(true)); on("mateInB", () => mateVisit(false));
   on("loveEgg", layEgg); on("loveWarm", warmEgg); on("loveBreak", breakUp); on("loveSexEdit", () => { el.innerHTML = sexSetup(p, 1); bindSexSetup(); });
   el.querySelectorAll("[data-int]").forEach(b => b.onclick = () => doInter(b.dataset.int));
   el.querySelectorAll("[data-prep]").forEach(b => b.onclick = () => doPrep(b.dataset.prep));
@@ -6083,8 +6170,10 @@ function petLoc(p, I) {
 }
 function mateLoc(p, I) {
   const m = mateOf(p); if (!m) return null;
-  const pl = petLoc(p, I), slot = Math.floor(Date.now() / LOC_SLOT), close = m.status !== "conocidos" ? 85 : 55;
-  if (pl === "dorm" && m.status !== "conocidos") return "dorm";
+  if (p.mateOut) return null;
+  const pl = petLoc(p, I), slot = Math.floor(Date.now() / LOC_SLOT), close = (m.f || 0) >= 60 ? 92 : 80;
+  // de novios en adelante van siempre juntos; si solo se conocen, casi siempre
+  if (m.status !== "conocidos" || pl === "dorm") return pl;
   return hashStr(slot + ":m:" + m.name) % 100 < close ? pl : pickW(schedW(hourIn(myTz)).filter(x => x[0] !== pl).concat([["jardin", 1]]), hashStr(slot + ":mw:" + m.name));
 }
 function kidLoc(p, I, k) {
@@ -6550,7 +6639,9 @@ const SP_DUR = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180];
 const durTxt = (m, short) => m >= 60 ? (m % 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m / 60} h`) + (short && m >= 180 ? " o más" : "") : `${m} min`;
 const SP_TIMES = [["manana", "🌅 Mañana"], ["tarde", "☀️ Tarde"], ["noche", "🌙 Noche"], ["madrugada", "🌌 Madrugada"]];
 let spCal = [], spCalMonth = null, spCalSel = null, ksFilter = "todas";
-const calEntry = k => spCal.find(e => e.id === k) || null;
+const calSes = k => spCal.filter(e => e.id === k).sort((a, b) => (a.hora || "99") < (b.hora || "99") ? -1 : (a.hora || "99") > (b.hora || "99") ? 1 : (a.upd || 0) - (b.upd || 0));
+const calEntry = k => { const L = calSes(k); return L.length ? { id: k, n: L.reduce((s, e) => s + (e.n || 0), 0), ses: L, _doc: L[0]._doc } : null; };
+const calDaysMap = E => { const M = {}; E.forEach(e => { M[e.id] = (M[e.id] || 0) + (e.n || 0); }); return M; };
 let spCalLoaded = false;
 function calStats() {
   const now = new Date(), y = now.getFullYear(), m = now.getMonth(), E = spCal.filter(e => e.n > 0);
@@ -6753,10 +6844,9 @@ function renderKsSheet(anim) {
     else if (nv) toast("Guardado en tus deseos ❤️ (en secreto)");
   };
   $("ksLog").onclick = () => {
-    ksCloseSheet(); const t = localKey(), base = calEntry(t) || {};
+    ksCloseSheet(); const t = localKey();
     spTab = "cal"; spCalMonth = null; spCalSel = t;
-    spDraft = { n: base.n || 1, pos: [...new Set([...(base.pos || []), k.id])], times: [...(base.times || [])], place: base.place || "", rating: base.rating || 0 };
-    spDraft.note = base.note || ""; renderSp(); calOpenSheet();
+    spDraft = { sid: null, n: 1, pos: [k.id], times: [], place: "", rating: 0, note: "", hora: "", dur: 0 }; renderSp(); calOpenSheet();
   };
   // deslizar para cambiar
   const art = s.querySelector(".ksart"); let x0 = null;
@@ -6789,7 +6879,7 @@ function spBadgeStats() {
   const months = {}; E.forEach(e => { const m = e.id.slice(0, 7); months[m] = (months[m] || 0) + e.n; });
   const finde = E.some(e => new Date(e.id + "T12:00:00").getDay() === 6 && (() => { const d = new Date(e.id + "T12:00:00"); d.setDate(d.getDate() + 1); return days.has(localKey(d)); })());
   return {
-    days: E.length, total: E.reduce((a, e) => a + e.n, 0), best, maxN: Math.max(0, ...E.map(e => e.n)), tried: KS.filter(k => pc[k.id]).length,
+    days: days.size, total: E.reduce((a, e) => a + e.n, 0), best, maxN: Math.max(0, ...Object.values(calDaysMap(E))), tried: KS.filter(k => pc[k.id]).length,
     places: new Set(E.map(e => e.place).filter(Boolean)).size, madr: E.some(e => (e.times || []).includes("madrugada")), man: E.some(e => (e.times || []).includes("manana")),
     five: E.filter(e => e.rating === 5).length, wish: KS.some(k => ksBoth(k.id) && pc[k.id]), month: Math.max(0, ...Object.values(months)), finde
   };
@@ -6826,7 +6916,7 @@ function spBadgesHTML() {
   return `<div class="spsec">🏅 Insignias · ${got.length}/${R.length}</div><div class="bdgs">${R.sort((a, b) => b.ok - a.ok).map(b => `<div class="bdg ${b.ok ? "on" : ""}"><span>${b.e}</span><b>${b.n}</b><small>${b.ok ? "¡Conseguida!" : b.d}</small>${b.ok ? "" : `<div class="bdgbar"><i style="width:${Math.round(b.c / b.g * 100)}%"></i></div><em>${b.c}/${b.g}</em>`}</div>`).join("")}</div>`;
 }
 function spCalExtraHTML() {
-  const E = spCal.filter(e => e.n > 0), M = {}; E.forEach(e => { M[e.id] = e.n; });
+  const E = spCal.filter(e => e.n > 0), M = calDaysMap(E);
   // mapa de calor de 26 semanas
   const end = new Date(); end.setHours(12); const start = new Date(end); start.setDate(start.getDate() - ((start.getDay() + 6) % 7) - 25 * 7);
   let cells = ""; const d = new Date(start), tk = localKey();
@@ -6854,7 +6944,7 @@ function renderSpCal() {
     row += `<button class="icd${inM ? "" : " out"}${k === today ? " today" : ""}${k === spCalSel ? " sel" : ""}${k > today ? " fut" : ""}${i % 7 >= 5 ? " wk" : ""}${n ? " has" : ""}" data-day="${k}"><b>${dt.getDate()}</b><i>${n ? Array.from({ length: Math.min(3, n) }, () => "<u></u>").join("") : ""}</i></button>`;
     if (i % 7 === 6) { rows += `<div class="icrow">${row}</div>`; row = ""; }
   }
-  const pre = `${Y}-${String(M + 1).padStart(2, "0")}`, monthN = spCal.filter(e => e.n > 0 && e.id.startsWith(pre)).reduce((a, e) => a + e.n, 0), monthD = spCal.filter(e => e.n > 0 && e.id.startsWith(pre)).length;
+  const pre = `${Y}-${String(M + 1).padStart(2, "0")}`, monthN = spCal.filter(e => e.n > 0 && e.id.startsWith(pre)).reduce((a, e) => a + e.n, 0), monthD = new Set(spCal.filter(e => e.n > 0 && e.id.startsWith(pre)).map(e => e.id)).size;
   const isNow = Y === now.getFullYear() && M === now.getMonth();
   const anim = icAnim > 0 ? " sl" : icAnim < 0 ? " sr" : ""; icAnim = 0;
   return `<div class="ical"><div class="icalhead"><div class="ictitle"><b>${cap(first.toLocaleDateString("es-ES", { month: "long" }))}</b><span>${Y}</span></div><div class="icbtns">${!isNow || spCalSel !== today ? `<button class="ictoday" data-today="1">Hoy</button>` : ""}<button class="icnav" data-m="-1" aria-label="Mes anterior">‹</button><button class="icnav" data-m="1" aria-label="Mes siguiente">›</button></div></div>
@@ -6875,18 +6965,20 @@ function renderSpCal() {
     ${spCalExtraHTML()}`;
 }
 function icAgenda(k) {
-  const e = calEntry(k), today = localKey(), d = new Date(k + "T12:00:00");
-  const head = `<div class="icaghead"><b>${cap(fmtDate(d, { weekday: "long", day: "numeric", month: "long" }))}</b>${k === today ? `<span>HOY</span>` : ""}</div>`;
-  if (!e || !e.n) return `<div class="icag">${head}<div class="icempty">${k > today ? "Este día aún no ha llegado 😏" : "Sin registros"}</div>${k > today ? "" : `<button class="icadd" data-edit="1">＋ Añadir registro</button>`}</div>`;
-  const tm = (e.times || []).map(t => (SP_TIMES.find(x => x[0] === t) || ["", t])[1]).join(" · "), pl = e.place ? (SP_PLACES.find(x => x[0] === e.place) || ["", e.place])[1] : "";
-  const P = (e.pos || []).filter(p => KSM[p]);
-  return `<div class="icag">${head}<button class="icev" data-edit="1"><div class="icevbar"></div><div class="icevb">
-      <div class="icevt"><b>🔥 ${e.n} ${e.n === 1 ? "vez" : "veces"}</b>${e.rating ? `<span class="icstars">${"★".repeat(e.rating)}<i>${"★".repeat(5 - e.rating)}</i></span>` : ""}</div>
+  const L = calSes(k), today = localKey(), d = new Date(k + "T12:00:00"), tot = L.reduce((s, e) => s + (e.n || 0), 0);
+  const head = `<div class="icaghead"><b>${cap(fmtDate(d, { weekday: "long", day: "numeric", month: "long" }))}</b>${k === today ? `<span>HOY</span>` : ""}${L.length > 1 ? `<em>🔥 ${tot} veces</em>` : ""}</div>`;
+  if (!L.length) return `<div class="icag">${head}<div class="icempty">${k > today ? "Este día aún no ha llegado 😏" : "Sin registros"}</div>${k > today ? "" : `<button class="icadd" data-add="1">＋ Añadir registro</button>`}</div>`;
+  const card = (e, i) => {
+    const tm = (e.times || []).map(t => (SP_TIMES.find(x => x[0] === t) || ["", t])[1]).join(" · "), pl = e.place ? (SP_PLACES.find(x => x[0] === e.place) || ["", e.place])[1] : "", P = (e.pos || []).filter(p => KSM[p]);
+    return `<button class="icev" data-edit="${esc(e.sid)}"><div class="icevbar"></div><div class="icevb">
+      <div class="icevt"><b>🔥 ${L.length > 1 ? `${i + 1}ª vez` : e.n > 1 ? `${e.n} veces` : "1 vez"}</b>${e.rating ? `<span class="icstars">${"★".repeat(e.rating)}<i>${"★".repeat(5 - e.rating)}</i></span>` : ""}</div>
       ${tm || pl ? `<small>${[tm, pl].filter(Boolean).join(" · ")}</small>` : ""}
       ${e.hora || e.dur ? `<div class="ictime">${e.hora ? `<span>🕐 ${esc(e.hora)}</span>` : ""}${e.dur ? `<span>⏱️ ${durTxt(e.dur)}</span>` : ""}</div>` : ""}
       ${P.length ? `<div class="icpos">${P.map(p => `<span>${ksSVG(p, "kthumb")}<em>${esc(KSM[p].n)}</em></span>`).join("")}</div>` : ""}
       ${e.note ? `<p>“${esc(e.note)}”</p>` : ""}
-      <div class="icevf"><span>${e.by ? `Apuntado por ${esc(name(e.by))}` : ""}</span><span class="ed">Editar ›</span></div></div></button></div>`;
+      <div class="icevf"><span>${e.by ? `Apuntado por ${esc(name(e.by))}` : ""}</span><span class="ed">Editar ›</span></div></div></button>`;
+  };
+  return `<div class="icag">${head}<div class="icevs">${L.map(card).join("")}</div>${k > today ? "" : `<button class="icadd more" data-add="1">＋ Añadir otra vez este día</button>`}</div>`;
 }
 function icShift(d) { let [y, m] = spCalMonth; m += d; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } spCalMonth = [y, m]; icAnim = d; SFX.tap(); renderSp(); }
 function bindSpCal() {
@@ -6894,23 +6986,23 @@ function bindSpCal() {
   v.querySelectorAll("[data-m]").forEach(b => b.onclick = () => icShift(+b.dataset.m));
   v.querySelectorAll("[data-today]").forEach(b => b.onclick = () => { const n = new Date(); icAnim = 0; spCalMonth = [n.getFullYear(), n.getMonth()]; spCalSel = localKey(); renderSp(); });
   v.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { const k = b.dataset.day; if (b.classList.contains("out")) { const d = new Date(k + "T12:00:00"); icAnim = d < new Date(spCalMonth[0], spCalMonth[1], 1) ? -1 : 1; spCalMonth = [d.getFullYear(), d.getMonth()]; } spCalSel = k; SFX.tap(); renderSp(); });
-  v.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { spDraft = null; calOpenSheet(); });
+  v.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { spDraft = { sid: b.dataset.edit }; calOpenSheet(); });
+  v.querySelectorAll("[data-add]").forEach(b => b.onclick = () => { spDraft = null; calOpenSheet(); });
   const g = $("icGrid"); let x0 = null, y0 = 0;
   if (g) { g.ontouchstart = e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }; g.ontouchend = e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null; if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) icShift(dx < 0 ? 1 : -1); }; }
 }
 function calOpenSheet() {
   const k = spCalSel; if (!k || k > localKey()) return;
-  const base = calEntry(k) || {};
-  spDraft = spDraft || { n: base.n || 1, pos: [...(base.pos || [])], times: [...(base.times || [])], place: base.place || "", rating: base.rating || 0, note: base.note || "", hora: base.hora || "", dur: base.dur || 0 };
+  const base = (spDraft && spDraft.sid != null ? calSes(k).find(s => s.sid === spDraft.sid) : null) || {};
+  spDraft = { sid: null, n: 1, pos: [...(base.pos || [])], times: [...(base.times || [])], place: base.place || "", rating: base.rating || 0, note: base.note || "", hora: base.hora || "", dur: base.dur || 0, ...(base.sid != null ? { n: base.n || 1, sid: base.sid, by: base.by } : {}), ...(spDraft && spDraft.sid == null ? spDraft : {}) };
   const s = ksSheetEl("calSheet", "kssheet"); s.classList.remove("hidden"); renderCalSheet(); SFX.pop();
 }
 function calCloseSheet() { spDraft = null; const s = $("calSheet"); if (s) s.classList.add("hidden"); }
 function renderCalSheet() {
-  const s = $("calSheet"), k = spCalSel, D = spDraft, base = calEntry(k);
+  const s = $("calSheet"), k = spCalSel, D = spDraft, base = D.sid != null ? calSes(k).find(x => x.sid === D.sid) : null, nDay = calSes(k).length, idx = base ? calSes(k).indexOf(base) + 1 : nDay + 1;
   s.innerHTML = `<div class="ksbg" data-x="1"></div><div class="kspanel icsheet in">
-    <div class="icsh"><button data-x="1">Cancelar</button><b>${base ? "Editar registro" : "Nuevo registro"}</b><button class="ok" id="cfSave">Guardar</button></div>
+    <div class="icsh"><button data-x="1">Cancelar</button><b>${base ? (nDay > 1 ? `Editar la ${idx}ª vez` : "Editar registro") : nDay ? `Añadir la ${idx}ª vez` : "Nuevo registro"}</b><button class="ok" id="cfSave">Guardar</button></div>
     <div class="igroup"><div class="irow"><span>📅 Fecha</span><em>${cap(fmtDate(new Date(k + "T12:00:00"), { weekday: "long", day: "numeric", month: "long" }))}</em></div>
-      <div class="irow"><span>🔥 Veces</span><div class="stepper"><button data-n="-1" aria-label="Menos">−</button><b id="cfN">${D.n}</b><button data-n="1" aria-label="Más">+</button></div></div>
       <div class="irow"><span>🕐 Hora</span><input type="time" id="cfHora" class="itime" value="${esc(D.hora || "")}"></div></div>
     <div class="ilabel">¿Cuánto duró? <small id="cfDurL">${D.dur ? durTxt(D.dur) : ""}</small></div><div class="chips durchips">${SP_DUR.map(v => `<button class="chip ${D.dur === v ? "on" : ""}" data-du="${v}">${durTxt(v, 1)}</button>`).join("")}</div>
     <div class="ilabel">Momento del día</div><div class="iseg">${SP_TIMES.map(([id, t]) => `<button class="${D.times.includes(id) ? "on" : ""}" data-tm="${id}">${t.replace(" ", "<br>")}</button>`).join("")}</div>
@@ -6924,17 +7016,16 @@ function renderCalSheet() {
   $("cfNote").oninput = e => { D.note = e.target.value; };
   $("cfHora").onchange = e => { D.hora = e.target.value; const h = +(D.hora || "").split(":")[0]; if (D.hora && !D.times.length) { const t = h < 6 ? "madrugada" : h < 13 ? "manana" : h < 20 ? "tarde" : "noche"; D.times = [t]; s.querySelectorAll("[data-tm]").forEach(c => c.classList.toggle("on", c.dataset.tm === t)); } };
   s.querySelectorAll("[data-du]").forEach(b => b.onclick = () => { const v = +b.dataset.du; D.dur = D.dur === v ? 0 : v; s.querySelectorAll("[data-du]").forEach(c => c.classList.toggle("on", +c.dataset.du === D.dur)); $("cfDurL").textContent = D.dur ? durTxt(D.dur) : ""; SFX.tap(); });
-  s.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { D.n = Math.max(1, Math.min(20, D.n + +b.dataset.n)); $("cfN").textContent = D.n; SFX.tap(); });
   s.querySelectorAll("[data-tm]").forEach(b => b.onclick = () => { const x = b.dataset.tm; D.times = D.times.includes(x) ? D.times.filter(y => y !== x) : [...D.times, x]; b.classList.toggle("on", D.times.includes(x)); SFX.tap(); });
   s.querySelectorAll("[data-pl]").forEach(b => b.onclick = () => { D.place = D.place === b.dataset.pl ? "" : b.dataset.pl; s.querySelectorAll("[data-pl]").forEach(c => c.classList.toggle("on", c.dataset.pl === D.place)); SFX.tap(); });
   s.querySelectorAll("[data-po]").forEach(b => b.onclick = () => { const x = b.dataset.po; D.pos = D.pos.includes(x) ? D.pos.filter(y => y !== x) : [...D.pos, x]; b.classList.toggle("on", D.pos.includes(x)); $("cfPc").textContent = D.pos.length ? D.pos.length + (D.pos.length === 1 ? " elegida" : " elegidas") : ""; SFX.tap(); });
   s.querySelectorAll("[data-r]").forEach(b => b.onclick = () => { D.rating = +b.dataset.r === D.rating ? 0 : +b.dataset.r; s.querySelectorAll("[data-r]").forEach(c => c.classList.toggle("on", D.rating >= +c.dataset.r)); SFX.tap(); });
   $("cfSave").onclick = () => {
     const kk = spCalSel, note = (D.note || "").trim().slice(0, 300), isNew = !base;
-    spCalSave(kk, { n: D.n, pos: D.pos, times: D.times, place: D.place, rating: D.rating, note, hora: D.hora || "", dur: D.dur || 0, by: (base && base.by) || who, upd: Date.now() });
+    spSesSave(kk, base ? base.sid : null, { c: base ? (base.n || 1) : 1, pos: D.pos, times: D.times, place: D.place, rating: D.rating, note, hora: D.hora || "", dur: D.dur || 0, by: (base && base.by) || who, upd: Date.now() });
     calCloseSheet(); SFX.ding(); toast(isNew ? "Apuntado 🔥" : "Cambios guardados ✓"); renderSp();
   };
-  const dl = $("cfDel"); if (dl) dl.onclick = () => { if (!confirm("¿Eliminar el registro de este día?")) return; spCalDel(spCalSel); calCloseSheet(); renderSp(); };
+  const dl = $("cfDel"); if (dl) dl.onclick = () => { if (!confirm(nDay > 1 ? "¿Eliminar esta vez? Las demás del día se quedan." : "¿Eliminar el registro de este día?")) return; spSesDel(spCalSel, base.sid); calCloseSheet(); renderSp(); };
 }
 
 
@@ -6948,7 +7039,7 @@ function wrStats(y, m) {
   const ppre = wrKey(y, m - 1), prev = all.filter(e => e.id.startsWith(ppre)).reduce((a, e) => a + e.n, 0);
   const total = E.reduce((a, e) => a + e.n, 0), days = new Set(E.map(e => e.id));
   let best = 0; E.forEach(e => { const d = new Date(e.id + "T12:00:00"); d.setDate(d.getDate() - 1); if (days.has(localKey(d))) return; let c = 0; const x = new Date(e.id + "T12:00:00"); while (days.has(localKey(x)) && localKey(x).startsWith(pre)) { c++; x.setDate(x.getDate() + 1); } best = Math.max(best, c); });
-  const top = E.slice().sort((a, b) => b.n - a.n || (b.rating || 0) - (a.rating || 0))[0];
+  const top = Object.entries(calDaysMap(E)).map(([id, n]) => ({ id, n })).sort((a, b) => b.n - a.n || (a.id < b.id ? -1 : 1))[0];
   const pc = {}; E.forEach(e => (e.pos || []).forEach(p => { if (KSM[p]) pc[p] = (pc[p] || 0) + 1; }));
   const star = Object.entries(pc).sort((a, b) => b[1] - a[1])[0];
   const first = {}; all.forEach(e => (e.pos || []).forEach(p => { if (!first[p]) first[p] = e.id; }));
@@ -6966,7 +7057,7 @@ function wrSlides(s) {
   S.push({ bg: "g1", html: `${A(.1, `<div class="wrk">${s.y} · solo para vosotros</div>`)}${A(.35, `<div class="wrbig">Vuestro<br>${mes}</div>`)}${A(.8, `<div class="wrsub">${me} <span>&</span> ${o}</div>`)}${A(1.6, `<div class="wrhint">Toca para empezar ›</div>`)}<div class="wrfloat">${["💗", "✨", "🔥", "💋", "✨", "💞"].map((e, i) => `<i style="--i:${i}">${e}</i>`).join("")}</div>`, dur: 5200 });
   const diff = s.total - s.prev, prevName = wrMonth(s.y, s.m - 1);
   S.push({ bg: "g2", html: `${A(.1, `<div class="wrk">En ${mes} lo hicisteis</div>`)}${A(.3, `<div class="wrnum" data-count="${s.total}">0</div>`)}${A(.5, `<div class="wrunit">${s.total === 1 ? "vez" : "veces"}</div>`)}${A(1.1, `<div class="wrpill">en <b>${s.days}</b> ${s.days === 1 ? "día distinto" : "días distintos"}</div>`)}${s.prev || s.total ? A(1.6, `<div class="wrcmp ${diff > 0 ? "up" : diff < 0 ? "down" : ""}">${s.prev ? (diff > 0 ? `▲ ${diff} más que en ${prevName}` : diff < 0 ? `▼ ${-diff} menos que en ${prevName}` : `Igual que en ${prevName}`) : `${cap(prevName)} no tuvo registros`}</div>`) : ""}` });
-  const first = new Date(s.y, s.m, 1), off = (first.getDay() + 6) % 7, nd = new Date(s.y, s.m + 1, 0).getDate(), M = {}; s.E.forEach(e => { M[e.id] = e.n; });
+  const first = new Date(s.y, s.m, 1), off = (first.getDay() + 6) % 7, nd = new Date(s.y, s.m + 1, 0).getDate(), M = calDaysMap(s.E);
   let cells = "", k = 0; for (let i = 0; i < off; i++) cells += "<span></span>";
   for (let d = 1; d <= nd; d++) { const key = `${s.pre}-${String(d).padStart(2, "0")}`, n = M[key] || 0; cells += `<span class="${n ? "l" + Math.min(3, n) : ""}" style="--d:${n ? (.5 + (k++) * .09).toFixed(2) : 0}s">${d}</span>`; }
   const topD = s.top ? new Date(s.top.id + "T12:00:00") : null;
@@ -7078,7 +7169,12 @@ async function spDecodeCal() {
     else if (e.n != null) plain.push({ ...e, _doc: e.id });
   }
   plain.forEach(e => { if (!out[e.id]) out[e.id] = e; });
-  if (my !== spSeq.cal) return; spCal = Object.values(out); spCalLoaded = true; if (spOpen && (spTab === "cal" || spTab === "ks")) renderSp(); spMigrate();
+  // cada día puede tener varias "veces", cada una con sus datos
+  const flat = []; Object.values(out).forEach(d => {
+    const S0 = Array.isArray(d.ses) && d.ses.length ? d.ses : [{ sid: "0", c: d.n || 1, pos: d.pos, times: d.times, place: d.place, rating: d.rating, note: d.note, hora: d.hora, dur: d.dur, by: d.by, upd: d.upd }];
+    S0.forEach((s, i) => flat.push({ ...s, sid: s.sid || String(i), n: s.c || 1, pos: s.pos || [], times: s.times || [], id: d.id, _doc: d._doc, _legacy: !d.ses }));
+  });
+  if (my !== spSeq.cal) return; spCal = flat; spCalLoaded = true; if (spOpen && (spTab === "cal" || spTab === "ks")) renderSp(); spMigrate();
 }
 async function spDecodeTexts(kind) {
   const my = ++spSeq[kind], L = [];
@@ -7098,12 +7194,20 @@ async function spSaveMine(patch) {
   spState = { ...spState, dare: { ...(spState.dare || {}), [who]: mine.dare }, ksw: { ...(spState.ksw || {}), [who]: mine.ksw } }; spRender();
   await S.merge("state/spicy", { dare: { [who]: mine.dare }, ksw: { [who]: mine.ksw } });
 }
-async function spCalSave(day, data) {
-  const id = day, old = calEntry(day);
-  await S.merge("spcal/" + id, { ...data, at: Date.parse(day + "T12:00:00") });
-  if (old && old._doc && old._doc !== id) S.del("spcal/" + old._doc);
+async function spCalWriteDay(day, ses) {
+  const old = calEntry(day);
+  if (!ses.length) { if (old) [...new Set(old.ses.map(s => s._doc))].forEach(d => S.del("spcal/" + d)); return; }
+  const clean = ses.map(({ id, _doc, _legacy, n, ...s }) => ({ ...s, c: s.c || 1 }));
+  await S.merge("spcal/" + day, { at: Date.parse(day + "T12:00:00"), n: clean.reduce((t, s) => t + (s.c || 1), 0), ses: clean, pos: null, times: null, place: null, rating: null, note: null, hora: null, dur: null });
+  if (old) [...new Set(old.ses.map(s => s._doc))].filter(d => d !== day).forEach(d => S.del("spcal/" + d));
 }
-function spCalDel(day) { const e = calEntry(day); if (e && e._doc) S.del("spcal/" + e._doc); }
+async function spSesSave(day, sid, data) {
+  const L = calSes(day).map(s => ({ ...s }));
+  if (sid != null) { const i = L.findIndex(s => s.sid === sid); if (i >= 0) L[i] = { ...L[i], ...data }; else L.push({ ...data, sid }); }
+  else L.push({ ...data, sid: Date.now().toString(36), c: 1 });
+  await spCalWriteDay(day, L);
+}
+function spSesDel(day, sid) { return spCalWriteDay(day, calSes(day).filter(s => s.sid !== sid)); }
 async function spAddText(col, data) { return S.add(col, data); }
 // ---- pasar a cifrado lo que había antes ----
 async function spMigrate() {
@@ -7196,6 +7300,413 @@ function meetPetHTML(nx) {
   return `<div class="meetpet ${cls}"><div class="mpsvg">${svg}</div><span>${txt}</span></div>`;
 }
 
+
+// ---------- 🌱 2.2 · Huerto, cocina, eventos de temporada y duelos ----------
+const CROPS = {
+  zanahoria: { e: "🥕", n: "Zanahoria", d: 3, c: 6, y: 3 }, trigo: { e: "🌾", n: "Trigo", d: 3, c: 5, y: 4 },
+  tomate: { e: "🍅", n: "Tomate", d: 4, c: 8, y: 3 }, fresa: { e: "🍓", n: "Fresa", d: 4, c: 10, y: 3 },
+  patata: { e: "🥔", n: "Patata", d: 4, c: 7, y: 3 }, maiz: { e: "🌽", n: "Maíz", d: 5, c: 12, y: 3 },
+  cacao: { e: "🫘", n: "Cacao", d: 6, c: 18, y: 2 }, calabaza: { e: "🎃", n: "Calabaza", d: 6, c: 20, y: 2 }
+};
+const PLOTS = 4;
+const plotOf = (p, i) => ((p.garden || {}).plots || [])[i] || null;
+const cropPrice = id => { const e = curEvent(); return e && e.id === "halloween" && id === "calabaza" ? Math.ceil(CROPS[id].c / 2) : CROPS[id].c; };
+function plotInfo(pl) {
+  if (!pl) return null;
+  const C = CROPS[pl.crop], today = dayKey(), r = Math.min(1, (pl.g || 0) / C.d), ready = r >= 1;
+  const wilt = !ready && pl.last && daysBetween(pl.last, today) >= 2, w = pl.w && pl.w.day === today ? pl.w : {};
+  const st = ready ? C.e : r === 0 ? "🟤" : r < .34 ? "🌱" : r < .67 ? "🌿" : "🪴";
+  return { C, r, ready, wilt, w, st, left: Math.max(0, Math.ceil(C.d - (pl.g || 0))) };
+}
+function openGarden() { openSheet("🌱 Vuestro huerto", ""); renderGarden(); }
+let gardenPick = null;
+function renderGarden() {
+  const b = $("sheetBody"); if (!b || $("petSheet").classList.contains("hidden")) return;
+  const p = state.pet || {}, pan = p.pantry || {}, o = esc(name(other()));
+  const cells = Array.from({ length: PLOTS }, (_, i) => {
+    const pl = plotOf(p, i), I = plotInfo(pl);
+    if (!pl) return `<div class="gplot empty"><div class="gsoil"><span>＋</span></div><b>Libre</b><button class="btn primary" data-gplant="${i}">🌱 Plantar</button></div>`;
+    const wm = I.w[who], wo = I.w[other()];
+    return `<div class="gplot ${I.ready ? "ready" : ""} ${I.wilt ? "wilt" : ""}"><div class="gsoil"><span class="gst" style="--s:${(.6 + I.r * .6).toFixed(2)}">${I.st}</span>${I.wilt ? `<em>🥀</em>` : ""}</div>
+      <b>${I.C.e} ${esc(I.C.n)}</b><div class="gbar"><i style="width:${Math.round(I.r * 100)}%"></i></div>
+      <small>${I.ready ? "¡Lista para cosechar!" : I.wilt ? "Mustia… ¡necesita agua!" : `Faltan ${I.left} ${I.left === 1 ? "día" : "días"} de riego`}</small>
+      ${I.ready ? `<button class="btn primary" data-gharv="${i}">🧺 Cosechar</button>` : `<div class="gwat"><span class="${wm ? "on" : ""}">💧 Tú</span><span class="${wo ? "on" : ""}">💧 ${o}</span></div><button class="btn ${wm ? "" : "primary"}" data-gwat="${i}" ${wm ? "disabled" : ""}>${wm ? "Regada hoy ✓" : "💧 Regar"}</button>`}</div>`;
+  }).join("");
+  const pick = gardenPick != null ? `<div class="slotname">¿Qué plantamos? · tienes ${coinsOf(p)} 🪙</div><div class="gseeds">${Object.entries(CROPS).map(([id, C]) => `<button class="gseed" data-gseed="${id}" ${coinsOf(p) < cropPrice(id) ? "disabled" : ""}><i>${C.e}</i><b>${esc(C.n)}</b><small>${cropPrice(id)} 🪙 · ${C.d} días · da ${C.y}</small>${cropPrice(id) < C.c ? `<em>¡Mitad de precio!</em>` : ""}</button>`).join("")}</div><button class="linkbtn" data-gcancel="1">Cancelar</button>` : "";
+  const pk = Object.entries(pan).filter(([, n]) => n > 0);
+  b.innerHTML = `<div class="sub" style="margin-bottom:10px">Plantad, regad <b>cada día</b> y cosechad. Si regáis <b>los dos</b> el mismo día, crece más rápido 💞 Sin agua 2 días se pone mustia.</div>
+    <div class="ggrid">${cells}</div>${pick}
+    <div class="slotname">🧺 Despensa</div><div class="gpan">${pk.length ? pk.map(([k, n]) => `<span>${CROPS[k] ? CROPS[k].e : "❔"} ${n}</span>`).join("") : `<em>Vacía: cosechad algo para cocinar</em>`}</div>
+    <button class="btn" style="width:100%;margin-top:10px" id="gToKitchen">🍳 Ir a la cocina</button>`;
+  b.querySelectorAll("[data-gplant]").forEach(x => x.onclick = () => { gardenPick = +x.dataset.gplant; renderGarden(); });
+  b.querySelectorAll("[data-gcancel]").forEach(x => x.onclick = () => { gardenPick = null; renderGarden(); });
+  b.querySelectorAll("[data-gseed]").forEach(x => x.onclick = () => plantSeed(gardenPick, x.dataset.gseed));
+  b.querySelectorAll("[data-gwat]").forEach(x => x.onclick = () => waterPlot(+x.dataset.gwat));
+  b.querySelectorAll("[data-gharv]").forEach(x => x.onclick = () => harvestPlot(+x.dataset.gharv));
+  $("gToKitchen").onclick = openKitchen;
+}
+function plantSeed(i, id) {
+  const C = CROPS[id], price = cropPrice(id); if (i == null || !C) return;
+  petTx(q => {
+    q.garden = q.garden || { plots: [] }; q.garden.plots = [...(q.garden.plots || [])]; while (q.garden.plots.length < PLOTS) q.garden.plots.push(null);
+    if (q.garden.plots[i] || coinsOf(q) < price) return null;
+    q.coins = coinsOf(q) - price; q.garden.plots[i] = { crop: id, at: Date.now(), g: 0, last: null, w: null, by: who }; bump(q, "garden"); return q;
+  }).then(r => { gardenPick = null; if (!r) return toast("No se pudo plantar"); SFX.pop(); toast(`🌱 ¡${C.n} plantada! Regadla cada día`); renderGarden(); sceneSig = ""; renderPet(); }).catch(offline);
+}
+function waterPlot(i) {
+  const today = dayKey(); let both = false;
+  petTx(q => {
+    const pl = q.garden && q.garden.plots && q.garden.plots[i]; if (!pl) return null;
+    const C = CROPS[pl.crop]; pl.w = pl.w && pl.w.day === today ? { ...pl.w } : { day: today }; if (pl.w[who]) return null;
+    pl.w[who] = 1;
+    if (pl.last !== today) { pl.g = Math.min(C.d, (pl.g || 0) + 1); pl.last = today; }
+    else if (pl.w.a && pl.w.b && !pl.w.bonus) { pl.g = Math.min(C.d, (pl.g || 0) + .5); pl.w.bonus = 1; both = true; }
+    gainExp(q, 3); bump(q, "garden"); return q;
+  }).then(r => {
+    if (!r) return; SFX.splash ? SFX.splash() : SFX.tap(); toast(both ? "💧💞 ¡Regada por los dos! Hoy crece más" : `💧 Regada. ${name(other())} también puede regarla hoy`);
+    if (!both) notifyOther(`💧 ${name(who)} ha regado el huerto. ¡Riégalo tú también y crecerá más rápido!`);
+    renderGarden(); sceneSig = ""; renderPet();
+  }).catch(offline);
+}
+function harvestPlot(i) {
+  let got = null;
+  petTx(q => {
+    const pl = q.garden && q.garden.plots && q.garden.plots[i]; if (!pl) return null; const I = plotInfo(pl); if (!I.ready) return null;
+    q.pantry = { ...(q.pantry || {}) }; q.pantry[pl.crop] = (q.pantry[pl.crop] || 0) + I.C.y; got = { ...I.C, id: pl.crop };
+    q.garden.plots[i] = null; q.coins = coinsOf(q) + 3 * I.C.y; gainExp(q, 8); q.harvests = (q.harvests || 0) + 1; bump(q, "garden"); return q;
+  }).then(r => { if (!got) return; confetti(); SFX.coin(); toast(`🧺 ¡Cosecha! +${got.y} ${got.e} a la despensa y +${3 * got.y} 🪙`, 3200); sendMsg(`🧺 Hemos cosechado ${got.y} ${got.e} ${got.n.toLowerCase()} en el huerto`, "pet"); renderGarden(); sceneSig = ""; renderPet(); }).catch(offline);
+}
+function gardenSceneHTML(p) {
+  const pl = Array.from({ length: PLOTS }, (_, i) => plotInfo(plotOf(p, i)));
+  if (!pl.some(Boolean)) return "";
+  return `<button class="gardenfig" id="gardenFig" aria-label="Huerto"><span class="gbed">${pl.map(I => `<i class="${I && I.ready ? "rd" : ""} ${I && I.wilt ? "wl" : ""}">${I ? I.st : ""}</i>`).join("")}</span></button>`;
+}
+// ---- cocina ----
+const RECIPES = [
+  { id: "zumozan", n: "Zumito de zanahoria", e: "🧃", ing: { zanahoria: 2 }, out: "zumo" },
+  { id: "batido", n: "Batido de fresa", e: "🥤", ing: { fresa: 2 }, out: "batido" },
+  { id: "mazorca", n: "Mazorca asada", e: "🌽", ing: { maiz: 1 }, out: "mazorca" },
+  { id: "ensalada", n: "Ensalada del huerto", e: "🥗", ing: { tomate: 1, zanahoria: 1 }, out: "ensalada" },
+  { id: "tortitas", n: "Tortitas con fresas", e: "🥞", ing: { trigo: 1, fresa: 1 }, out: "tortitas" },
+  { id: "palomitas", n: "Palomitas", e: "🍿", ing: { maiz: 2 }, out: "palomitas" },
+  { id: "tortilla", n: "Tortilla de patata", e: "🥘", ing: { patata: 2 }, out: "tortilla" },
+  { id: "sopa", n: "Sopita de verduras", e: "🍲", ing: { zanahoria: 1, patata: 1, tomate: 1 }, out: "sopa" },
+  { id: "pizza", n: "Pizza casera", e: "🍕", ing: { trigo: 2, tomate: 2 }, out: "pizza" },
+  { id: "tarta", n: "Tarta de fresa", e: "🍰", ing: { trigo: 2, fresa: 2 }, out: "tarta" },
+  { id: "chocolate", n: "Chocolate", e: "🍫", ing: { cacao: 2 }, out: "chocolate" },
+  { id: "bombones", n: "Bombones de amor", e: "💝", ing: { cacao: 1, fresa: 1 }, out: "bombones" },
+  { id: "cremacal", n: "Crema de calabaza", e: "🥣", ing: { calabaza: 1, patata: 1 }, out: "cremacal" },
+  { id: "pastelcal", n: "Pastel de calabaza", e: "🥧", ing: { calabaza: 1, trigo: 1 }, out: "pastelcal" },
+  { id: "festin", n: "Festín para dos", e: "🍱", ing: { tomate: 1, patata: 1, maiz: 1, fresa: 1 }, out: "festin", qty: 2 }
+];
+const canCook = (p, R) => Object.entries(R.ing).every(([k, n]) => ((p.pantry || {})[k] || 0) >= n);
+function openKitchen() { openSheet("🍳 La cocina", ""); renderKitchen(); }
+function renderKitchen(done) {
+  const b = $("sheetBody"); if (!b) return;
+  const p = state.pet || {}, ck = p.cooked || {}, pan = p.pantry || {}, nKnown = RECIPES.filter(R => ck[R.id]).length;
+  const pk = Object.entries(pan).filter(([, n]) => n > 0);
+  b.innerHTML = `${done ? `<div class="kres"><div class="kpot">${done.e}</div><b>${done.isNew ? "¡Receta nueva! " : ""}${esc(done.n)}</b><small>${done.qty > 1 ? `x${done.qty} ` : ""}a la mochila 🎒${done.isNew ? " · +15 🪙" : ""}</small></div>` : ""}
+    <div class="gpan">${pk.length ? pk.map(([k, n]) => `<span>${CROPS[k] ? CROPS[k].e : "❔"} ${n}</span>`).join("") : `<em>La despensa está vacía: cosechad en el huerto 🌱</em>`}</div>
+    <div class="slotname">📖 Libro de recetas · ${nKnown}/${RECIPES.length} descubiertas</div>
+    <div class="krec">${RECIPES.map(R => { const ok = canCook(p, R), out = CAT[R.out] || {}; return `<button class="krow ${ok ? "ok" : ""} ${ck[R.id] ? "known" : ""}" data-cook="${R.id}" ${ok ? "" : "disabled"}><i>${ck[R.id] ? R.e : "❔"}</i><span><b>${ck[R.id] ? esc(R.n) : "Receta secreta"}</b><small>${Object.entries(R.ing).map(([k, n]) => `${CROPS[k].e}${n > 1 ? "×" + n : ""}`).join(" + ")}${ck[R.id] && out.eff ? " · " + esc(effText(out.eff)) : ""}</small></span>${ck[R.id] ? `<em>×${ck[R.id]}</em>` : ""}</button>`; }).join("")}</div>
+    <button class="btn" style="width:100%;margin-top:10px" id="kToGarden">🌱 Ir al huerto</button>`;
+  b.querySelectorAll("[data-cook]").forEach(x => x.onclick = () => cookRecipe(x.dataset.cook));
+  $("kToGarden").onclick = openGarden;
+}
+function cookRecipe(id) {
+  const R = RECIPES.find(x => x.id === id); if (!R) return; let isNew = false, lvl = 0;
+  const b = $("sheetBody"); b.innerHTML = `<div class="kcooking"><div class="kpot boil">🍲</div><b>Cocinando ${esc(R.n.toLowerCase())}…</b><small>${Object.keys(R.ing).map(k => CROPS[k].e).join(" ")}</small></div>`;
+  SFX.whoosh && SFX.whoosh();
+  setTimeout(() => {
+    petTx(q => {
+      if (!canCook(q, R)) return null;
+      q.pantry = { ...(q.pantry || {}) }; for (const [k, n] of Object.entries(R.ing)) q.pantry[k] -= n;
+      q.inv = q.inv || {}; q.inv[R.out] = (q.inv[R.out] || 0) + (R.qty || 1);
+      q.cooked = { ...(q.cooked || {}) }; isNew = !q.cooked[R.id]; q.cooked[R.id] = (q.cooked[R.id] || 0) + 1;
+      if (isNew) q.coins = coinsOf(q) + 15; lvl = gainExp(q, isNew ? 12 : 5); bump(q, "cook"); return q;
+    }).then(r => {
+      if (!r) { toast("Faltan ingredientes"); return renderKitchen(); }
+      SFX.ding(); if (isNew) { confetti(); sendMsg(`🍳 ¡Hemos descubierto una receta nueva: ${R.e} ${R.n}!`, "pet"); }
+      renderKitchen({ e: R.e, n: R.n, isNew, qty: R.qty || 1 }); lvlToast(lvl);
+    }).catch(offline);
+  }, 1300);
+}
+// ---- eventos de temporada ----
+const EVENTS = [
+  { id: "halloween", e: "🎃", n: "Halloween", from: [9, 15], to: [10, 2], deco: ["🦇", "🎃", "👻", "🕸️", "🦇"], act: "🍬 Truco o trato", pt: "🍬", prizes: [[5, "orejasgato"], [12, "capavampiro"]], tip: "Las semillas de calabaza están a mitad de precio 🎃" },
+  { id: "navidad", e: "🎄", n: "Navidad", from: [11, 15], to: [0, 6], deco: ["❄️", "⭐", "❄️", "🎁", "❄️"], act: "🎁 Abrir regalito del árbol", pt: "⭐", prizes: [[5, "cuernosreno"], [12, "bufestrella"]], tip: "Cada día hay un regalito bajo el árbol para cada uno" },
+  { id: "sanvalentin", e: "💘", n: "San Valentín", from: [1, 7], to: [1, 15], deco: ["💕", "💘", "🌹", "💗", "💕"], act: "💌 Mandar un besito", pt: "💗", prizes: [[4, "diademacor"], [8, "collarcor"]], tip: "Los bombones de amor dan el doble de cariño esta semana" },
+  { id: "aniversario", e: "🥂", n: "Vuestro aniversario", deco: ["🎉", "💖", "🥂", "✨", "🎊"], act: "🥂 Brindar por nosotros", pt: "💖", prizes: [[3, "coronaaniv"], [6, "medallaamor"]], tip: "¡Felicidades a los dos! 💞" }
+];
+function curEvent(d = new Date()) {
+  const md = (m, dd) => m * 100 + dd, now = md(d.getMonth(), d.getDate());
+  if (CONFIG.start) { const s = new Date(CONFIG.start + "T12:00:00"), a = new Date(d.getFullYear(), s.getMonth(), s.getDate(), 12), diff = Math.round((d - a) / DAY); if (diff >= -2 && diff <= 3 && d.getFullYear() > s.getFullYear()) return { ...EVENTS[3], until: new Date(a.getTime() + 3 * DAY) }; }
+  for (const E of EVENTS) {
+    if (!E.from) continue; const f = md(...E.from), t = md(...E.to);
+    if (f <= t ? now >= f && now <= t : now >= f || now <= t) { const ty = E.to[0] < E.from[0] && d.getMonth() >= E.from[0] ? d.getFullYear() + 1 : d.getFullYear(); return { ...E, until: new Date(ty, E.to[0], E.to[1], 23, 59) }; }
+  }
+  return null;
+}
+const evState = (p, E) => { const s = p.ev || {}; return s.id === E.id && s.yr === E.until.getFullYear() ? s : { id: E.id, yr: E.until.getFullYear(), pts: 0, day: {}, got: {} }; };
+function renderEvent(p) {
+  const el = $("evCard"); if (!el) return; const E = curEvent();
+  el.classList.toggle("hidden", !E); if (!E) return;
+  const s = evState(p, E), today = dayKey(), done = s.day[who] === today, oDone = s.day[other()] === today, next = E.prizes.find(([n, id]) => !s.got[id]);
+  el.style.setProperty("--evc", E.id === "halloween" ? "#ff7a1a" : E.id === "navidad" ? "#2ea86b" : E.id === "sanvalentin" ? "#ff4d7e" : "#d4a017");
+  el.innerHTML = `<div class="evhead"><span class="evico">${E.e}</span><div><b>${esc(E.n)}</b><small>Evento especial · hasta el ${fmtDate(E.until, { day: "numeric", month: "long" })}</small></div></div>
+    <div class="evtip">${esc(E.tip)}</div>
+    <div class="evprog"><span>${E.pt} ${s.pts}</span><div class="gbar"><i style="width:${next ? Math.min(100, Math.round(s.pts / next[0] * 100)) : 100}%"></i></div><span>${next ? `${CAT[next[1]].e} a los ${next[0]}` : "¡Todo conseguido! 🏆"}</span></div>
+    <div class="evprizes">${E.prizes.map(([n, id]) => `<span class="${s.got[id] ? "on" : ""}">${CAT[id].e}<small>${esc(CAT[id].n)}${s.got[id] ? " ✓" : ` · ${n} ${E.pt}`}</small></span>`).join("")}</div>
+    <button class="btn ${done ? "" : "primary"}" id="evAct" style="width:100%" ${done ? "disabled" : ""}>${done ? "Hecho hoy ✓ · vuelve mañana" : E.act}</button>
+    <div class="sub" style="font-size:12px;text-align:center;margin-top:6px">${oDone ? `${esc(name(other()))} ya lo ha hecho hoy${done ? "" : ": ¡si lo haces tú, ganáis el doble!"}` : `Si lo hacéis los dos el mismo día, ganáis puntos extra 💞`}</div>`;
+  $("evAct").onclick = () => evDo(E);
+}
+function evDo(E) {
+  const today = dayKey(); let res = null;
+  petTx(q => {
+    const s = evState(q, E); if (s.day[who] === today) return null;
+    s.day = { ...s.day, [who]: today }; let pts = 1; const both = s.day[other()] === today; if (both) pts += 1;
+    s.pts += pts; const coins = 5 + Math.floor(Math.random() * 11); q.coins = coinsOf(q) + coins;
+    let food = null; if (Math.random() < .5) { food = rnd(E.id === "halloween" ? ["gominola", "chocolate", "donut"] : E.id === "navidad" ? ["chocolate", "cupcake", "te"] : ["bombones", "chocolate", "cupcake"]); q.inv = q.inv || {}; q.inv[food] = (q.inv[food] || 0) + 1; }
+    const won = []; for (const [n, id] of E.prizes) if (s.pts >= n && !s.got[id]) { s.got = { ...s.got, [id]: 1 }; q.owned = { ...(q.owned || {}), [id]: true }; won.push(id); }
+    q.ev = s; gainExp(q, 6); res = { pts, both, coins, food, won }; return q;
+  }).then(() => {
+    if (!res) return; SFX.coin(); anim && anim("jump", 900);
+    toast(`${E.pt} +${res.pts}${res.both ? " (¡los dos hoy!)" : ""} · +${res.coins} 🪙${res.food ? ` · ${CAT[res.food].e}` : ""}`, 3200);
+    if (res.won.length) { setTimeout(() => { confetti(); readView({ icon: CAT[res.won[0]].e, title: "¡Premio del evento!", sub: `${E.e} ${E.n}`, text: `Habéis conseguido «${CAT[res.won[0]].n}». Ya está en el armario: póntelo desde la tienda 👗` }); }, 600); sendMsg(`${E.e} ¡Hemos ganado «${CAT[res.won[0]].n}» en el evento de ${E.n}!`, "pet"); }
+    else if (!res.both) notifyOther(`${E.e} ${name(who)} ha hecho «${E.act.replace(/^\S+\s/, "")}». ¡Hazlo tú también hoy y ganáis el doble!`);
+    renderPet();
+  }).catch(offline);
+}
+function evDecoHTML() { const E = curEvent(); if (!E) return ""; return `<div class="evdeco" aria-hidden="true">${E.deco.map((e, i) => `<i style="--i:${i}">${e}</i>`).join("")}</div>`; }
+// ---- duelos de minijuegos ----
+let duel = {}, duelPlaying = null;
+const DUEL_G = { fresas: { e: "🍓", n: "Atrapa fresas" }, vuelo: { e: "🪽", n: "Vuelo" }, simon: { e: "🎵", n: "Canta conmigo" } };
+function watchDuel() { S.watchDoc("state/duel", d => { duel = d || {}; renderDuelBadge(); if (!$("petSheet").classList.contains("hidden") && $("sheetTitle").textContent.startsWith("⚔️")) renderDuels(); }); }
+const duelForMe = () => { const c = ((duel.ch || {})[other()]); return c && c.st === "open" ? c : null; };
+function renderDuelBadge() { const b = $("petDuels"); if (b) b.classList.toggle("need", !!duelForMe()); const m = $("mgDuelBan"); if (m) { const c = duelForMe(); m.classList.toggle("hidden", !c); if (c) m.innerHTML = `⚔️ <b>${esc(name(other()))}</b> te reta: supera <b>${c.score}</b> en ${DUEL_G[c.game].e} ${esc(DUEL_G[c.game].n)} <button class="btn primary" data-duelgo="1">Aceptar</button>`; const g = m.querySelector("[data-duelgo]"); if (g) g.onclick = duelAccept; } }
+function openDuels() { openSheet("⚔️ Duelos", ""); renderDuels(); }
+function renderDuels() {
+  const b = $("sheetBody"); if (!b) return; const W = duel.wins || {}, c = duelForMe(), mine = (duel.ch || {})[who], o = esc(name(other()));
+  const st = mine ? (mine.st === "open" ? `⏳ Esperando a que ${o} intente superar tus <b>${mine.score}</b> en ${DUEL_G[mine.game].e}` : mine.st === "beaten" ? `😅 ${o} superó tus ${mine.score} con <b>${mine.rs}</b> en ${DUEL_G[mine.game].e}` : `🏆 ${o} no pudo con tus ${mine.score} (hizo ${mine.rs}) en ${DUEL_G[mine.game].e}`) : "Aún no has retado a nadie";
+  b.innerHTML = `<div class="dscore"><div><b>${W[who] || 0}</b><small>Tú</small></div><span>⚔️</span><div><b>${W[other()] || 0}</b><small>${o}</small></div></div>
+    ${c ? `<div class="dban">⚔️ <b>${o}</b> te reta: supera <b>${c.score}</b> en ${DUEL_G[c.game].e} ${esc(DUEL_G[c.game].n)}<button class="btn primary" id="dAccept" style="width:100%;margin-top:8px">¡Acepto el reto!</button></div>` : ""}
+    <div class="slotname">Tu último reto</div><div class="sub">${st}</div>
+    <div class="slotname">Retar a ${o}</div><div class="sub" style="margin-bottom:8px">Juega un minijuego y, al terminar, pulsa <b>⚔️ Retar</b>. ${o} tendrá que superar tu puntuación. Quien gane suma una victoria y 25 🪙 para la mascota.</div>
+    <div class="dgames">${Object.entries(DUEL_G).map(([g, I]) => `<button class="btn" data-dplay="${g}">${I.e} ${esc(I.n)}</button>`).join("")}</div>`;
+  const a = $("dAccept"); if (a) a.onclick = duelAccept;
+  b.querySelectorAll("[data-dplay]").forEach(x => x.onclick = () => { closeSheet(); duelPlaying = null; duelLaunch(x.dataset.dplay); });
+}
+function duelLaunch(g) { if (g === "fresas") $("fgPlay").click(); else mgOpen(g); }
+function duelAccept() { const c = duelForMe(); if (!c) return; closeSheet(); duelPlaying = { game: c.game, target: c.score, at: c.at }; duelLaunch(c.game); setTimeout(() => toast(`⚔️ Duelo: tienes que superar ${c.score}`, 3000), 300); }
+function duelAfter(game, score) {
+  const box = $("fgMsg"); if (!box) return;
+  if (duelPlaying && duelPlaying.game === game) {
+    const D = duelPlaying, c = (duel.ch || {})[other()]; duelPlaying = null;
+    if (!c || c.at !== D.at || c.st !== "open") return;
+    const win = score > D.target, winner = win ? who : other();
+    S.tx("state/duel", d => { d = d || {}; d.ch = { ...(d.ch || {}) }; const x = d.ch[other()]; if (!x || x.at !== D.at || x.st !== "open") return null; d.ch[other()] = { ...x, st: win ? "beaten" : "held", rs: score, end: Date.now() }; d.wins = { ...(d.wins || {}) }; d.wins[winner] = (d.wins[winner] || 0) + 1; return d; })
+      .then(r => { if (!r) return; petTx(q => { q.coins = coinsOf(q) + 25; return q; }).catch(() => { }); notifyOther(win ? `⚔️ ${name(who)} ha superado tu reto con ${score}. ¡Te toca revancha!` : `⚔️ ${name(who)} no ha podido con tu reto (${score}). ¡Ganas el duelo! 🏆`); }).catch(() => { });
+    box.insertAdjacentHTML("afterbegin", `<div class="dres ${win ? "w" : "l"}">${win ? `🏆 ¡Has ganado el duelo! (${score} > ${D.target})` : `😅 Te ha faltado poco: necesitabas más de ${D.target}`}</div>`);
+    if (win) setTimeout(() => confetti(), 300);
+    return;
+  }
+  if (score > 0) {
+    box.insertAdjacentHTML("beforeend", `<button class="btn" id="duelSend" style="margin-top:6px">⚔️ Retar a ${esc(name(other()))} con ${score}</button>`);
+    $("duelSend").onclick = () => {
+      S.merge("state/duel", { ch: { [who]: { game, score, at: Date.now(), st: "open", rs: null } } });
+      notifyOther(`⚔️ ${name(who)} te reta: supera ${score} en ${DUEL_G[game].n} ${DUEL_G[game].e}`);
+      $("duelSend").disabled = true; $("duelSend").textContent = "⚔️ ¡Reto enviado!"; SFX.ding();
+    };
+  }
+}
+
+$("petGarden").onclick = openGarden; $("petKitchen").onclick = openKitchen; $("petDuels").onclick = openDuels;
+
+// ---------- 🛋️ 2.3 · muebles nuevos, colores de muebles y la pareja de visita ----------
+Object.assign(FA, {
+  estrellasfluor: { t: "wall", w: 130, h: 70, p: { x: 70, y: 18 }, d: () => [[14, 20, 9], [44, 46, 6], [70, 14, 11], [98, 40, 7], [118, 16, 5], [30, 60, 4], [86, 62, 4]].map(([x, y, r]) => `<path d="${starP(x, y, r + 3)}" fill="#e9ffb0" opacity=".25"/><path d="${starP(x, y, r)}" fill="#f4ffcf"/>`).join("") },
+  neoncorazon: { t: "wall", w: 96, h: 84, p: { x: 26, y: 24 }, d: () => `<path d="${heartP(48, 40, 28)}" fill="none" stroke="#ff4d9a" stroke-width="12" opacity=".25"/><path d="${heartP(48, 40, 28)}" fill="none" stroke="#ff7ab8" stroke-width="5"/><path d="${heartP(48, 40, 28)}" fill="none" stroke="#fff0f7" stroke-width="1.6"/>` },
+  pizarra: { t: "wall", w: 120, h: 86, p: { x: 64, y: 24 }, d: () => `<rect x="2" y="2" width="116" height="78" rx="6" fill="#a8743f"/><rect x="9" y="9" width="102" height="64" rx="3" fill="#2f4a3a"/><text x="60" y="40" text-anchor="middle" font-family="'Comic Sans MS','Chalkboard SE',cursive" font-size="17" fill="#f4f1e8">Te quiero</text><path d="${heartP(60, 56, 7)}" fill="#ff8fb0"/><rect x="80" y="74" width="22" height="5" rx="2" fill="#f4f1e8"/>` },
+  baul: { t: "floor", w: 104, h: 74, p: { x: 84, y: 95 }, d: () => `<rect x="4" y="26" width="96" height="44" rx="6" fill="#9b6236"/><path d="M4 30 Q52 -4 100 30 Z" fill="#b5763f"/><rect x="4" y="26" width="96" height="8" fill="#7a4a26"/>${[16, 88].map(x => `<rect x="${x - 4}" y="10" width="8" height="60" rx="2" fill="#e0b45a" opacity=".9"/>`).join("")}<rect x="44" y="30" width="16" height="16" rx="3" fill="#e0b45a"/><circle cx="52" cy="38" r="3" fill="#7a4a26"/>` },
+  monstera: { t: "floor", w: 92, h: 128, p: { x: 9, y: 93 }, d: () => `<path d="M26 92 L66 92 L60 126 L32 126 Z" fill="#d98a5f"/><rect x="22" y="88" width="48" height="8" rx="3" fill="#c0764e"/>${[[46, 54, -30], [22, 46, -60], [70, 42, 40], [40, 22, -10], [66, 70, 70]].map(([x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r})"><ellipse rx="22" ry="15" fill="#2f8a52"/><path d="M-20 0 H20 M-8 -12 L-4 0 M6 -13 L4 0 M-8 12 L-4 0 M6 13 L4 0" stroke="#1f6b3c" stroke-width="2"/></g>`).join("")}<path d="M46 90 V54" stroke="#1f6b3c" stroke-width="3"/>` },
+  camamascota: { t: "floor", w: 116, h: 54, p: { x: 62, y: 97 }, d: () => `<ellipse cx="58" cy="34" rx="56" ry="19" fill="#c66b8f"/><ellipse cx="58" cy="30" rx="44" ry="13" fill="#ffd6e2"/><ellipse cx="58" cy="28" rx="36" ry="9" fill="#ffe8ef"/><path d="M8 32 Q58 6 108 32" stroke="#e48aab" stroke-width="5" fill="none"/>` },
+  telescopio: { t: "floor", w: 74, h: 118, p: { x: 88, y: 91 }, d: () => `<path d="M36 70 L14 116 M36 70 L58 116 M36 70 V116" stroke="#4a4a58" stroke-width="4" stroke-linecap="round"/><g transform="translate(36 56) rotate(-32)"><rect x="-34" y="-9" width="66" height="18" rx="5" fill="#3b5ba5"/><rect x="28" y="-12" width="12" height="24" rx="3" fill="#2b4380"/><rect x="-40" y="-6" width="8" height="12" rx="2" fill="#2b4380"/><rect x="-10" y="-11" width="6" height="22" fill="#e0b45a"/></g><circle cx="36" cy="66" r="5" fill="#4a4a58"/>` },
+  lamparalava: { t: "floor", w: 42, h: 96, p: { x: 22, y: 89 }, d: () => `<path d="M10 80 L32 80 L38 94 L4 94 Z" fill="#6a6a78"/><path d="M12 80 Q4 40 16 14 L26 14 Q38 40 30 80 Z" fill="#7b2ff7" opacity=".85"/><ellipse cx="20" cy="56" rx="7" ry="9" fill="#ff8a5c"/><ellipse cx="23" cy="34" rx="5" ry="6" fill="#ff8a5c"/><ellipse cx="18" cy="72" rx="6" ry="4" fill="#ff8a5c"/><path d="M14 14 L28 14 L24 4 L18 4 Z" fill="#6a6a78"/>` },
+  alfombracor: { t: "floor", flat: 1, w: 200, h: 50, p: { x: 50, y: 98 }, d: () => `<g transform="scale(1 .42)"><path d="${heartP(100, 62, 62)}" fill="#e85d8f"/><path d="${heartP(100, 62, 52)}" fill="#ff8fb0"/><path d="${heartP(100, 62, 38)}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 6"/></g>` },
+  cojines: { t: "floor", w: 116, h: 56, p: { x: 30, y: 97 }, d: () => `<rect x="4" y="22" width="56" height="32" rx="12" fill="#5b8def"/><rect x="50" y="20" width="60" height="34" rx="12" fill="#ffd166"/><rect x="26" y="4" width="54" height="30" rx="12" fill="#ff8fb0"/><path d="${heartP(53, 18, 5)}" fill="#fff"/><circle cx="80" cy="37" r="4" fill="#fff" opacity=".7"/>` }
+});
+// ---- colores para los muebles ----
+const TINTS = [["", "Original", null], ["rosa", "Rosa", "#ff7eb6"], ["rojo", "Rojo", "#e8333d"], ["naranja", "Naranja", "#ff9a3c"], ["amarillo", "Amarillo", "#ffd23f"], ["verde", "Verde", "#4cc06a"], ["turquesa", "Turquesa", "#2ec4c4"], ["azul", "Azul", "#4a7fe0"], ["lila", "Lila", "#a77bf0"], ["marron", "Madera", "#a8703f"], ["blanco", "Blanco", "#f4f1ea"], ["negro", "Negro", "#3a3a44"]];
+let tintUid = 0;
+function tintFilter(key) {
+  const T = TINTS.find(t => t[0] === key); if (!T || !T[2]) return null;
+  const h = T[2], r = parseInt(h.slice(1, 3), 16) / 255, g = parseInt(h.slice(3, 5), 16) / 255, b = parseInt(h.slice(5, 7), 16) / 255, k = key === "negro" ? 1.1 : key === "blanco" ? 1.25 : 1.55;
+  const row = c => `${(.3 * c * k).toFixed(3)} ${(.59 * c * k).toFixed(3)} ${(.11 * c * k).toFixed(3)} 0 ${key === "blanco" ? .08 : 0}`;
+  return `${row(r)} ${row(g)} ${row(b)} 0 0 0 1 0`;
+}
+function tintWrap(svgInner, key, keep) {
+  const m = tintFilter(key); if (!m) return svgInner;
+  const id = "tf" + (++tintUid), g = s => s ? `<g filter="url(#${id})">${s}</g>` : "";
+  const defs = `<defs><filter id="${id}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="${m}"/></filter></defs>`;
+  if (keep && svgInner.includes(keep)) { const i = svgInner.indexOf(keep); return defs + g(svgInner.slice(0, i)) + keep + g(svgInner.slice(i + keep.length)); }
+  return defs + g(svgInner);
+}
+function tintPanelHTML(p) {
+  const rm = roomOf(p, curRoom), T = rm.tint || {}, ids = Object.keys(rm.items || {}).filter(id => rm.items[id] && FA[id] && CAT[id]);
+  if (!ids.length) return "";
+  return `<details class="tintbox" ${ls.get("tintOpen") === "1" ? "open" : ""}><summary>🎨 Pintar los muebles de ${esc((ROOMS.find(r => r[0] === curRoom) || ROOMS[0])[1])} <small>gratis</small></summary>
+    ${ids.map(id => `<div class="tintrow"><span class="tintprev">${`<svg viewBox="0 0 ${FA[id].w} ${FA[id].h}">${tintWrap(FA[id].d({ mode: "day", lit: true }), T[id])}</svg>`}</span><div><b>${esc(CAT[id].n)}</b><div class="tintsw">${TINTS.map(([k, n, c]) => `<button class="${(T[id] || "") === k ? "on" : ""}" data-tint="${id}:${k}" title="${n}" style="${c ? `background:${c}` : "background:conic-gradient(#ff7eb6,#ffd23f,#4cc06a,#4a7fe0,#ff7eb6)"}">${k ? "" : "↺"}</button>`).join("")}</div></div></div>`).join("")}</details>`;
+}
+function setTint(id, key) {
+  petTx(q => { q.rooms = q.rooms || {}; const rm = roomOf(q, curRoom); rm.tint = { ...(rm.tint || {}) }; if (key) rm.tint[id] = key; else delete rm.tint[id]; q.rooms[curRoom] = rm; return q; })
+    .then(() => { sceneSig = ""; renderPet(); SFX.tap(); }).catch(offline);
+}
+// ---- la pareja de visita: echarla o invitarla ----
+function mateVisit(out) {
+  const m = mateOf(state.pet || {}); if (!m) return;
+  petTx(q => { q.mateOut = out ? Date.now() : null; return q; }).then(() => {
+    sceneSig = ""; petSig = ""; renderPet();
+    toast(out ? `👋 ${m.name} se ha ido a su casa. Invítale cuando queráis` : `🏠 ${m.name} viene de visita 💕`);
+  }).catch(offline);
+}
+
+
+// ---------- 🏘️ 2.4 · El barrio: vecinos con su casa, encargos, amistad y mapa ----------
+const NEIGH = [
+  { id: "lola", n: "Lola", sp: "gato", sex: "f", c: "naranja", wear: { head: "x_lazopelo" }, job: "Panadera", e: "🥐", roof: "#d2553f", x: 72, y: 92,
+    room: { wall: "w_melocoton", floor: "f_parquet", items: ["alfombra", "mesa", "frutero", "tetera", "planta"] }, likes: ["cupcake", "tarta", "donut", "croissant", "galleta", "tortitas", "x_gofre", "pastelcal", "chocolate", "bombones"], likeT: "lo dulce",
+    hi: ["¡Hola, cielo! Huele a bollos recién hechos 🥐", "¡Pasa, pasa! Acabo de sacar algo del horno"], talk: ["¿Sabíais que el secreto de un buen bizcocho es cariño? 💛", "Esta mañana se me quemaron las magdalenas… shhh 🤫", "Vuestro pollito siempre me pide las migas 😂", "Cuando os veáis, os preparo una tarta de bienvenida 🎂", "A Tofu le encanta mi pan de canela"] },
+  { id: "nube", n: "Nube", sp: "conejo", sex: "f", c: "blanco", wear: { head: "coronaflores" }, job: "Jardinera", e: "🌷", roof: "#4f9a5b", x: 72, y: 212,
+    room: { wall: "w_salvia", floor: "f_baldosa", items: ["macetas", "girasol", "monstera", "banco", "cactus"] }, likes: ["zanahoria", "fresa", "tomate", "ensalada", "sandia", "uvas", "x_arandanos", "manzana"], likeT: "lo que sale del huerto",
+    hi: ["¡Hola! ¿Cómo va vuestro huerto? 🌱", "¡Bienvenidos a mi jardín de interior!"], talk: ["Si regáis los dos el mismo día, las plantas crecen más contentas 💧", "Las calabazas tardan, pero merecen la pena 🎃", "Hablo con mis plantas todas las mañanas, ¿es raro? 🌿", "Una zanahoria al día y cero preocupaciones 🥕", "Pingo me toca el piano mientras riego"] },
+  { id: "bruno", n: "Bruno", sp: "perro", sex: "m", c: "choco", wear: { head: "gorra" }, job: "Deportista", e: "⚽", roof: "#3f6fc6", x: 290, y: 232,
+    room: { wall: "w_azul", floor: "f_nogal", items: ["alfombra", "sofa", "tele", "puff", "poster"] }, likes: ["hambur", "burger", "pizza", "x_burrito", "taco", "tortilla", "x_espagueti", "mazorca"], likeT: "la comida contundente",
+    hi: ["¡Ey! ¿Una carrerita hasta la plaza? 🏃", "¡Hola, campeones!"], talk: ["Hoy he corrido 10 vueltas a la fuente 💪", "¿Habéis probado Vuelo? Mi récord es 31 nubes 😎", "Lo mejor después de entrenar: una pizza 🍕", "Pingo dice que el pingüino es el animal más rápido nadando…", "Si necesitáis ayuda para mover muebles, llamadme"] },
+  { id: "pingo", n: "Pingo", sp: "pinguino", sex: "m", c: "noche", wear: { neck: "pajarita" }, job: "Músico", e: "🎹", roof: "#7a5cc4", x: 72, y: 385,
+    room: { wall: "w_noche", floor: "f_ajedrez", items: ["alfombra", "piano", "tocadiscos", "guirnalda", "lamparaluna"] }, likes: ["helado", "batido", "x_limonada", "x_bubbletea", "zumo", "flan"], likeT: "las cosas fresquitas",
+    hi: ["🎵 ¡Hola, hola! Justo estaba componiendo", "¡Pasad! Sentaos, os toco algo 🎹"], talk: ["Estoy escribiendo una canción de amor a distancia 🎶", "El frío me inspira ❄️", "Si cantáis con vuestro pollito, aprende más rápido 🎵", "Lola me da croissants a cambio de conciertos", "¿Sabéis qué rima con 'te echo de menos'? Yo tampoco 😅"] },
+  { id: "canela", n: "Canela", sp: "pollito", sex: "f", c: "chicle", wear: { face: "x_estrellita" }, job: "Pintora", e: "🎨", roof: "#e8a21f", x: 72, y: 512,
+    room: { wall: "w_lunares", floor: "f_rosa", items: ["alfombracor", "espejo", "cojines", "osogigante", "velas"] }, likes: ["fresas", "x_mango", "sandia", "uvas", "x_dango", "cupcake", "batido"], likeT: "la fruta y lo colorido",
+    hi: ["¡Holi! Cuidado, la pintura está fresca 🎨", "¡Qué bien que vengáis! Necesitaba inspiración"], talk: ["Estoy pintando un retrato de vuestro pollito 🖼️", "El rosa combina con todo, digan lo que digan 💖", "¿Habéis probado a pintar los muebles? ¡Es lo más!", "Mi color favorito es el atardecer 🌅", "Tofu dice que mis cuadros son 'modernos'… ¿es bueno? 🤔"] },
+  { id: "tofu", n: "Tofu", sp: "gato", sex: "m", c: "nube", wear: { face: "monoculo" }, job: "Abuelo sabio", e: "📚", roof: "#2f8f8a", x: 290, y: 478,
+    room: { wall: "w_madera", floor: "f_alfombra", items: ["alfombra", "estanteria", "reloj", "chimenea", "lampara"] }, likes: ["te", "sopa", "cremacal", "x_leche", "x_miel", "galleta"], likeT: "un té o una sopita",
+    hi: ["Pasad, pasad, jovencitos 🫖", "Ah, mis vecinos favoritos. ¿Un té?"], talk: ["El amor a distancia es como una planta: se riega cada día 🌱", "En mis tiempos las cartas tardaban semanas… 📮", "La paciencia es el ingrediente secreto de todo", "Cuidad mucho a vuestro pollito: os une más de lo que creéis", "Bruno corre mucho, pero yo llego antes: no me pierdo 😌"] }
+];
+const NB = Object.fromEntries(NEIGH.map(x => [x.id, x]));
+const nbOf = (p, id) => ((p.nb || {})[id]) || { f: 0 };
+const NB_LV = f => f >= 80 ? ["💛", "Mejores amigos"] : f >= 40 ? ["😊", "Amigos"] : f >= 15 ? ["🙂", "Conocidos"] : ["👋", "Nuevos vecinos"];
+function nbReq(id, p) {
+  const k = dayKey(), h = hashStr(k + ":req:" + id); if (h % 100 >= 55) return null;
+  const crops = Object.keys(CROPS), foods = ["manzana", "galleta", "fresas", "cafe", "palomitas", "croissant", "chocolate", "te", "zumo", "x_limonada", "donut"];
+  const isCrop = h % 2 === 0, item = isCrop ? crops[(h >> 3) % 5] : foods[(h >> 4) % foods.length], n = isCrop ? 2 + ((h >> 6) % 2) : 1 + ((h >> 7) % 2);
+  return { item, n, crop: isCrop, coins: 20 + ((h >> 8) % 5) * 10, done: nbOf(p, id).reqDay === k };
+}
+const haveOf = (p, r) => r.crop ? ((p.pantry || {})[r.item] || 0) : ((p.inv || {})[r.item] || 0);
+const itemE = (id) => CROPS[id] ? CROPS[id].e : (CAT[id] || {}).e || "❔";
+const itemN = (id) => CROPS[id] ? CROPS[id].n : (CAT[id] || {}).n || id;
+let nbCur = null, nbSay = "";
+function nbEl() { let v = $("nbView"); if (!v) { v = document.createElement("div"); v.id = "nbView"; v.className = "nbview hidden"; document.body.appendChild(v); } return v; }
+function openBarrio() { if (!hatched()) return toast("Primero tiene que nacer 🥚"); nbCur = null; const v = nbEl(); v.classList.remove("hidden"); document.body.style.overflow = "hidden"; renderBarrio(); SFX.whoosh && SFX.whoosh(); }
+function closeBarrio() { const v = $("nbView"); if (v) { v.classList.add("hidden"); v.innerHTML = ""; } document.body.style.overflow = ""; nbCur = null; }
+function renderBarrio() { if (nbCur) return renderNbHouse(); const v = nbEl(); v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbX">‹ Volver</button><b>🏘️ Vuestro barrio</b><span></span></div><div class="nbmap">${barrioSVG()}</div><div class="nbhint">Toca una casa para entrar · ❗ = tiene un encargo para vosotros</div>`; $("nbX").onclick = closeBarrio; v.querySelectorAll("[data-nb]").forEach(g => g.onclick = () => { const id = g.dataset.nb; if (id === "home") { closeBarrio(); if (petView !== "in") $("petView").click(); return; } nbCur = id; nbSay = ""; SFX.pop(); renderBarrio(); }); }
+function barrioSVG() {
+  const p = state.pet || {}, m = mateOf(p), I = petInfo(), pn = esc(p.name || "Pollito");
+  const tree = (x, y, r) => `<g><circle cx="${x + 2}" cy="${y + 3}" r="${r}" fill="rgba(0,0,0,.15)"/><circle cx="${x}" cy="${y}" r="${r}" fill="#3f9a4a"/><circle cx="${x - r * .3}" cy="${y - r * .3}" r="${r * .55}" fill="#5cb85c"/></g>`;
+  const house = (o) => {
+    const { x, y, roof, label, emoji, id, big, badge } = o, w = big ? 92 : 74, h = big ? 66 : 54, dark = hexMix(roof, "#000000", .25), lite = hexMix(roof, "#ffffff", .18);
+    return `<g class="nbh" data-nb="${id}" style="cursor:pointer"><rect x="${x - w / 2 - 8}" y="${y - h / 2 - 6}" width="${w + 16}" height="${h + 26}" rx="10" fill="#9fdc7a" opacity=".55"/>
+      <rect x="${x - w / 2 + 3}" y="${y - h / 2 + 4}" width="${w}" height="${h}" rx="6" fill="rgba(0,0,0,.18)"/>
+      <rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h / 2}" rx="5" fill="${lite}"/><rect x="${x - w / 2}" y="${y}" width="${w}" height="${h / 2}" rx="5" fill="${dark}"/>
+      <path d="M${x - w / 2 + 4} ${y} H${x + w / 2 - 4}" stroke="${hexMix(roof, "#000000", .4)}" stroke-width="2.5"/>${Array.from({ length: 5 }, (_, i) => `<path d="M${x - w / 2 + 6} ${y - h / 2 + 6 + i * (h / 10)} H${x + w / 2 - 6}" stroke="rgba(0,0,0,.08)" stroke-width="1"/>`).join("")}
+      <rect x="${x + w / 4}" y="${y - h / 2 - 6}" width="10" height="14" rx="2" fill="#8a6a5a"/>
+      <rect x="${x - 7}" y="${y + h / 2}" width="14" height="10" rx="2" fill="#e8dcc6"/>
+      <text x="${x}" y="${y + 4}" text-anchor="middle" font-size="${big ? 22 : 18}">${emoji}</text>
+      <g transform="translate(${x} ${y + h / 2 + 22})"><rect x="${-label.length * 3.6 - 10}" y="-10" width="${label.length * 7.2 + 20}" height="19" rx="9.5" fill="rgba(255,255,255,.92)"/><text text-anchor="middle" y="4" font-size="11" font-weight="800" fill="#3a2330" font-family="system-ui">${esc(label)}</text></g>
+      ${badge ? `<g class="nbbadge"><circle cx="${x + w / 2 - 2}" cy="${y - h / 2 + 2}" r="11" fill="${badge === "❗" ? "#ff3d6e" : "#fff"}" stroke="#fff" stroke-width="2"/><text x="${x + w / 2 - 2}" y="${y - h / 2 + 7}" text-anchor="middle" font-size="12">${badge}</text></g>` : ""}</g>`;
+  };
+  let s = `<svg viewBox="0 0 360 600" class="nbsvg"><rect width="360" height="600" fill="#8fd16a"/>`;
+  for (let i = 0; i < 70; i++) { const h = hashStr("g" + i); s += `<circle cx="${h % 360}" cy="${(h >> 9) % 600}" r="${1 + (h >> 18) % 2}" fill="${["#7cc35a", "#a3dc82", "#ffe680", "#ffb3c8"][(h >> 4) % 4]}" opacity=".8"/>`; }
+  s += `<ellipse cx="292" cy="112" rx="58" ry="42" fill="#6cc3f0"/><ellipse cx="292" cy="112" rx="50" ry="35" fill="#8fd6f7"/><path d="M262 104 q8 -6 16 0 M298 124 q8 -6 16 0" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/><text x="306" y="104" font-size="14">🦆</text><text x="270" y="130" font-size="11">🪷</text>`;
+  s += `<rect x="163" y="0" width="34" height="548" fill="#e3d2ad"/><rect x="0" y="282" width="360" height="30" fill="#e3d2ad"/><path d="M180 6 V270 M180 324 V540" stroke="#fff" stroke-width="2.5" stroke-dasharray="10 9"/><path d="M6 297 H140 M220 297 H354" stroke="#fff" stroke-width="2.5" stroke-dasharray="10 9"/>`;
+  s += `<circle cx="180" cy="297" r="40" fill="#e9dcc0"/><circle cx="180" cy="297" r="40" fill="none" stroke="#d2bf98" stroke-width="3"/><circle cx="180" cy="297" r="17" fill="#8fd6f7" stroke="#b8a888" stroke-width="4"/><circle cx="180" cy="297" r="5" fill="#fff"/><text x="180" y="301" text-anchor="middle" font-size="10">⛲</text>`;
+  [[30, 30, 14], [130, 40, 12], [126, 160, 11], [28, 300, 13], [130, 360, 12], [236, 30, 12], [340, 190, 12], [236, 400, 11], [340, 300, 12], [128, 470, 12], [236, 560, 13], [24, 580, 12], [128, 580, 10], [340, 580, 12], [236, 180, 10]].forEach(([x, y, r]) => s += tree(x, y, r));
+  const today = dayKey();
+  NEIGH.forEach(N => { const r = nbReq(N.id, p), st = nbOf(p, N.id); s += house({ x: N.x, y: N.y, roof: N.roof, label: `${N.n} ${SPECIES[N.sp].e}`, emoji: N.e, id: N.id, badge: r && !r.done ? "❗" : st.talk !== today ? "💬" : "" }); });
+  if (m) s += house({ x: 290, y: 368, roof: sexOf(m) === "m" ? "#5a8fd6" : "#e86a9a", label: `${m.name} ${SPECIES[m.species || "pollito"].e}`, emoji: p.mateOut ? "💕" : "💤", id: "mate", badge: p.mateOut ? "" : "" });
+  s += house({ x: 180, y: 560, roof: "#ff5c8a", label: `Vuestra casa · ${pn}`, emoji: "🏡", id: "home", big: 1 });
+  return s + `</svg>`;
+}
+function nbScene(N, fig, bubble) {
+  const room = { wall: N.room.wall, floor: N.room.floor, items: Object.fromEntries(N.room.items.map(i => [i, true])), pos: {} }, W = CAT[room.wall] || CAT.w_crema, F = CAT[room.floor] || CAT.f_madera;
+  let sky = roomSVG(room, "day"); N.room.items.filter(i => FA[i]).sort((a, b) => (FA[a].flat ? 0 : FA[a].t === "floor" ? 2 : 1) - (FA[b].flat ? 0 : FA[b].t === "floor" ? 2 : 1)).forEach(i => sky += furnHTML(i, room, "day"));
+  return `<div class="scene room nbscene ${room.wall} ${room.floor}" style="--wall:${W.sw};--floor:${F.sw}"><div class="sky">${sky}<div class="nbfig">${fig}</div>${bubble ? `<div class="nbbub">${bubble}</div>` : ""}</div></div>`;
+}
+function renderNbHouse() {
+  const v = nbEl(), p = state.pet || {};
+  if (nbCur === "mate") {
+    const m = mateOf(p); if (!m) { nbCur = null; return renderBarrio(); }
+    const N = { room: { wall: sexOf(m) === "m" ? "w_azul" : "w_rosa", floor: "f_madera", items: ["alfombra", "puff", "planta", "lamparaluna", "estanteria"] } };
+    const fig = p.mateOut ? chickSVG(4, "happy", geneWear(m), 0, geneColor(m), { species: m.species }) : "";
+    v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>Casa de ${esc(m.name)} ${sxTag(sexOf(m))}</b><span></span></div>
+      ${nbScene(N, fig, p.mateOut ? esc(rnd([`¡Hola! Echaba de menos a ${p.name || "tu pollito"} 💕`, "¡Qué sorpresa veros por aquí!", "Pasad, estaba pensando en vosotros 🥰"])) : "")}
+      <div class="nbbox">${p.mateOut ? `<div class="sub">${esc(m.name)} está en su casa.</div><button class="btn primary" id="nbMateIn" style="width:100%">📞 Invitarle a vuestra casa</button>` : `<div class="sub">${esc(m.name)} no está: ahora mismo está de visita en vuestra casa 🏡</div><button class="btn" id="nbMateOut" style="width:100%">👋 Que vuelva a su casa</button>`}
+      <button class="btn" id="nbLove" style="width:100%;margin-top:8px">💞 Ver amor y planes</button></div>`;
+    $("nbBack").onclick = () => { nbCur = null; renderBarrio(); };
+    const mi = $("nbMateIn"); if (mi) mi.onclick = () => { mateVisit(false); setTimeout(renderNbHouse, 400); };
+    const mo = $("nbMateOut"); if (mo) mo.onclick = () => { mateVisit(true); setTimeout(renderNbHouse, 400); };
+    $("nbLove").onclick = () => { closeBarrio(); const b = document.querySelector('#petSegBar [data-s="hoy"]'); if (b) b.click(); setTimeout(() => { const lc = $("loveCard"); if (lc) lc.scrollIntoView({ behavior: "smooth" }); }, 300); };
+    return;
+  }
+  const N = NB[nbCur]; if (!N) { nbCur = null; return renderBarrio(); }
+  const st = nbOf(p, N.id), today = dayKey(), lv = NB_LV(st.f || 0), r = nbReq(N.id, p);
+  if (!nbSay) nbSay = rnd(N.hi);
+  const fig = chickSVG(4, "happy", N.wear, 0, N.c, { species: N.sp });
+  v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>${N.e} Casa de ${esc(N.n)}</b><span></span></div>
+    ${nbScene(N, fig, esc(nbSay))}
+    <div class="nbbox"><div class="nbwho"><b>${esc(N.n)} ${sxTag(N.sex)}</b><small>${SPECIES[N.sp].e} ${esc(N.job)} · le encanta ${esc(N.likeT)}</small></div>
+      <div class="nbfr"><span>${lv[0]} ${lv[1]}</span><div class="gbar"><i style="width:${Math.min(100, st.f || 0)}%"></i></div><span>${Math.round(st.f || 0)}/100</span></div>
+      ${r ? `<div class="nbreq ${r.done ? "done" : ""}"><b>📦 Encargo de hoy</b><span>${r.done ? "¡Hecho! Gracias 💛" : `Necesita ${r.n} ${itemE(r.item)} ${esc(itemN(r.item))} · tienes ${haveOf(p, r)}`}</span>${r.done ? "" : `<button class="btn primary" id="nbGive" ${haveOf(p, r) >= r.n ? "" : "disabled"}>Entregar · +${r.coins} 🪙</button>`}</div>` : `<div class="nbreq none">Hoy no necesita nada 😊</div>`}
+      <div class="nbacts"><button class="btn ${st.talk === today ? "" : "primary"}" id="nbTalk">${st.talk === today ? "💬 Charlar" : "💬 Charlar · +5 💛"}</button><button class="btn ${st.gift === today ? "" : "primary"}" id="nbGift" ${st.gift === today ? "disabled" : ""}>${st.gift === today ? "🎁 Regalado hoy" : "🎁 Hacerle un regalo"}</button></div>
+      <div class="nbgifts hidden" id="nbGifts"></div></div>`;
+  $("nbBack").onclick = () => { nbCur = null; renderBarrio(); };
+  $("nbTalk").onclick = () => nbTalk(N);
+  $("nbGift").onclick = () => nbGiftPick(N);
+  const g = $("nbGive"); if (g) g.onclick = () => nbDeliver(N);
+}
+let nbMsg = null;
+function nbTx(id, fn) { nbMsg = null; return petTx(q => { q.nb = { ...(q.nb || {}) }; const s = { f: 0, ...(q.nb[id] || {}) }; const before = s.f; const r = fn(q, s); if (r === null) return null; s.f = Math.min(100, s.f); q.nb[id] = s; nbMsg = nbMilestone(id, before, s.f, q); return q; }); }
+function nbMilestone(id, a, b, q) {
+  const N = NB[id]; if (!N) return null;
+  if (a < 40 && b >= 40) { q.coins = coinsOf(q) + 50; return `¡${N.n} y vosotros ya sois amigos! Os regala 50 🪙`; }
+  if (a < 80 && b >= 80) { const it = N.room.items.map(i => CAT[i]).find(it => it && !isOwned(q, it)); if (it) { q.owned = { ...(q.owned || {}), [it.id]: true }; return `¡Mejores amigos! ${N.n} os regala su ${it.e} ${it.n} para vuestra casa`; } q.coins = coinsOf(q) + 100; return `¡Mejores amigos! ${N.n} os regala 100 🪙`; }
+  return null;
+}
+function nbAfter() { const m = nbMsg; nbMsg = null; if (m) setTimeout(() => { confetti(); readView({ icon: "🏘️", title: "¡Amistad en el barrio!", sub: "", text: m }); }, 500); }
+function nbTalk(N) {
+  const today = dayKey(); let first = false;
+  nbSay = rnd(N.talk);
+  nbTx(N.id, (q, s) => { if (s.talk === today) return null; s.talk = today; s.f += 5; first = true; gainExp(q, 2); }).then(r => { if (first) { SFX.pop(); toast(`💛 +5 amistad con ${N.n}`); nbAfter(r); } renderNbHouse(); }).catch(() => renderNbHouse());
+}
+function nbGiftPick(N) {
+  const p = state.pet || {}, inv = Object.entries(p.inv || {}).filter(([k, n]) => n > 0 && CAT[k] && CAT[k].cat === "comida" && k !== "medicina" && k !== "jabon"), pan = Object.entries(p.pantry || {}).filter(([, n]) => n > 0);
+  const box = $("nbGifts"); box.classList.remove("hidden");
+  const all = [...pan.map(([k, n]) => ["p", k, n]), ...inv.map(([k, n]) => ["i", k, n])];
+  box.innerHTML = all.length ? `<div class="slotname">¿Qué le regaláis? <small>(${esc(N.n)} adora ${esc(N.likeT)})</small></div><div class="gpan">${all.map(([t, k, n]) => `<button class="nbgi ${N.likes.includes(k) ? "fav" : ""}" data-ng="${t}:${k}">${itemE(k)}<small>×${n}</small>${N.likes.includes(k) ? "<em>💛</em>" : ""}</button>`).join("")}</div>` : `<div class="sub">No tenéis nada para regalar. Cosechad en el huerto o comprad comida en la tienda 🌱🛍️</div>`;
+  box.querySelectorAll("[data-ng]").forEach(b => b.onclick = () => { const [t, k] = b.dataset.ng.split(":"); nbGive(N, t, k); });
+}
+function nbGive(N, t, k) {
+  const today = dayKey(), fav = N.likes.includes(k); let ok = false;
+  nbTx(N.id, (q, s) => { if (s.gift === today) return null; const bag = t === "p" ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); if (!(bag[k] > 0)) return null; bag[k]--; s.gift = today; s.f += fav ? 12 : 6; ok = true; gainExp(q, 3); })
+    .then(r => { if (!ok) return renderNbHouse(); nbSay = fav ? `¡${itemE(k)}! ¡Me encanta, me encanta! 😍` : `Oh, ${itemE(k)}… ¡qué detalle, gracias! 😊`; SFX.ding(); toast(`💛 +${fav ? 12 : 6} amistad con ${N.n}`); nbAfter(r); renderNbHouse(); }).catch(offline);
+}
+function nbDeliver(N) {
+  const today = dayKey(); let ok = false, rq = null;
+  nbTx(N.id, (q, s) => { const r = nbReq(N.id, q); if (!r || r.done || haveOf(q, r) < r.n) return null; const bag = r.crop ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); bag[r.item] -= r.n; s.reqDay = today; s.f += 10; q.coins = coinsOf(q) + r.coins; q.nbDone = (q.nbDone || 0) + 1; gainExp(q, 8); ok = true; rq = r; })
+    .then(r => { if (!ok) return renderNbHouse(); nbSay = rnd(["¡Mil gracias! Me habéis salvado el día 🥹", "¡Justo lo que necesitaba! Sois los mejores vecinos 💛", "¡Gracias, gracias! Tomad, por las molestias 🪙"]); confetti(); SFX.coin(); toast(`📦 Encargo entregado · +${rq.coins} 🪙 · +10 💛`); sendMsg(`📦 Hemos ayudado a ${N.n} con su encargo (${rq.n} ${itemE(rq.item)})`, "pet"); nbAfter(r); renderNbHouse(); }).catch(offline);
+}
+
+$("petBarrio").onclick = openBarrio;
 // si le das de comer, mimos, etc. y no está contigo, viene corriendo
 document.querySelector(".actions.six").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || !["petFeed", "petBag", "petHug", "petPlay", "petBath", "petSleep", "petTricks"].includes(b.id)) return;
@@ -7216,7 +7727,7 @@ async function start() {
   S.merge("state/main", { tz: { [who]: myTz } });
   S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); renderPush(); renderMeet(); renderThink(); });
   S.watchDoc("state/pet", d => { state.pet = d; checkFirsts(d); renderPet(); fgInfo(); });
-  watchDiary(); watchOTD(); watchPresence(); watchPetPics(); watchAiMem(); watchWeekly(); watchLive(); spLoadKey(); watchSpicy(); watchSpCal();
+  watchDiary(); watchOTD(); watchPresence(); watchPetPics(); watchAiMem(); watchWeekly(); watchLive(); spLoadKey(); watchSpicy(); watchSpCal(); watchDuel();
   // 🎁 Una sola vez para la pareja: el pollito empieza ya en el día 7 (fase «Pequeñín»)
   setTimeout(() => {
     const q = state.pet || {}; if (q.boost7 || (q.xp || 0) >= 7) return;

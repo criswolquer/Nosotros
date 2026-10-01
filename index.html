@@ -1181,8 +1181,8 @@ label.shopit{cursor:pointer}
 
 /* ===== v40 · pareja, crías, árbol, marcas ===== */
 .matefig,.kidfig,.nestfig{position:absolute;bottom:4px;background:none;border:0;padding:0;z-index:2;cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent}
-.matefig{left:clamp(-6%, calc(var(--px, 50%) - 46%), 56%);bottom:10px;width:150px;height:150px;animation:mateBob 3.4s ease-in-out infinite;z-index:1;transition:left 1.4s ease}
-.scene.inter-close .matefig:not(.far),.matefig.snug{left:clamp(-2%, calc(var(--px, 50%) - 37%), 60%)}
+.matefig{left:clamp(-14%, calc(var(--px, 50%) - 54%), 50%);bottom:12px;width:205px;height:205px;animation:mateBob 3.4s ease-in-out infinite;z-index:1;transition:left 1.4s ease}
+.scene.inter-close .matefig:not(.far),.matefig.snug{left:clamp(-8%, calc(var(--px, 50%) - 44%), 54%)}
 .matefig.far{left:28%;animation:mateStroll 10s ease-in-out infinite}
 .matefig svg,.kidfig svg,.nestfig svg{width:100%;height:100%;overflow:visible;display:block}
 .matefig b{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);font-size:10.5px;font-weight:800;color:#fff;background:rgba(0,0,0,.35);padding:1px 7px;border-radius:9px;white-space:nowrap}
@@ -1636,6 +1636,70 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 .itime{flex:0 0 auto;width:130px;max-width:45%;background:rgba(255,255,255,.08);border:0;border-radius:10px;color:#fff;padding:7px 10px;font:inherit;font-size:16px;color-scheme:dark;text-align:center;box-sizing:border-box}.irow>span{white-space:nowrap}
 .durchips .chip{font-variant-numeric:tabular-nums}
 .ictime{display:flex;gap:12px;margin-top:5px;font-size:13px;color:rgba(255,255,255,.8)}
+
+/* ===== 2.1 · varias veces al día ===== */
+.icevs{display:flex;flex-direction:column;gap:8px}.icaghead em{margin-left:auto;font-style:normal;font-size:12.5px;font-weight:700;color:#ff8fa3}
+.icadd.more{margin-top:10px;background:rgba(255,255,255,.06);color:#ff8fa3;font-size:14px;padding:11px}
+
+/* ===== 2.2 · huerto, cocina, eventos y duelos ===== */
+.ggrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gplot{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:5px;text-align:center}
+.gplot.ready{border-color:#3fb67b;box-shadow:0 0 0 2px rgba(63,182,123,.25)}.gplot.wilt{border-color:#c9932a}
+.gsoil{position:relative;height:64px;border-radius:12px;background:linear-gradient(180deg,#8fd0ff22,transparent 45%),linear-gradient(0deg,#6b4226 0 38%,#86553a 38% 44%,transparent 44%);display:flex;align-items:flex-end;justify-content:center}
+.gsoil span{font-size:34px;line-height:1;margin-bottom:14px;transform:scale(var(--s,1));transform-origin:bottom;transition:transform .4s}.gplot.empty .gsoil span{font-size:24px;opacity:.6;margin-bottom:20px}
+.gplot.ready .gst{animation:mpcalm 1.6s ease-in-out infinite}.gplot.wilt .gst{filter:saturate(.3) brightness(.9);transform:scale(var(--s,1)) rotate(-12deg)}
+.gsoil em{position:absolute;top:4px;right:6px;font-style:normal;font-size:16px}
+.gplot b{font-size:13.5px}.gplot small{font-size:11.5px;color:var(--muted);min-height:28px}
+.gbar{height:6px;border-radius:6px;background:rgba(127,127,127,.2);overflow:hidden}.gbar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#7ed957,#3fb67b)}
+.gwat{display:flex;justify-content:center;gap:8px;font-size:11px}.gwat span{opacity:.4}.gwat span.on{opacity:1;color:#3fa9f5;font-weight:700}
+.gplot .btn{padding:8px;font-size:13px}
+.gseeds{display:grid;grid-template-columns:1fr 1fr;gap:6px}.gseed{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:8px 4px;color:var(--text)}.gseed:disabled{opacity:.45}
+.gseed i{font-style:normal;font-size:26px}.gseed b{font-size:13px}.gseed small{font-size:11px;color:var(--muted)}.gseed em{position:absolute;top:4px;right:6px;font-style:normal;font-size:9.5px;font-weight:800;background:#ff7a1a;color:#fff;border-radius:6px;padding:1px 4px}
+.gpan{display:flex;flex-wrap:wrap;gap:6px}.gpan span{background:var(--card2);border:1px solid var(--line);border-radius:99px;padding:5px 10px;font-weight:700;font-size:14px}.gpan em{font-size:13px;color:var(--muted)}
+.gardenfig{position:absolute;left:4%;bottom:2px;z-index:2;background:none;border:0;padding:0;pointer-events:auto;cursor:pointer}
+.gbed{display:flex;gap:1px;padding:2px 6px 3px;border-radius:10px 10px 6px 6px;background:linear-gradient(0deg,#6b4226 0 55%,#86553a 55%);box-shadow:0 3px 6px rgba(0,0,0,.25)}.gbed i{font-style:normal;font-size:20px;width:24px;text-align:center;margin-top:-14px}.gbed i.rd{animation:mpcalm 1.6s ease-in-out infinite}.gbed i.wl{filter:saturate(.3);transform:rotate(-12deg)}
+.krec{display:flex;flex-direction:column;gap:6px}.krow{display:flex;align-items:center;gap:10px;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:8px 10px;color:var(--text)}
+.krow:disabled{opacity:.55}.krow.ok{border-color:#3fb67b}.krow i{font-style:normal;font-size:26px;width:32px;text-align:center}.krow span{flex:1;min-width:0}.krow b{display:block;font-size:14px}.krow small{font-size:12px;color:var(--muted)}.krow em{font-style:normal;font-size:12px;font-weight:700;color:var(--muted)}
+.kcooking,.kres{text-align:center;padding:14px 0 12px}.kcooking b,.kres b{display:block;font-size:17px;margin-top:6px}.kcooking small,.kres small{color:var(--muted)}
+.kpot{font-size:64px;line-height:1}.kpot.boil{animation:mpnerv .25s ease-in-out infinite alternate}.kres .kpot{animation:kswin .6s ease}
+.evcard{border:1px solid var(--evc,#ff7a1a);background:linear-gradient(160deg,color-mix(in srgb,var(--evc,#ff7a1a) 22%,transparent),transparent 70%),var(--card)}
+.evhead{display:flex;align-items:center;gap:10px}.evico{font-size:40px;animation:mpcalm 2s ease-in-out infinite}.evhead b{display:block;font-size:18px}.evhead small{color:var(--muted);font-size:12.5px}
+.evtip{font-size:13px;margin:8px 0;opacity:.9}.evprog{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}.evprog .gbar{flex:1}.evprog .gbar i{background:var(--evc,#ff7a1a)}
+.evprizes{display:flex;gap:8px;margin:10px 0}.evprizes span{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:28px;background:var(--card2);border:1px dashed var(--line);border-radius:14px;padding:8px 4px;filter:grayscale(.8);opacity:.7}
+.evprizes span.on{filter:none;opacity:1;border-style:solid;border-color:var(--evc,#ff7a1a)}.evprizes small{font-size:11px;text-align:center;line-height:1.25}
+.evdeco{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}.evdeco i{position:absolute;font-style:normal;font-size:20px;top:calc(8% + var(--i)*7%);left:calc(6% + var(--i)*19%);animation:evfl calc(5s + var(--i)*.7s) ease-in-out infinite alternate;opacity:.85}
+@keyframes evfl{from{transform:translate(0,0) rotate(-8deg)}to{transform:translate(14px,-10px) rotate(8deg)}}
+.act.need{position:relative}.act.need::after{content:"";position:absolute;top:6px;right:10px;width:9px;height:9px;border-radius:50%;background:#ff3d6e;box-shadow:0 0 0 2px var(--card)}
+.dscore{display:flex;align-items:center;justify-content:center;gap:22px;margin:4px 0 12px}.dscore div{text-align:center}.dscore b{display:block;font-size:40px;font-weight:900;line-height:1}.dscore small{color:var(--muted)}.dscore span{font-size:30px}
+.dban{background:linear-gradient(135deg,rgba(255,92,138,.18),rgba(123,47,247,.14));border:1px solid rgba(255,92,138,.4);border-radius:14px;padding:10px 12px;font-size:14px;margin:6px 0 10px}.dban .btn{padding:6px 12px;font-size:13px;margin-left:6px}
+.dgames{display:grid;grid-template-columns:1fr;gap:6px}
+.dres{font-weight:800;font-size:16px;margin-bottom:8px;padding:8px 10px;border-radius:12px}.dres.w{background:rgba(63,182,123,.2);color:#1f8a4c}.dres.l{background:rgba(255,92,138,.15);color:#d0304a}
+
+/* ===== 2.3 · colores de muebles y visitas ===== */
+.tintbox{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin:4px 0 10px}.tintbox summary{font-weight:800;cursor:pointer;list-style:none}.tintbox summary::-webkit-details-marker{display:none}.tintbox summary small{font-weight:600;color:#3fb67b;margin-left:4px}
+.tintrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}.tintrow:first-of-type{margin-top:8px}
+.tintprev{width:64px;height:48px;flex:none;display:grid;place-items:center;background:rgba(127,127,127,.1);border-radius:10px}.tintprev svg{max-width:58px;max-height:42px}
+.tintrow b{font-size:13.5px}.tintsw{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}.tintsw button{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.25);padding:0;font-size:12px;color:#fff;font-weight:900;box-shadow:0 1px 3px rgba(0,0,0,.25)}.tintsw button.on{border-color:#fff;box-shadow:0 0 0 2px #ff5c8a}
+.mvisit{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:8px 10px;margin:0 0 10px;font-size:13px;font-weight:600}.mvisit .btn{padding:7px 10px;font-size:12.5px;flex:none}
+
+/* ===== 2.4 · el barrio ===== */
+.viewbtn.nbbtn{top:108px}
+.nbview{position:fixed;inset:0;z-index:60;background:#f4efe6;color:#3a2330;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+@media (prefers-color-scheme:dark){.nbview{background:#1e1420;color:#f6e9ef}}
+.nbtop{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;background:inherit;border-bottom:1px solid rgba(127,127,127,.2)}.nbtop b{font-size:17px}.nbtop span{width:70px}
+.nbback{border:0;background:rgba(127,127,127,.15);color:inherit;border-radius:99px;padding:8px 12px;font-weight:800;font-size:14px;width:auto}
+.nbmap{padding:10px}.nbsvg{width:100%;height:auto;display:block;border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.nbh{transition:transform .15s}.nbh:active{transform:scale(.97)}.nbbadge{animation:mpcalm 1.4s ease-in-out infinite}
+.nbhint{text-align:center;font-size:12.5px;opacity:.7;padding:0 16px}
+.nbscene{height:300px;margin:10px;border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.nbfig{position:absolute;left:50%;bottom:16px;width:190px;height:190px;transform:translateX(-50%);z-index:3;animation:mateBob 3.4s ease-in-out infinite}.nbfig svg{width:100%;height:100%;overflow:visible}
+.nbbub{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:4;max-width:80%;background:#fff;color:#3a2330;border-radius:16px;padding:9px 13px;font-size:14px;font-weight:700;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.2);animation:spflip .35s ease}
+.nbbox{margin:0 10px;background:var(--card,#fff);color:var(--text,#3a2330);border-radius:20px;padding:14px;border:1px solid var(--line,rgba(0,0,0,.08))}
+.nbwho b{font-size:18px}.nbwho small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.nbfr{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:12.5px;font-weight:700}.nbfr .gbar{flex:1}.nbfr .gbar i{background:linear-gradient(90deg,#ffd23f,#ff8a5c)}
+.nbreq{display:flex;flex-direction:column;gap:6px;background:linear-gradient(135deg,rgba(255,92,138,.12),rgba(255,210,63,.12));border:1px solid rgba(255,140,120,.35);border-radius:14px;padding:10px 12px;margin-bottom:10px;font-size:13.5px}.nbreq.done{opacity:.75}.nbreq.none{background:var(--card2);border-color:var(--line);color:var(--muted)}
+.nbacts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.nbacts .btn{font-size:13.5px;padding:11px 6px}
+.nbgifts{margin-top:10px}.nbgi{position:relative;display:flex;flex-direction:column;align-items:center;font-size:24px;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:6px 10px;color:var(--text)}.nbgi small{font-size:11px;color:var(--muted)}.nbgi.fav{border-color:#ffb800}.nbgi em{position:absolute;top:-6px;right:-4px;font-style:normal;font-size:12px}
 </style>
 </head>
 <body>
@@ -1737,7 +1801,7 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
       <div class="sky" id="petSky"></div>
       <div class="coins" id="petCoins">🪙 0</div>
       <div class="lvlpill" id="petLvl">Nv. 1</div>
-      <button class="viewbtn" id="petView">🏠 Casita</button>
+      <button class="viewbtn" id="petView">🏠 Casita</button><button class="viewbtn nbbtn" id="petBarrio">🏘️ Barrio</button>
       <div class="say hidden" id="petSay"></div>
       <div class="petbox" id="petBox"></div>
       <div class="lookfor hidden" id="petLook"></div>
@@ -1773,6 +1837,9 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
         <button class="act" id="petTricks"><i>🎪</i><span>Trucos</span></button>
         <button class="act" id="petWard"><i>👗</i><span>Armario</span></button>
         <button class="act" id="petChests"><i>🎁</i><span>Cofres</span></button>
+        <button class="act" id="petGarden"><i>🌱</i><span>Huerto</span></button>
+        <button class="act" id="petKitchen"><i>🍳</i><span>Cocinar</span></button>
+        <button class="act" id="petDuels"><i>⚔️</i><span>Duelos</span></button>
       </div>
       <div class="sub" style="text-align:center;font-size:12px;margin-top:10px">Tócale para mimos · 5 toques = cosquillas · mantén pulsado para acariciarle</div>
     </div>
@@ -1780,6 +1847,7 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 
   <div class="seg" id="petSegBar"><button data-s="hoy">🎯 Hoy</button><button data-s="shop">🛍️ Tienda</button><button data-s="prog">⭐ Progreso</button><button data-s="col">📚 Colección</button></div>
 
+  <section class="card evcard hidden" data-pseg="hoy" id="evCard"></section>
   <section class="card" data-pseg="hoy" id="loveCard">
     <div class="label">Amor y familia 💞</div>
     <div id="petLove"></div>
@@ -1797,6 +1865,7 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 
   <section class="card" data-pseg="hoy">
     <div class="label">Minijuegos 🎮</div>
+    <div class="dban hidden" id="mgDuelBan"></div>
     <div class="mgrow">
       <i>🍓</i><div style="flex:1"><b>Atrapa fresas</b><div class="sub" style="margin-top:2px;font-size:12px" id="fgInfo">30 segundos · gana monedas</div></div>
       <button class="btn primary" id="fgPlay">▶</button>
