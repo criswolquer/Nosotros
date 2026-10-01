@@ -519,6 +519,135 @@ CATALOG.push(
   { id: "mk_rubor", cat: "marca", slot: "mark", e: "😊", n: "Coloretes", c: 50, lvl: 1, nw: 2 },
   { id: "mk_copete", cat: "marca", slot: "mark", e: "💈", n: "Copete", c: 90, lvl: 1, nw: 2 }
 );
+// v48 · la tienda crece: +110 cosas nuevas (nw: 3)
+CATALOG.push(
+  // ---- cabeza ----
+  { id: "boinamar", cat: "ropa", slot: "head", e: "⚓", n: "Gorra de marinero", c: 90, lvl: 1, nw: 3 },
+  { id: "cascovik", cat: "ropa", slot: "head", e: "🪖", n: "Casco vikingo", c: 170, lvl: 3, nw: 3 },
+  { id: "gorroaviador", cat: "ropa", slot: "head", e: "🛩️", n: "Gorro de aviador", c: 150, lvl: 3, nw: 3 },
+  { id: "orejasoso", cat: "ropa", slot: "head", e: "🐻", n: "Orejas de osito", c: 80, lvl: 1, nw: 3 },
+  { id: "coronaflores", cat: "ropa", slot: "head", e: "🌼", n: "Corona de flores", c: 120, lvl: 2, nw: 3 },
+  { id: "pamela", cat: "ropa", slot: "head", e: "👒", n: "Pamela de playa", c: 130, lvl: 2, nw: 3 },
+  { id: "gorrodormir", cat: "ropa", slot: "head", e: "🌙", n: "Gorro de dormir", c: 70, lvl: 1, nw: 3 },
+  { id: "cuernouni", cat: "ropa", slot: "head", e: "🦄", n: "Cuerno de unicornio", c: 260, lvl: 5, r: 3, nw: 3 },
+  { id: "halo", cat: "ropa", slot: "head", e: "😇", n: "Aureola", c: 300, lvl: 6, r: 3, nw: 3 },
+  { id: "lazogigante", cat: "ropa", slot: "head", e: "🎀", n: "Lazo gigante", c: 110, lvl: 2, nw: 3 },
+  { id: "orejeras", cat: "ropa", slot: "head", e: "🎧", n: "Orejeras de pelito", c: 100, lvl: 2, nw: 3 },
+  { id: "cintadep", cat: "ropa", slot: "head", e: "🏃", n: "Cinta de deporte", c: 60, lvl: 1, nw: 3 },
+  { id: "rizos", cat: "ropa", slot: "head", e: "🧑‍🦱", n: "Peluca de rizos", c: 140, lvl: 3, nw: 3 },
+  { id: "tiaraluna", cat: "ropa", slot: "head", e: "🌙", n: "Tiara de luna", c: 380, lvl: 7, r: 4, nw: 3 },
+  // ---- cara ----
+  { id: "gafasrosa", cat: "ropa", slot: "face", e: "🌟", n: "Gafas de estrella rosa", c: 130, lvl: 2, nw: 3 },
+  { id: "gafasgato", cat: "ropa", slot: "face", e: "😼", n: "Gafas de gatita", c: 140, lvl: 3, nw: 3 },
+  { id: "gafascorazon", cat: "ropa", slot: "face", e: "😍", n: "Gafas de corazón", c: 120, lvl: 2, nw: 3 },
+  { id: "antifazfiesta", cat: "ropa", slot: "face", e: "🎭", n: "Antifaz de fiesta", c: 160, lvl: 3, nw: 3 },
+  { id: "gafasbuceo", cat: "ropa", slot: "face", e: "🤿", n: "Gafas de buceo", c: 110, lvl: 2, nw: 3 },
+  { id: "gafasredondas", cat: "ropa", slot: "face", e: "👓", n: "Gafas redondas", c: 90, lvl: 1, nw: 3 },
+  { id: "pestanas", cat: "ropa", slot: "face", e: "👁️", n: "Pestañas de muñeca", c: 70, lvl: 1, nw: 3 },
+  // ---- cuello ----
+  { id: "trebol", cat: "ropa", slot: "neck", e: "🍀", n: "Colgante de trébol", c: 130, lvl: 2, nw: 3 },
+  { id: "boa", cat: "ropa", slot: "neck", e: "🪶", n: "Boa de plumas", c: 180, lvl: 4, nw: 3 },
+  { id: "pajaritaest", cat: "ropa", slot: "neck", e: "⭐", n: "Pajarita de estrellas", c: 90, lvl: 1, nw: 3 },
+  { id: "cadenacor", cat: "ropa", slot: "neck", e: "💞", n: "Cadena de corazones", c: 150, lvl: 3, nw: 3 },
+  { id: "corbatarayas", cat: "ropa", slot: "neck", e: "👔", n: "Corbata de rayas", c: 80, lvl: 1, nw: 3 },
+  { id: "babero", cat: "ropa", slot: "neck", e: "🍼", n: "Babero", c: 40, lvl: 1, nw: 3 },
+  { id: "gargantilla", cat: "ropa", slot: "neck", e: "💎", n: "Gargantilla de brillantes", c: 320, lvl: 6, r: 3, nw: 3 },
+  // ---- cuerpo ----
+  { id: "pijamanube", cat: "ropa", slot: "body", e: "☁️", n: "Pijama de nubes", c: 120, lvl: 2, nw: 3 },
+  { id: "chaquetavaq", cat: "ropa", slot: "body", e: "🧥", n: "Chaqueta vaquera", c: 160, lvl: 3, nw: 3 },
+  { id: "vestidoflores", cat: "ropa", slot: "body", e: "👗", n: "Vestido de flores", c: 150, lvl: 2, nw: 3 },
+  { id: "rebeca", cat: "ropa", slot: "body", e: "🧶", n: "Rebeca de botones", c: 110, lvl: 2, nw: 3 },
+  { id: "trajebanio", cat: "ropa", slot: "body", e: "🩱", n: "Bañador de lunares", c: 90, lvl: 1, nw: 3 },
+  { id: "bata", cat: "ropa", slot: "body", e: "🥼", n: "Bata de científico", c: 140, lvl: 3, nw: 3 },
+  { id: "marinera", cat: "ropa", slot: "body", e: "⚓", n: "Camiseta marinera", c: 100, lvl: 1, nw: 3 },
+  { id: "superheroe", cat: "ropa", slot: "body", e: "🦸", n: "Traje de superhéroe", c: 240, lvl: 5, r: 3, nw: 3 },
+  { id: "jerseynavidad", cat: "ropa", slot: "body", e: "🎄", n: "Jersey navideño", c: 130, lvl: 1, season: [11, 0], sn: "Navidad", nw: 3 },
+  { id: "kimono", cat: "ropa", slot: "body", e: "👘", n: "Kimono de flores", c: 220, lvl: 4, nw: 3 },
+  { id: "futbol", cat: "ropa", slot: "body", e: "⚽", n: "Equipación de fútbol", c: 120, lvl: 2, nw: 3 },
+  // ---- pies ----
+  { id: "deportivas", cat: "ropa", slot: "feet", e: "👟", n: "Zapatillas deportivas", c: 100, lvl: 1, nw: 3 },
+  { id: "botasvaquero", cat: "ropa", slot: "feet", e: "🤠", n: "Botas de vaquero", c: 140, lvl: 3, nw: 3 },
+  { id: "pantuflas", cat: "ropa", slot: "feet", e: "🐻", n: "Pantuflas de osito", c: 90, lvl: 1, nw: 3 },
+  { id: "zapatillasluz", cat: "ropa", slot: "feet", e: "✨", n: "Zapatillas con luces", c: 200, lvl: 4, r: 3, nw: 3 },
+  { id: "zuecos", cat: "ropa", slot: "feet", e: "🪵", n: "Zuecos", c: 80, lvl: 2, nw: 3 },
+  { id: "charol", cat: "ropa", slot: "feet", e: "👞", n: "Zapatos de charol", c: 130, lvl: 3, nw: 3 },
+  // ---- en la mano ----
+  { id: "algodonaz", cat: "ropa", slot: "hand", e: "🍭", n: "Algodón de azúcar", c: 70, lvl: 1, nw: 3 },
+  { id: "globocor", cat: "ropa", slot: "hand", e: "🎈", n: "Globo de corazón", c: 90, lvl: 1, nw: 3 },
+  { id: "libro", cat: "ropa", slot: "hand", e: "📖", n: "Libro de cuentos", c: 80, lvl: 1, nw: 3 },
+  { id: "pincel", cat: "ropa", slot: "hand", e: "🖌️", n: "Pincel", c: 70, lvl: 1, nw: 3 },
+  { id: "abanico", cat: "ropa", slot: "hand", e: "🪭", n: "Abanico", c: 100, lvl: 2, nw: 3 },
+  { id: "rosaroja", cat: "ropa", slot: "hand", e: "🌹", n: "Rosa roja", c: 120, lvl: 2, nw: 3 },
+  { id: "molinillo", cat: "ropa", slot: "hand", e: "🌬️", n: "Molinillo de viento", c: 80, lvl: 1, nw: 3 },
+  { id: "linterna", cat: "ropa", slot: "hand", e: "🔦", n: "Linterna", c: 90, lvl: 2, nw: 3 },
+  { id: "microfono", cat: "ropa", slot: "hand", e: "🎤", n: "Micrófono", c: 150, lvl: 3, nw: 3 },
+  { id: "cazamariposas", cat: "ropa", slot: "hand", e: "🦋", n: "Cazamariposas", c: 110, lvl: 2, nw: 3 },
+  // ---- espalda ----
+  { id: "alasmariposa", cat: "ropa", slot: "back", e: "🦋", n: "Alas de mariposa", c: 280, lvl: 5, r: 3, nw: 3 },
+  { id: "alasdragon", cat: "ropa", slot: "back", e: "🐉", n: "Alas de dragón", c: 340, lvl: 7, r: 4, nw: 3 },
+  { id: "guitarraesp", cat: "ropa", slot: "back", e: "🎸", n: "Guitarra a la espalda", c: 190, lvl: 4, nw: 3 },
+  { id: "mochilauni", cat: "ropa", slot: "back", e: "🦄", n: "Mochila de unicornio", c: 170, lvl: 3, nw: 3 },
+  { id: "capaestrellas", cat: "ropa", slot: "back", e: "🌌", n: "Capa de estrellas", c: 260, lvl: 5, r: 3, nw: 3 },
+  // ---- magia ----
+  { id: "fx_confeti", cat: "fx", slot: "fx", e: "🎊", n: "Confeti de fiesta", c: 230, lvl: 3, nw: 3 },
+  { id: "fx_globitos", cat: "fx", slot: "fx", e: "🎈", n: "Globitos flotando", c: 250, lvl: 4, nw: 3 },
+  { id: "fx_flores", cat: "fx", slot: "fx", e: "🌷", n: "Flores que flotan", c: 260, lvl: 4, nw: 3 },
+  { id: "fx_hojas", cat: "fx", slot: "fx", e: "🍂", n: "Hojas de otoño", c: 200, lvl: 2, season: [9, 10], sn: "otoño", nw: 3 },
+  { id: "fx_rayos", cat: "fx", slot: "fx", e: "⚡", n: "Chispas eléctricas", c: 320, lvl: 6, r: 4, nw: 3 },
+  { id: "fx_mariposas", cat: "fx", slot: "fx", e: "🦋", n: "Mariposas", c: 300, lvl: 5, r: 3, nw: 3 },
+  // ---- comida ----
+  { id: "onigiri", cat: "comida", e: "🍙", n: "Onigiri", c: 20, lvl: 1, eff: { food: 25, energy: 5 }, nw: 3 },
+  { id: "taco", cat: "comida", e: "🌮", n: "Taco", c: 24, lvl: 1, eff: { food: 30, fun: 5 }, nw: 3 },
+  { id: "burger", cat: "comida", e: "🍔", n: "Hamburguesita", c: 30, lvl: 2, eff: { food: 45 }, nw: 3 },
+  { id: "donut", cat: "comida", e: "🍩", n: "Dónut", c: 15, lvl: 1, eff: { food: 12, fun: 12 }, nw: 3 },
+  { id: "tortitas", cat: "comida", e: "🥞", n: "Tortitas", c: 22, lvl: 1, eff: { food: 25, love: 8 }, nw: 3 },
+  { id: "sandia", cat: "comida", e: "🍉", n: "Sandía", c: 14, lvl: 1, eff: { food: 15, clean: 5, energy: 5 }, nw: 3 },
+  { id: "uvas", cat: "comida", e: "🍇", n: "Uvas", c: 12, lvl: 1, eff: { food: 12, energy: 6 }, nw: 3 },
+  { id: "pretzel", cat: "comida", e: "🥨", n: "Pretzel", c: 14, lvl: 1, eff: { food: 16 }, nw: 3 },
+  { id: "te", cat: "comida", e: "🍵", n: "Té calentito", c: 12, lvl: 1, eff: { energy: 12, love: 6 }, nw: 3 },
+  { id: "zumo", cat: "comida", e: "🧃", n: "Zumito", c: 10, lvl: 1, eff: { food: 8, energy: 10 }, nw: 3 },
+  { id: "ramen", cat: "comida", e: "🍜", n: "Ramen", c: 32, lvl: 3, eff: { food: 50, energy: 8 }, nw: 3 },
+  { id: "cupcake", cat: "comida", e: "🧁", n: "Cupcake", c: 20, lvl: 1, eff: { food: 12, love: 12 }, nw: 3 },
+  { id: "flan", cat: "comida", e: "🍮", n: "Flan", c: 16, lvl: 1, eff: { food: 14, fun: 8 }, nw: 3 },
+  { id: "aguacate", cat: "comida", e: "🥑", n: "Tostada de aguacate", c: 22, lvl: 2, eff: { food: 30, energy: 10 }, nw: 3 },
+  // ---- juguetes ----
+  { id: "boomerang", cat: "juguete", e: "🪃", n: "Bumerán", c: 80, lvl: 2, fun: 25, nw: 3 },
+  { id: "canicas", cat: "juguete", e: "🔮", n: "Canicas", c: 60, lvl: 1, fun: 20, nw: 3 },
+  { id: "dados", cat: "juguete", e: "🎲", n: "Dados gigantes", c: 50, lvl: 1, fun: 18, nw: 3 },
+  { id: "pelotaplaya", cat: "juguete", e: "🏐", n: "Pelota de playa", c: 70, lvl: 1, fun: 25, nw: 3 },
+  { id: "trenjug", cat: "juguete", e: "🚂", n: "Tren de juguete", c: 140, lvl: 3, fun: 35, nw: 3 },
+  { id: "cohetejug", cat: "juguete", e: "🚀", n: "Cohete de juguete", c: 160, lvl: 4, fun: 40, nw: 3 },
+  { id: "tambor", cat: "juguete", e: "🥁", n: "Tambor", c: 90, lvl: 2, fun: 28, nw: 3 },
+  // ---- casa: muebles ----
+  { id: "mesa", cat: "casa", kind: "furn", e: "🍽️", n: "Mesa con sillas", c: 90, lvl: 1, nw: 3 },
+  { id: "nevera", cat: "casa", kind: "furn", e: "🧊", n: "Nevera", c: 110, lvl: 2, nw: 3 },
+  { id: "armario", cat: "casa", kind: "furn", e: "🚪", n: "Armario ropero", c: 120, lvl: 2, nw: 3 },
+  { id: "escritorio", cat: "casa", kind: "furn", e: "💻", n: "Escritorio con ordenador", c: 150, lvl: 3, nw: 3 },
+  { id: "hamaca", cat: "casa", kind: "furn", e: "🌴", n: "Hamaca", c: 140, lvl: 3, nw: 3 },
+  { id: "barbacoa", cat: "casa", kind: "furn", e: "🍖", n: "Barbacoa", c: 130, lvl: 3, nw: 3 },
+  { id: "cunita", cat: "casa", kind: "furn", e: "🍼", n: "Cunita para las crías", c: 120, lvl: 2, nw: 3 },
+  { id: "chimenea", cat: "casa", kind: "furn", e: "🔥", n: "Chimenea", c: 220, lvl: 4, nw: 3 },
+  { id: "macetas", cat: "casa", kind: "furn", e: "🪴", n: "Macetas colgantes", c: 70, lvl: 1, nw: 3 },
+  { id: "poster", cat: "casa", kind: "furn", e: "🌠", n: "Póster de estrellas", c: 50, lvl: 1, nw: 3 },
+  { id: "mural", cat: "casa", kind: "furn", e: "🖼️", n: "Mural de fotos", c: 90, lvl: 2, nw: 3 },
+  { id: "lamparaluna", cat: "casa", kind: "furn", e: "🌙", n: "Lámpara de luna", c: 80, lvl: 2, nw: 3 },
+  { id: "osogigante", cat: "casa", kind: "furn", e: "🧸", n: "Oso de peluche gigante", c: 160, lvl: 3, nw: 3 },
+  { id: "banco", cat: "casa", kind: "furn", e: "🪑", n: "Banco de jardín", c: 90, lvl: 2, nw: 3 },
+  { id: "columpio", cat: "casa", kind: "furn", e: "🎠", n: "Columpio", c: 180, lvl: 4, nw: 3 },
+  { id: "arcade", cat: "casa", kind: "furn", e: "🕹️", n: "Máquina recreativa", c: 260, lvl: 5, r: 3, nw: 3 },
+  // ---- casa: paredes y suelos ----
+  { id: "w_ladrillo", cat: "casa", kind: "wall", n: "Pared de ladrillo", c: 90, lvl: 2, sw: "#c8745a", nw: 3 },
+  { id: "w_rayas", cat: "casa", kind: "wall", n: "Papel de rayas", c: 70, lvl: 1, sw: "#d9ecff", nw: 3 },
+  { id: "w_nubes", cat: "casa", kind: "wall", n: "Papel de nubes", c: 120, lvl: 3, sw: "#bfe3ff", nw: 3 },
+  { id: "w_salvia", cat: "casa", kind: "wall", n: "Pared verde salvia", c: 50, lvl: 1, sw: "#cfdcc4", nw: 3 },
+  { id: "w_sol", cat: "casa", kind: "wall", n: "Pared amarillo sol", c: 50, lvl: 1, sw: "#ffefb0", nw: 3 },
+  { id: "w_lunares", cat: "casa", kind: "wall", n: "Papel de lunares", c: 90, lvl: 2, sw: "#ffd6e2", nw: 3 },
+  { id: "f_parquet", cat: "casa", kind: "floor", n: "Parquet claro", c: 70, lvl: 1, sw: "#d9b07a", fs: "planks", nw: 3 },
+  { id: "f_nogal", cat: "casa", kind: "floor", n: "Madera de nogal", c: 90, lvl: 2, sw: "#7a5232", fs: "planks", nw: 3 },
+  { id: "f_ajedrez", cat: "casa", kind: "floor", n: "Suelo de ajedrez", c: 110, lvl: 3, sw: "#e9e4dc", fs: "check", nw: 3 },
+  { id: "f_terrazo", cat: "casa", kind: "floor", n: "Terrazo", c: 90, lvl: 2, sw: "#e8ddd2", fs: "tiles", nw: 3 },
+  { id: "f_alfombra", cat: "casa", kind: "floor", n: "Moqueta azul", c: 60, lvl: 1, sw: "#7f9fd9", fs: "carpet", nw: 3 }
+);
 const CAT = Object.fromEntries(CATALOG.map(x => [x.id, x]));
 const COLM = Object.fromEntries(CATALOG.filter(x => x.cat === "color").map(x => [x.id, x]));   // los colores tienen ids que chocan (rosa)
 const ITEMS = CATALOG.filter(x => x.cat === "ropa");
@@ -622,6 +751,7 @@ function moodText(I) {
 
 // ---------- Dibujo (SVG) ----------
 function itemSVG(id) {
+  const x2 = items2(id); if (x2 != null) return x2;
   switch (id) {
     case "lazo": return `<g transform="translate(130 76) rotate(18)"><path d="M0 0 L-15 -10 L-15 10 Z M0 0 L15 -10 L15 10 Z" fill="#ff5c8a"/><circle r="4.5" fill="#e8336b"/></g>`;
     case "flor": return `<g transform="translate(72 76)">${[0, 72, 144, 216, 288].map(a => `<circle cx="${(8 * Math.cos(a * Math.PI / 180)).toFixed(1)}" cy="${(8 * Math.sin(a * Math.PI / 180)).toFixed(1)}" r="6.5" fill="#ffb3d1"/>`).join("")}<circle r="5" fill="#ffd93b"/></g>`;
@@ -1229,34 +1359,50 @@ function mgChick(ctx, x, cy, s = 1, open = false) {
 }
 function rr(ctx, x, y, w, h, r) { if (h <= 0 || w <= 0) return; r = Math.min(r, h / 2, w / 2); ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill(); }
 // Vuelo (como Flappy Bird)
-function vlInit() { Object.assign(mg, { y: mg.H * .45, vy: 0, pipes: [], spawn: .3, dead: false }); vlDraw(); }
-function vlStart() { mg.run = true; mg.last = performance.now(); mg.vy = -330; mg.raf = requestAnimationFrame(vlLoop); }
+function vlInit() { Object.assign(mg, { y: mg.H * .45, vy: 0, pipes: [], coins: [], parts: [], spawn: .3, dead: false, tt: 0, flap: 0 }); mgSprite("happy"); mgSprite("laugh"); mgSprite("surprised"); vlDraw(0); }
+function vlStart() { mg.run = true; mg.last = performance.now(); mg.vy = -330; mg.flap = .2; SFX.whoosh(); mg.raf = requestAnimationFrame(vlLoop); }
 function vlLoop(t) {
   if (!mg || !mg.run) return;
-  const dt = Math.min(40, t - mg.last) / 1000; mg.last = t;
-  const { W, H } = mg, gap = Math.max(150, 215 - mg.score * 3), speed = 150 + Math.min(110, mg.score * 5), bx = W * .3, r = 19;
-  mg.vy += 950 * dt; mg.y += mg.vy * dt;
+  const dt = Math.min(40, t - mg.last) / 1000; mg.last = t; mg.tt += dt;
+  const { W, H } = mg, gap = Math.max(160, 225 - mg.score * 3), speed = 150 + Math.min(110, mg.score * 5), bx = W * .3, r = 21;
+  mg.vy += 950 * dt; mg.y += mg.vy * dt; mg.flap = Math.max(0, mg.flap - dt);
   if (mg.y - r < 0) { mg.y = r; mg.vy = 0; }
-  mg.spawn -= dt; if (mg.spawn <= 0) { mg.spawn = 1.6; const top = 50 + Math.random() * Math.max(10, H - 130 - gap); mg.pipes.push({ x: W + 40, top, gap, passed: false }); }
+  mg.spawn -= dt;
+  if (mg.spawn <= 0) { mg.spawn = 1.6; const top = 50 + Math.random() * Math.max(10, H - 130 - gap); mg.pipes.push({ x: W + 40, top, gap, passed: false, seed: Math.random() * 100 }); if (Math.random() < .55) mg.coins.push({ x: W + 40, y: top + gap / 2, e: Math.random() < .2 ? "⭐" : "🪙" }); }
   for (const pp of mg.pipes) {
     pp.x -= speed * dt;
-    if (!pp.passed && pp.x + 30 < bx) { pp.passed = true; mg.score++; $("fgScore").textContent = "🪽 " + mg.score; if (navigator.vibrate) navigator.vibrate(10); }
+    if (!pp.passed && pp.x + 30 < bx) { pp.passed = true; mg.score++; $("fgScore").textContent = "🪽 " + mg.score; SFX.ding(); buzz(10); }
     if (bx + r > pp.x - 30 && bx - r < pp.x + 30 && (mg.y - r < pp.top || mg.y + r > pp.top + pp.gap)) mg.dead = true;
   }
-  mg.pipes = mg.pipes.filter(pp => pp.x > -60);
-  if (mg.y + r > H - 30) mg.dead = true;
-  vlDraw();
-  if (mg.dead) { if (navigator.vibrate) navigator.vibrate([40, 40, 40]); mg.run = false; return setTimeout(mgEnd, 400); }
+  for (const c of mg.coins) { c.x -= speed * dt; if (!c.got && Math.abs(c.x - bx) < 26 && Math.abs(c.y - mg.y) < 26) { c.got = true; mg.score += c.e === "⭐" ? 3 : 1; $("fgScore").textContent = "🪽 " + mg.score; SFX.coin(); mgBurst(mg.parts, c.x, c.y, ["✨", c.e], 6); } }
+  mg.pipes = mg.pipes.filter(pp => pp.x > -60); mg.coins = mg.coins.filter(c => !c.got && c.x > -30);
+  if (mg.y + r > H - 34) mg.dead = true;
+  vlDraw(dt);
+  if (mg.dead) { buzz([40, 40, 40]); SFX.fail(); mgBurst(mg.parts, bx, mg.y, ["🪶", "💫", "⭐"], 12); mg.run = false; let k = 0; const fall = () => { if (!mg || k++ > 24) return setTimeout(mgEnd, 150); mg.y = Math.min(H - 40, mg.y + 9); vlDraw(1 / 60); requestAnimationFrame(fall); }; return requestAnimationFrame(fall); }
   mg.raf = requestAnimationFrame(vlLoop);
 }
-function vlDraw() {
-  const { ctx, W, H } = mg; ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#7cc95b"; ctx.fillRect(0, H - 30, W, 30);
-  for (const pp of mg.pipes) {
-    ctx.fillStyle = "#fff"; rr(ctx, pp.x - 30, -20, 60, pp.top + 20, 20); rr(ctx, pp.x - 30, pp.top + pp.gap, 60, H - 30 - pp.top - pp.gap, 20);
-    ctx.fillStyle = "rgba(160,200,235,.5)"; rr(ctx, pp.x + 14, -20, 16, pp.top + 20, 8); rr(ctx, pp.x + 14, pp.top + pp.gap, 16, H - 30 - pp.top - pp.gap, 8);
-  }
-  ctx.save(); ctx.translate(W * .3, mg.y); ctx.rotate(Math.max(-.5, Math.min(.8, mg.vy / 600))); mgChick(ctx, 0, 0, .68, mg.vy < 0); ctx.restore();
+function vlCloud(ctx, x, y0, y1, seed, flipTop) {
+  if (y1 - y0 < 2) return;
+  ctx.save(); ctx.fillStyle = "#ffffff"; ctx.shadowColor = "rgba(90,140,200,.35)"; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.rect(x - 26, y0, 52, y1 - y0); ctx.fill();
+  for (let y = y0 + 10; y < y1 - 6; y += 22) { const k = (seed + y) % 5; ctx.beginPath(); ctx.arc(x - 26, y, 9 + k, 0, 7); ctx.arc(x + 26, y + 11, 9 + ((k + 2) % 5), 0, 7); ctx.fill(); }
+  const ey = flipTop ? y1 : y0;
+  for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(x - 27 + i * 18, ey, 15 + ((seed + i * 7) % 5), 0, 7); ctx.fill(); }
+  ctx.restore();
+  ctx.fillStyle = "rgba(170,205,240,.35)"; ctx.fillRect(x + 8, y0, 14, y1 - y0);
+}
+function vlDraw(dt = 0) {
+  const { ctx, W, H } = mg, t = mg.tt || 0, s = mg.score || 0;
+  const pal = s < 8 ? ["#7ec8ff", "#d8f1ff", "#7cc95b"] : s < 16 ? ["#ff9a8b", "#ffd6a5", "#6cae4f"] : ["#1b2350", "#4a3f7a", "#2e5638"];
+  mgSky(ctx, W, H, pal[0], pal[1], t, pal[2]);
+  if (s >= 16) { ctx.fillStyle = "#fff"; for (let i = 0; i < 20; i++) { ctx.globalAlpha = .4 + .4 * Math.sin(t * 2 + i); ctx.fillRect((i * 97) % W, (i * 53) % (H * .5), 2, 2); } ctx.globalAlpha = 1; }
+  for (const pp of mg.pipes) { vlCloud(ctx, pp.x, -20, pp.top, pp.seed, true); vlCloud(ctx, pp.x, pp.top + pp.gap, H - 34, pp.seed + 3, false); }
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "24px system-ui, Apple Color Emoji"; ctx.fillStyle = "#000";
+  for (const c of mg.coins) { ctx.save(); ctx.translate(c.x, c.y + Math.sin(t * 5 + c.x / 30) * 4); ctx.scale(Math.abs(Math.cos(t * 3)) * .4 + .6, 1); ctx.fillText(c.e, 0, 0); ctx.restore(); }
+  ctx.fillStyle = "#5fae46"; ctx.fillRect(0, H - 34, W, 34); ctx.fillStyle = "#4e9a39"; for (let x = -((t * (150 + Math.min(110, s * 5))) % 24); x < W; x += 24) ctx.fillRect(x, H - 34, 12, 6);
+  const rot = Math.max(-.5, Math.min(.9, mg.vy / 600)), sq = 1 + mg.flap * .9;
+  mgPet(ctx, W * .3, mg.y + 10, 88, mg.dead ? "surprised" : mg.vy < 0 ? "laugh" : "happy", rot, sq);
+  mgParts(ctx, mg.parts, dt);
 }
 // Canta conmigo (como Simon)
 const SM_PADS = [{ c: "#ff6b8b", e: "❤️", f: 330 }, { c: "#4d9dff", e: "💙", f: 392 }, { c: "#6fdc9a", e: "💚", f: 494 }, { c: "#ffd93b", e: "💛", f: 587 }];
@@ -1272,13 +1418,28 @@ function tone(f, ms = 280) {
 function smInit() { Object.assign(mg, { seq: [], idx: 0, lit: -1, turn: "" }); smDraw(); }
 function smRects() { const { W, H } = mg, s = Math.max(60, Math.min((W - 52) / 2, (H - 250) / 2)), x0 = (W - s * 2 - 12) / 2, y0 = H - s * 2 - 12 - 40; return SM_PADS.map((_, i) => ({ x: x0 + (i % 2) * (s + 12), y: y0 + Math.floor(i / 2) * (s + 12), s })); }
 function smDraw() {
-  const { ctx, W } = mg; ctx.clearRect(0, 0, W, mg.H);
-  const R = smRects(), top = R[0].y;
-  mgChick(ctx, W / 2, top / 2 - 4, Math.max(.8, Math.min(1.4, top / 150)), mg.lit >= 0);
+  const { ctx, W, H } = mg, t = performance.now() / 1000;
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#ffe0ec"); g.addColorStop(1, "#e6dcff"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(255,255,255,.5)"; for (let i = 0; i < 7; i++) { ctx.beginPath(); ctx.arc((i * 83 + 30) % W, 40 + (i * 61) % 160, 3 + i % 3, 0, 7); ctx.fill(); }
+  const R = smRects(), top = R[0].y, ps = Math.max(80, Math.min(150, top * .85));
+  ctx.fillStyle = "rgba(0,0,0,.08)"; ctx.beginPath(); ctx.ellipse(W / 2, top / 2 + ps * .36, ps * .32, 7, 0, 0, 7); ctx.fill();
+  mgPet(ctx, W / 2, top / 2 + 8, ps, mg.lit >= 0 ? "laugh" : mg.turn === "end" ? "sad" : "happy", mg.lit >= 0 ? Math.sin(t * 10) * .06 : 0, mg.lit >= 0 ? 1.04 : 1);
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  if (mg.lit >= 0) { ctx.font = "26px system-ui, Apple Color Emoji"; ctx.fillText("🎵", W / 2 + 56, top / 2 - 40); }
-  R.forEach((r, i) => { ctx.globalAlpha = mg.lit === i ? 1 : .42; ctx.fillStyle = SM_PADS[i].c; rr(ctx, r.x, r.y, r.s, r.s, 22); ctx.globalAlpha = 1; ctx.font = `${Math.round(r.s * .34)}px system-ui, Apple Color Emoji`; ctx.fillText(SM_PADS[i].e, r.x + r.s / 2, r.y + r.s / 2); });
-  ctx.font = "bold 18px system-ui"; ctx.fillStyle = "#3a2330"; ctx.fillText(mg.turn === "show" ? "Escucha… 👂" : mg.turn === "you" ? "¡Tu turno! 🎤" : "", W / 2, top - 16);
+  if (mg.lit >= 0) { ctx.font = "26px system-ui, Apple Color Emoji"; ctx.fillText("🎵", W / 2 + ps * .45, top / 2 - ps * .3); ctx.fillText("🎶", W / 2 - ps * .45, top / 2 - ps * .2); }
+  R.forEach((r, i) => {
+    const P = SM_PADS[i], lit = mg.lit === i;
+    ctx.save();
+    if (lit) { ctx.shadowColor = P.c; ctx.shadowBlur = 30; }
+    const gg = ctx.createLinearGradient(r.x, r.y, r.x, r.y + r.s); gg.addColorStop(0, lit ? "#fff" : P.c); gg.addColorStop(.25, P.c); gg.addColorStop(1, P.c);
+    ctx.globalAlpha = lit ? 1 : .55; ctx.fillStyle = gg;
+    const k = lit ? 1.05 : 1, cx = r.x + r.s / 2, cy = r.y + r.s / 2, ss = r.s * k;
+    rr(ctx, cx - ss / 2, cy - ss / 2, ss, ss, 24);
+    ctx.restore();
+    ctx.fillStyle = "rgba(255,255,255,.35)"; rr(ctx, r.x + 10, r.y + 8, r.s - 20, r.s * .22, 12);
+    ctx.font = `${Math.round(r.s * (lit ? .4 : .34))}px system-ui, Apple Color Emoji`; ctx.fillText(P.e, cx, cy + 4);
+  });
+  ctx.font = "800 18px system-ui"; ctx.fillStyle = "#3a2330";
+  ctx.fillText(mg.turn === "show" ? `Escucha… 👂 (nivel ${mg.seq.length})` : mg.turn === "you" ? `¡Tu turno! 🎤 ${mg.idx}/${mg.seq.length}` : mg.turn === "wait" ? "¡Perfecto! ✨" : "", W / 2, top - 16);
 }
 function smStart() { mg.run = true; mg.seq = []; smNext(); }
 function smNext() {
@@ -1298,11 +1459,11 @@ function smTap(x, y) {
   tone(SM_PADS[i].f, 250); mg.lit = i; smDraw(); setTimeout(() => { if (mg && mg.lit === i) { mg.lit = -1; smDraw(); } }, 220);
   if (i !== mg.seq[mg.idx]) { mg.turn = "end"; mg.run = false; if (navigator.vibrate) navigator.vibrate([60, 40, 60]); tone(150, 500); return setTimeout(mgEnd, 600); }
   mg.idx++; if (navigator.vibrate) navigator.vibrate(10);
-  if (mg.idx >= mg.seq.length) { mg.score = mg.seq.length; $("fgScore").textContent = "🎵 " + mg.score; mg.turn = "wait"; mg.tm = setTimeout(() => mg && mg.run && smNext(), 700); }
+  if (mg.idx >= mg.seq.length) { mg.score = mg.seq.length; $("fgScore").textContent = "🎵 " + mg.score; mg.turn = "wait"; SFX.ding(); smDraw(); mg.tm = setTimeout(() => mg && mg.run && smNext(), 700); }
 }
 $("fgCanvas").addEventListener("pointerdown", e => {
   if (!mg || !mg.run) return; const r = $("fgCanvas").getBoundingClientRect();
-  if (mg.game === "vuelo") mg.vy = -330; else smTap(e.clientX - r.left, e.clientY - r.top);
+  if (mg.game === "vuelo") { mg.vy = -330; mg.flap = .2; SFX.whoosh(); if (Math.random() < .5) mgBurst(mg.parts || (mg.parts = []), mg.W * .3 - 16, mg.y + 10, ["🪶"], 1); } else smTap(e.clientX - r.left, e.clientY - r.top);
 });
 function mgEnd() {
   if (!mg) return; mgStop();
@@ -1339,6 +1500,7 @@ function pair2(f) { return `<g>${f(86)}${f(114)}</g>`; }
 // Efectos mágicos (capa de atrás o de delante)
 function fxSVG(id, layer) {
   if (!id) return "";
+  const f2 = fx2(id, layer); if (f2 != null) return f2;
   if (layer === "back") {
     if (id === "fx_aura") return `<defs><radialGradient id="auraG"><stop offset=".5" stop-color="#ffe066" stop-opacity=".8"/><stop offset="1" stop-color="#ffe066" stop-opacity="0"/></radialGradient></defs><circle class="fxpulse" cx="100" cy="118" r="88" fill="url(#auraG)"/>`;
     if (id === "fx_arcoiris") return `<g class="fxpulse" fill="none" stroke-width="7" opacity=".9">${["#ff6b8b", "#ffb361", "#ffd93b", "#6fdc9a", "#7fb7ff", "#b48be0"].map((c, i) => `<path d="M${10 + i * 7} 156 A${90 - i * 7} ${90 - i * 7} 0 0 1 ${190 - i * 7} 156" stroke="${c}"/>`).join("")}</g>`;
@@ -1639,6 +1801,112 @@ const FA = {
   tetera: { t: "shelf", w: 60, h: 42, p: { x: 88, y: 50 }, d: () => `<path d="M42 28 Q52 22 55 11" stroke="#3a7fd6" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M14 16 Q0 24 11 35" stroke="#3a7fd6" stroke-width="5" fill="none"/><ellipse cx="28" cy="27" rx="18" ry="14" fill="#4d9dff"/><rect x="18" y="11" width="20" height="6" rx="3" fill="#3a7fd6"/><circle cx="28" cy="8" r="3" fill="#3a7fd6"/><circle cx="22" cy="26" r="2.5" fill="#fff" opacity=".7"/><circle cx="30" cy="30" r="2.5" fill="#fff" opacity=".7"/><circle cx="36" cy="23" r="2.5" fill="#fff" opacity=".7"/><rect x="14" y="38" width="28" height="4" rx="2" fill="#3a7fd6"/>` },
   velas: { t: "shelf", w: 50, h: 44, p: { x: 50, y: 38 }, d: () => `<rect x="6" y="18" width="10" height="26" rx="2" fill="#fff4e0"/><rect x="20" y="10" width="10" height="34" rx="2" fill="#ffe8c7"/><rect x="34" y="22" width="10" height="22" rx="2" fill="#fff4e0"/>${[[11, 16], [25, 8], [39, 20]].map(([x, y]) => `<path class="flame" d="M${x} ${y} q-4 -6 0 -12 q4 6 0 12Z" fill="#ffb703"/><path d="M${x} ${y} q-2 -3 0 -6 q2 3 0 6Z" fill="#fff3b0"/>`).join("")}` }
 };
+// dibujos de la ropa nueva (v48)
+function items2(id) {
+  switch (id) {
+    // ---- cabeza ----
+    case "boinamar": return `<g transform="translate(100 70)"><ellipse cx="0" cy="-2" rx="34" ry="9" fill="#1f3b73"/><path d="M-30 -4 Q-28 -30 0 -32 Q28 -30 30 -4 Z" fill="#fff"/><rect x="-31" y="-9" width="62" height="7" rx="3" fill="#1f3b73"/><circle cy="-33" r="5" fill="#e63946"/><path d="M-6 -20 l6 -6 l6 6" stroke="#1f3b73" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`;
+    case "cascovik": return `<g transform="translate(100 70)"><path d="M-36 0 Q-36 -36 0 -38 Q36 -36 36 0 Z" fill="#9aa4b2"/><path d="M-36 0 Q0 6 36 0 L36 6 Q0 12 -36 6Z" fill="#7d8796"/><circle cx="-18" cy="-14" r="2.5" fill="#cfd6df"/><circle cx="18" cy="-14" r="2.5" fill="#cfd6df"/><path d="M-30 -14 Q-56 -26 -50 -54 Q-44 -34 -24 -26Z" fill="#fff6e0" stroke="#e8d9bf" stroke-width="2"/><path d="M30 -14 Q56 -26 50 -54 Q44 -34 24 -26Z" fill="#fff6e0" stroke="#e8d9bf" stroke-width="2"/></g>`;
+    case "gorroaviador": return `<g transform="translate(100 72)"><path d="M-38 6 Q-40 -36 0 -38 Q40 -36 38 6 Q38 20 30 24 L28 2 Q0 -6 -28 2 L-30 24 Q-38 20 -38 6Z" fill="#8a5a38"/><path d="M-30 22 Q-34 30 -28 34 M30 22 Q34 30 28 34" stroke="#6e4429" stroke-width="5" stroke-linecap="round"/><g transform="translate(0 -16)"><rect x="-26" y="-8" width="52" height="7" rx="3" fill="#3a3a48"/><circle cx="-12" cy="-4" r="9" fill="#9fdcff" stroke="#c9a227" stroke-width="3"/><circle cx="12" cy="-4" r="9" fill="#9fdcff" stroke="#c9a227" stroke-width="3"/><path d="M-15 -8 l4 4 M9 -8 l4 4" stroke="#fff" stroke-width="2" opacity=".8"/></g></g>`;
+    case "orejasoso": return `<g><path d="M60 82 Q100 58 140 82" stroke="#8a5a38" stroke-width="5" fill="none"/><circle cx="68" cy="68" r="14" fill="#a86f45"/><circle cx="68" cy="68" r="7" fill="#e0b08a"/><circle cx="132" cy="68" r="14" fill="#a86f45"/><circle cx="132" cy="68" r="7" fill="#e0b08a"/></g>`;
+    case "coronaflores": return `<g>${[[66, 76, "#ff8fb8"], [80, 68, "#ffd23f"], [100, 64, "#ffffff"], [120, 68, "#b48be0"], [134, 76, "#ff8fb8"]].map(([x, y, c]) => `<g transform="translate(${x} ${y})">${[0, 72, 144, 216, 288].map(a => `<circle cx="${(5.5 * Math.cos(a * Math.PI / 180)).toFixed(1)}" cy="${(5.5 * Math.sin(a * Math.PI / 180)).toFixed(1)}" r="4.4" fill="${c}"/>`).join("")}<circle r="3" fill="#ff9f1c"/></g>`).join("")}<path d="M60 84 Q72 70 88 68 M112 68 Q128 70 140 84" stroke="#3fa34d" stroke-width="2.5" fill="none"/><ellipse cx="90" cy="72" rx="5" ry="2.5" fill="#3fa34d" transform="rotate(-20 90 72)"/><ellipse cx="110" cy="72" rx="5" ry="2.5" fill="#3fa34d" transform="rotate(20 110 72)"/></g>`;
+    case "pamela": return `<g transform="translate(100 72)"><ellipse rx="62" ry="13" fill="#f6dfa8"/><ellipse rx="62" ry="13" fill="none" stroke="#e2c27a" stroke-width="2" stroke-dasharray="3 5"/><path d="M-26 -2 Q-26 -30 0 -30 Q26 -30 26 -2 Z" fill="#fbe9bd"/><rect x="-27" y="-10" width="54" height="7" fill="#7fc8f8"/><path d="M24 -8 q14 6 18 20" stroke="#7fc8f8" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="-16" cy="-8" r="5" fill="#ff8fb8"/></g>`;
+    case "gorrodormir": return `<g transform="translate(100 70)"><path d="M-34 2 Q-30 -30 4 -34 Q30 -36 44 -12 Q50 4 58 8" stroke="#7b7fd6" stroke-width="0" fill="none"/><path d="M-34 4 Q-34 -32 6 -36 Q36 -36 50 -8 L56 10 Q42 -6 30 -10 Q32 0 34 4Z" fill="#7b7fd6"/><circle cx="58" cy="12" r="8" fill="#fff"/><rect x="-36" y="-2" width="72" height="10" rx="5" fill="#fff"/>${[[-14, -20], [10, -24], [24, -14]].map(([x, y]) => `<path d="${starP(x, y, 4)}" fill="#ffd23f"/>`).join("")}</g>`;
+    case "cuernouni": return `<g transform="translate(100 66)"><path d="M-8 2 L0 -40 L8 2Z" fill="#ffe7a3"/><path d="M-6 -6 L6 -10 M-4 -18 L4 -22 M-2 -30 L2 -32" stroke="#e8b84a" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="-20" cy="2" rx="8" ry="5" fill="#ffb3d1"/><ellipse cx="20" cy="2" rx="8" ry="5" fill="#b9a6f0"/><path class="fxtw" d="${spark(14, -36, 5)}" fill="#fff"/></g>`;
+    case "halo": return `<g class="fxpulse"><ellipse cx="100" cy="50" rx="30" ry="8" fill="none" stroke="#ffe066" stroke-width="6"/><ellipse cx="100" cy="50" rx="30" ry="8" fill="none" stroke="#fff6c2" stroke-width="2"/></g>`;
+    case "lazogigante": return `<g transform="translate(100 66)"><path d="M0 0 L-34 -22 Q-42 0 -34 18 Z" fill="#ff4d7e"/><path d="M0 0 L34 -22 Q42 0 34 18 Z" fill="#ff4d7e"/><path d="M-30 -14 Q-24 0 -30 10 M30 -14 Q24 0 30 10" stroke="#ff8fb0" stroke-width="3" fill="none"/><circle r="9" fill="#e63973"/><path d="M-6 6 L-14 30 M6 6 L14 30" stroke="#ff4d7e" stroke-width="6" stroke-linecap="round"/></g>`;
+    case "orejeras": return `<g><path d="M58 104 Q60 52 100 50 Q140 52 142 104" stroke="#ff8fb8" stroke-width="6" fill="none"/><circle cx="56" cy="106" r="16" fill="#fff"/><circle cx="56" cy="106" r="16" fill="none" stroke="#f2dfe6" stroke-width="2"/><circle cx="144" cy="106" r="16" fill="#fff"/><circle cx="144" cy="106" r="16" fill="none" stroke="#f2dfe6" stroke-width="2"/><circle cx="52" cy="101" r="4" fill="#ffe0ec"/><circle cx="140" cy="101" r="4" fill="#ffe0ec"/></g>`;
+    case "cintadep": return `<g><path d="M52 92 Q100 72 148 92 L148 102 Q100 82 52 102Z" fill="#ff4d5a"/><path d="M54 97 Q100 78 146 97" stroke="#fff" stroke-width="2.5" fill="none"/></g>`;
+    case "rizos": return `<g fill="#8a4b2a">${[[64, 82, 12], [74, 70, 13], [88, 62, 13], [104, 59, 13], [120, 63, 13], [133, 72, 12], [140, 86, 11], [58, 96, 10], [144, 100, 10]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}<g fill="#a85f38">${[[74, 70], [104, 59], [133, 72]].map(([x, y]) => `<circle cx="${x - 3}" cy="${y - 3}" r="4"/>`).join("")}</g></g>`;
+    case "tiaraluna": return `<g transform="translate(100 70)"><path d="M-30 4 Q0 -8 30 4" stroke="#c9d1e8" stroke-width="4" fill="none"/><path d="M-6 -30 A16 16 0 1 0 12 -6 A12 12 0 1 1 -6 -30Z" fill="#fff3b0" stroke="#e0c25a" stroke-width="1.5"/><circle cx="-18" cy="-4" r="3" fill="#b9a6f0"/><circle cx="18" cy="-2" r="3" fill="#b9a6f0"/><path class="fxtw" d="${spark(14, -30, 5)}" fill="#fff"/><path class="fxtw" style="animation-delay:.6s" d="${spark(-22, -20, 4)}" fill="#fff"/></g>`;
+    // ---- cara ----
+    case "gafasrosa": return `<g><path d="${starP(80, 106, 15)}" fill="#ff5c8a" opacity=".92"/><path d="${starP(120, 106, 15)}" fill="#ff5c8a" opacity=".92"/><path d="M93 104 L107 104" stroke="#e63973" stroke-width="3"/><path d="${starP(80, 106, 8)}" fill="#ffd6e7" opacity=".5"/><path d="${starP(120, 106, 8)}" fill="#ffd6e7" opacity=".5"/></g>`;
+    case "gafasgato": return `<g><path d="M64 100 Q70 94 92 100 Q94 112 82 114 Q68 114 64 100Z" fill="#2b1a10" opacity=".85"/><path d="M136 100 Q130 94 108 100 Q106 112 118 114 Q132 114 136 100Z" fill="#2b1a10" opacity=".85"/><path d="M92 102 L108 102" stroke="#2b1a10" stroke-width="3"/><path d="M64 100 L58 94 M136 100 L142 94" stroke="#ff8fb8" stroke-width="3" stroke-linecap="round"/><path d="M70 102 l6 -2 M114 100 l6 2" stroke="#fff" stroke-width="2" opacity=".6" stroke-linecap="round"/></g>`;
+    case "gafascorazon": { const H = (x, y) => `M${x} ${y + 9} C${x - 16} ${y - 2} ${x - 12} ${y - 14} ${x} ${y - 6} C${x + 12} ${y - 14} ${x + 16} ${y - 2} ${x} ${y + 9}Z`; return `<g><path d="${H(80, 105)}" fill="#ff3d7f" opacity=".9"/><path d="${H(120, 105)}" fill="#ff3d7f" opacity=".9"/><path d="M92 101 L108 101" stroke="#d6265f" stroke-width="3"/><path d="M73 99 l4 -2 M113 99 l4 -2" stroke="#fff" stroke-width="2" opacity=".7" stroke-linecap="round"/></g>`; }
+    case "antifazfiesta": return `<g><path d="M60 100 Q80 90 100 100 Q120 90 140 100 Q142 116 124 116 Q110 116 100 108 Q90 116 76 116 Q58 116 60 100Z" fill="#7b2ff7"/><ellipse cx="80" cy="106" rx="9" ry="6" fill="#2b1a10"/><ellipse cx="120" cy="106" rx="9" ry="6" fill="#2b1a10"/>${[[66, 98], [134, 98], [100, 98]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2" fill="#ffd23f"/>`).join("")}<path d="M140 98 Q154 84 150 70" stroke="#ff8fb8" stroke-width="3" fill="none"/><ellipse cx="150" cy="68" rx="4" ry="8" fill="#ff8fb8" transform="rotate(20 150 68)"/></g>`;
+    case "gafasbuceo": return `<g><path d="M56 102 Q58 96 66 96 L134 96 Q142 96 144 102" stroke="#2b2d42" stroke-width="4" fill="none"/><rect x="66" y="92" width="68" height="28" rx="12" fill="#ffd23f"/><rect x="71" y="96" width="58" height="20" rx="9" fill="#9fdcff" opacity=".85"/><path d="M76 100 l10 0" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/><path d="M138 112 Q150 116 150 96 Q150 80 156 76" stroke="#ff9f1c" stroke-width="6" fill="none" stroke-linecap="round"/></g>`;
+    case "gafasredondas": return `<g fill="none" stroke="#2b1a10" stroke-width="3"><circle cx="80" cy="106" r="11"/><circle cx="120" cy="106" r="11"/><path d="M91 104 Q100 99 109 104"/><path d="M69 104 L60 101 M131 104 L140 101"/></g>`;
+    case "pestanas": return `<g stroke="#2b1a10" stroke-width="2.4" stroke-linecap="round"><path d="M70 100 l-5 -6 M75 97 l-2 -7 M81 96 l1 -7"/><path d="M130 100 l5 -6 M125 97 l2 -7 M119 96 l-1 -7"/></g>`;
+    // ---- cuello ----
+    case "trebol": return `<g><path d="M66 140 Q100 162 134 140" stroke="#c9a227" stroke-width="2.5" fill="none"/><g transform="translate(100 162)"><circle cx="-5" cy="-4" r="5.5" fill="#3fa34d"/><circle cx="5" cy="-4" r="5.5" fill="#3fa34d"/><circle cx="-5" cy="5" r="5.5" fill="#3fa34d"/><circle cx="5" cy="5" r="5.5" fill="#3fa34d"/><path d="M0 8 q2 6 6 8" stroke="#2d8a3e" stroke-width="2" fill="none"/></g></g>`;
+    case "boa": { let s = ""; for (let k = 0; k <= 12; k++) { const t = k / 12, x = 56 + 88 * t, y = 142 + 14 * Math.sin(Math.PI * t); s += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="9" ry="7" fill="${k % 2 ? "#ff8fd0" : "#ffb3e6"}"/>`; } return `<g>${s}<ellipse cx="140" cy="164" rx="8" ry="16" fill="#ff8fd0" transform="rotate(-15 140 164)"/></g>`; }
+    case "pajaritaest": return `<g transform="translate(100 146)"><path d="M0 0 L-17 -10 L-17 10 Z M0 0 L17 -10 L17 10 Z" fill="#2b2d6e"/><circle r="4.5" fill="#1d1f52"/>${[[-11, -3], [-8, 5], [11, -3], [8, 5]].map(([x, y]) => `<path d="${starP(x, y, 2.6)}" fill="#ffd23f"/>`).join("")}</g>`;
+    case "cadenacor": { let s = ""; for (let k = 0; k <= 9; k++) { const t = k / 9, x = 62 + 76 * t, y = 142 + 16 * Math.sin(Math.PI * t); s += `<path d="M${x.toFixed(1)} ${(y + 3).toFixed(1)} c-4 -3 -5 -7 -2 -8 c1.4 -.5 2 .3 2 1 c0 -.7 .6 -1.5 2 -1 c3 1 2 5 -2 8z" fill="${k % 2 ? "#ff5c8a" : "#ffd23f"}"/>`; } return `<g>${s}</g>`; }
+    case "corbatarayas": return `<g><path d="M92 140 L108 140 L104 148 L96 148Z" fill="#1f3b73"/><path d="M96 148 L104 148 L110 176 L100 186 L90 176Z" fill="#1f3b73"/><path d="M96 154 L106 150 M93 164 L108 158 M92 174 L109 168" stroke="#ffd23f" stroke-width="3"/></g>`;
+    case "babero": return `<g><path d="M70 140 Q100 152 130 140 Q134 170 100 174 Q66 170 70 140Z" fill="#fff"/><path d="M70 140 Q100 152 130 140 Q134 170 100 174 Q66 170 70 140Z" fill="none" stroke="#9fdcff" stroke-width="3" stroke-dasharray="4 3"/><path d="M100 164 c-6 -7 -14 -1 0 8 c14 -9 6 -15 0 -8z" fill="#ffb3cf"/></g>`;
+    case "gargantilla": return `<g><path d="M64 142 Q100 160 136 142" stroke="#dfe7f2" stroke-width="5" fill="none"/>${[[76, 151], [88, 155], [100, 157], [112, 155], [124, 151]].map(([x, y], i) => `<path d="M${x} ${y - 5} L${x + 4} ${y} L${x} ${y + 6} L${x - 4} ${y}Z" fill="${i === 2 ? "#4dd2ff" : "#fff"}" stroke="#a8c4e0" stroke-width=".8"/>`).join("")}<path class="fxtw" d="${spark(108, 150, 4)}" fill="#fff"/></g>`;
+    // ---- cuerpo ----
+    case "pijamanube": return `<g><path d="M40 128 Q100 116 160 128 V178 H40Z" fill="#b9d8ff"/>${[[66, 146], [110, 140], [136, 160], [84, 166]].map(([x, y]) => `<path d="M${x - 9} ${y} a5 5 0 0 1 5 -6 a7 7 0 0 1 12 0 a5 5 0 0 1 2 9 h-16 a4 4 0 0 1 -3 -3z" fill="#fff"/>`).join("")}${[[94, 156], [124, 132], [58, 132]].map(([x, y]) => `<path d="${starP(x, y, 3)}" fill="#ffd23f"/>`).join("")}</g>`;
+    case "chaquetavaq": return `<g><path d="M40 126 Q70 120 86 124 L94 176 H40Z" fill="#4a78c2"/><path d="M160 126 Q130 120 114 124 L106 176 H160Z" fill="#4a78c2"/><path d="M86 124 L96 150 M114 124 L104 150" stroke="#2f569a" stroke-width="3"/><rect x="56" y="146" width="16" height="12" rx="2" fill="#3a63a8"/><rect x="128" y="146" width="16" height="12" rx="2" fill="#3a63a8"/><path d="M58 150 h12 M130 150 h12" stroke="#ffd23f" stroke-width="1.4" stroke-dasharray="2 2"/><circle cx="90" cy="160" r="2.2" fill="#c9a227"/><circle cx="110" cy="160" r="2.2" fill="#c9a227"/></g>`;
+    case "vestidoflores": return `<g><path d="M50 128 Q100 118 150 128 L166 180 H34Z" fill="#ffd6e7"/>${[[66, 150], [96, 140], [124, 152], [80, 168], [140, 170], [110, 172]].map(([x, y], i) => `<g transform="translate(${x} ${y})">${[0, 90, 180, 270].map(a => `<circle cx="${(3 * Math.cos(a * Math.PI / 180)).toFixed(1)}" cy="${(3 * Math.sin(a * Math.PI / 180)).toFixed(1)}" r="2.6" fill="${i % 2 ? "#ff5c8a" : "#b48be0"}"/>`).join("")}<circle r="1.6" fill="#ffd23f"/></g>`).join("")}<path d="M50 132 Q100 124 150 132" stroke="#ff8fb8" stroke-width="3" fill="none"/></g>`;
+    case "rebeca": return `<g><path d="M40 128 Q100 116 160 128 V178 H40Z" fill="#f2c14e"/><path d="M100 126 V178" stroke="#d9a62e" stroke-width="3"/>${[138, 152, 166].map(y => `<circle cx="106" cy="${y}" r="3" fill="#8a5a38"/>`).join("")}<path d="M44 140 h112 M44 170 h112" stroke="#e8b43c" stroke-width="2" stroke-dasharray="3 4"/></g>`;
+    case "trajebanio": return `<g><path d="M44 134 Q100 128 156 134 V178 H44Z" fill="#ff5c8a"/>${[[60, 146], [82, 158], [104, 144], [126, 160], [146, 146], [70, 170], [116, 172]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.4" fill="#fff"/>`).join("")}<path d="M44 134 Q100 128 156 134" stroke="#e63973" stroke-width="3" fill="none"/></g>`;
+    case "bata": return `<g><path d="M40 126 Q70 120 86 124 L96 178 H40Z" fill="#fbfbff"/><path d="M160 126 Q130 120 114 124 L104 178 H160Z" fill="#fbfbff"/><path d="M86 124 L98 152 M114 124 L102 152" stroke="#d8dde8" stroke-width="3"/><rect x="128" y="142" width="14" height="10" rx="2" fill="#e8ecf4"/><path d="M131 140 v6 M136 138 v8" stroke="#4d9dff" stroke-width="2" stroke-linecap="round"/><path d="M135 138 v-2" stroke="#e63946" stroke-width="2"/></g>`;
+    case "marinera": return `<g><path d="M40 128 Q100 118 160 128 V178 H40Z" fill="#fff"/>${[140, 152, 164, 176].map(y => `<path d="M40 ${y} H160" stroke="#1f3b73" stroke-width="5"/>`).join("")}<path d="M80 126 L100 144 L120 126" fill="#1f3b73"/><path d="M96 140 l4 6 l4 -6" fill="#e63946"/></g>`;
+    case "superheroe": return `<g><path d="M40 128 Q100 116 160 128 V178 H40Z" fill="#3a63d8"/><path d="M40 162 H160 V170 H40Z" fill="#ffd23f"/><path d="M100 132 L112 146 L100 160 L88 146Z" fill="#ffd23f"/><path d="${starP(100, 146, 6)}" fill="#e63946"/></g>`;
+    case "jerseynavidad": return `<g><path d="M40 128 Q100 116 160 128 V178 H40Z" fill="#c8102e"/><path d="M40 140 H160" stroke="#fff" stroke-width="4" stroke-dasharray="4 4"/><path d="M40 170 H160" stroke="#fff" stroke-width="4" stroke-dasharray="4 4"/><path d="M100 146 L108 160 H92Z" fill="#2d8a3e"/><path d="${starP(100, 145, 3.5)}" fill="#ffd23f"/>${[[66, 156], [134, 156]].map(([x, y]) => `<path d="${spark(x, y, 5)}" fill="#fff"/>`).join("")}</g>`;
+    case "kimono": return `<g><path d="M40 128 Q100 116 160 128 V178 H40Z" fill="#7b2ff7"/><path d="M84 124 L104 160 M116 124 L96 160" stroke="#ffd6e7" stroke-width="7"/><rect x="40" y="152" width="120" height="12" fill="#ffd23f"/>${[[60, 140], [140, 140], [66, 172], [134, 172]].map(([x, y]) => `<g transform="translate(${x} ${y})">${[0, 72, 144, 216, 288].map(a => `<circle cx="${(3.4 * Math.cos(a * Math.PI / 180)).toFixed(1)}" cy="${(3.4 * Math.sin(a * Math.PI / 180)).toFixed(1)}" r="2.6" fill="#ffb3d1"/>`).join("")}</g>`).join("")}</g>`;
+    case "futbol": return `<g><path d="M40 128 Q100 116 160 128 V178 H40Z" fill="#fff"/><path d="M40 128 Q60 124 70 124 V178 H40Z M160 128 Q140 124 130 124 V178 H160Z" fill="#e63946"/><text x="100" y="166" text-anchor="middle" font-size="26" font-weight="900" fill="#1f3b73" font-family="system-ui">10</text></g>`;
+    // ---- pies ----
+    case "deportivas": return pair2(x => shoe(x, "#fff", "#4d9dff", `<path d="M${x - 6} 172 l10 -3 M${x - 4} 176 l10 -3" stroke="#4d9dff" stroke-width="1.8" stroke-linecap="round"/>`));
+    case "botasvaquero": return pair2(x => `<path d="M${x - 9} 150 H${x + 7} V170 Q${x + 16} 172 ${x + 15} 181 H${x - 11} V160Z" fill="#a86f45"/><rect x="${x - 11}" y="180" width="27" height="4" rx="1.5" fill="#6e4429"/><path d="M${x - 6} 158 q5 4 10 0" stroke="#e0b08a" stroke-width="1.6" fill="none"/><path d="${starP(x - 1, 166, 3)}" fill="#ffd23f"/>`);
+    case "pantuflas": return pair2(x => shoe(x, "#a86f45", "#8a5a38", `<circle cx="${x - 2}" cy="168" r="3" fill="#a86f45"/><circle cx="${x + 7}" cy="168" r="3" fill="#a86f45"/><circle cx="${x + 5}" cy="175" r="1.4" fill="#2b1a10"/><circle cx="${x + 10}" cy="177" r="1.6" fill="#2b1a10"/>`));
+    case "zapatillasluz": return pair2(x => shoe(x, "#fff", "#ff5c8a", `<g class="fxtw"><circle cx="${x - 6}" cy="182" r="1.6" fill="#ff5c8a"/><circle cx="${x}" cy="182" r="1.6" fill="#4dd2ff"/><circle cx="${x + 6}" cy="182" r="1.6" fill="#ffd23f"/></g>`));
+    case "zuecos": return pair2(x => `<path d="M${x - 12} 177 Q${x - 12} 166 ${x} 166 Q${x + 13} 166 ${x + 14} 178 V184 H${x - 12}Z" fill="#f2c14e"/><path d="M${x - 8} 172 q8 -4 16 0" stroke="#d9a62e" stroke-width="2" fill="none"/><circle cx="${x + 2}" cy="176" r="2.4" fill="#ff5c8a"/>`);
+    case "charol": return pair2(x => shoe(x, "#1b1b24", "#000", `<path d="M${x - 6} 170 q4 -2 8 0" stroke="#fff" stroke-width="1.8" opacity=".7" fill="none"/><rect x="${x - 3}" y="170" width="6" height="3" rx="1" fill="#c9a227"/>`));
+    // ---- mano ----
+    case "algodonaz": return `<g><path d="M150 152 L164 112" stroke="#e8d9bf" stroke-width="4" stroke-linecap="round"/><g fill="#ffb3e6"><circle cx="166" cy="100" r="13"/><circle cx="176" cy="92" r="10"/><circle cx="158" cy="90" r="10"/><circle cx="168" cy="82" r="9"/></g><circle cx="162" cy="88" r="3" fill="#fff" opacity=".6"/></g>`;
+    case "globocor": return `<g><path d="M150 150 Q160 120 166 100" stroke="#9a9a9a" stroke-width="1.5" fill="none"/><path d="M166 104 C146 90 148 66 162 66 C168 66 166 72 166 74 C166 72 166 66 172 66 C186 66 186 90 166 104Z" fill="#ff3d7f"/><ellipse cx="160" cy="76" rx="3" ry="5" fill="#fff" opacity=".5"/></g>`;
+    case "libro": return `<g transform="rotate(-12 160 130)"><rect x="144" y="114" width="34" height="26" rx="2" fill="#4dbb7a"/><rect x="160" y="114" width="2.5" height="26" fill="#2e8a54"/><path d="M148 120 h9 M148 126 h9 M166 120 h9" stroke="#fff" stroke-width="2" opacity=".8"/><path d="${starP(170, 130, 4)}" fill="#ffd23f"/></g>`;
+    case "pincel": return `<g><path d="M150 150 L172 104" stroke="#c08457" stroke-width="5" stroke-linecap="round"/><rect x="168" y="96" width="9" height="10" rx="2" fill="#c9cdd6" transform="rotate(26 172 101)"/><path d="M176 92 Q184 80 180 74 Q170 82 172 94Z" fill="#ff5c8a"/></g>`;
+    case "abanico": return `<g transform="translate(160 118)">${[-60, -40, -20, 0, 20, 40, 60].map((a, i) => `<path d="M0 14 L${(30 * Math.sin(a * Math.PI / 180)).toFixed(1)} ${(14 - 30 * Math.cos(a * Math.PI / 180)).toFixed(1)}" stroke="${i % 2 ? "#ff5c8a" : "#ff8fb0"}" stroke-width="9"/>`).join("")}<path d="M-26 -1 Q0 -26 26 -1" stroke="#e63973" stroke-width="2" fill="none"/><circle cy="14" r="3" fill="#c9a227"/></g>`;
+    case "rosaroja": return `<g><path d="M150 152 Q158 130 164 110" stroke="#2d8a3e" stroke-width="3.5" fill="none"/><ellipse cx="156" cy="132" rx="6" ry="3" fill="#3fa34d" transform="rotate(-40 156 132)"/><g transform="translate(166 102)"><circle r="10" fill="#d62839"/><path d="M-5 -2 Q0 -8 5 -2 Q2 4 -3 3" stroke="#a4161a" stroke-width="2" fill="none"/><path d="M-9 2 Q-4 9 4 8" stroke="#a4161a" stroke-width="1.6" fill="none"/></g></g>`;
+    case "molinillo": return `<g><path d="M150 152 L164 104" stroke="#e8d9bf" stroke-width="3.5" stroke-linecap="round"/><g transform="translate(164 102)"><g class="spin">${[["#ff5c8a", 0], ["#ffd23f", 90], ["#4dd2ff", 180], ["#7cd67a", 270]].map(([c, a]) => `<path d="M0 0 L0 -16 Q10 -12 0 0Z" fill="${c}" transform="rotate(${a})"/>`).join("")}</g><circle r="2.5" fill="#fff"/></g></g>`;
+    case "linterna": return `<g transform="rotate(-25 160 130)"><rect x="150" y="118" width="12" height="28" rx="3" fill="#3a3a48"/><path d="M148 118 h16 l3 -8 h-22z" fill="#5a5a6e"/><path d="M146 110 L130 70 L184 70 L168 110Z" fill="#fff59d" opacity=".35"/></g>`;
+    case "microfono": return `<g transform="rotate(-20 160 130)"><rect x="155" y="112" width="9" height="34" rx="4" fill="#3a3a48"/><circle cx="159.5" cy="106" r="11" fill="#c9cdd6"/><path d="M151 102 h17 M150 107 h19 M151 112 h17" stroke="#9aa0ab" stroke-width="1.5"/><circle cx="155" cy="101" r="2.5" fill="#fff" opacity=".7"/></g>`;
+    case "cazamariposas": return `<g><path d="M150 152 L172 92" stroke="#c08457" stroke-width="4" stroke-linecap="round"/><ellipse cx="178" cy="78" rx="16" ry="12" fill="#fff" opacity=".55" stroke="#e8d9bf" stroke-width="2.5"/><path d="M168 74 L188 82 M170 84 L186 72" stroke="#e8d9bf" stroke-width="1" opacity=".7"/></g>`;
+    // ---- espalda ----
+    case "alasmariposa": return `<g opacity=".95"><path d="M86 104 Q40 50 22 86 Q12 112 58 118 Q24 138 44 158 Q66 168 90 128Z" fill="#b48be0"/><path d="M114 104 Q160 50 178 86 Q188 112 142 118 Q176 138 156 158 Q134 168 110 128Z" fill="#b48be0"/><circle cx="44" cy="90" r="7" fill="#ffd23f"/><circle cx="156" cy="90" r="7" fill="#ffd23f"/><circle cx="58" cy="146" r="5" fill="#ff8fb8"/><circle cx="142" cy="146" r="5" fill="#ff8fb8"/></g>`;
+    case "alasdragon": return `<g><path d="M80 110 L24 60 L34 84 L14 86 L36 104 L18 116 L44 122 L36 140 L76 130Z" fill="#3fa34d"/><path d="M120 110 L176 60 L166 84 L186 86 L164 104 L182 116 L156 122 L164 140 L124 130Z" fill="#3fa34d"/><path d="M80 110 L24 60 M120 110 L176 60" stroke="#2d6a35" stroke-width="3"/><path d="M34 84 L74 118 M36 104 L72 122 M166 84 L126 118 M164 104 L128 122" stroke="#2d6a35" stroke-width="1.6"/></g>`;
+    case "guitarraesp": return `<g transform="rotate(30 100 120)"><rect x="96" y="40" width="9" height="66" rx="2" fill="#6e4429"/><rect x="92" y="34" width="17" height="12" rx="3" fill="#3a2a1a"/><ellipse cx="100" cy="124" rx="26" ry="22" fill="#e07a2e"/><ellipse cx="100" cy="108" rx="18" ry="15" fill="#e07a2e"/><circle cx="100" cy="116" r="6" fill="#3a2a1a"/></g>`;
+    case "mochilauni": return `<g><rect x="132" y="102" width="34" height="46" rx="12" fill="#ffd6e7"/><path d="M144 102 L149 84 L154 102Z" fill="#ffe7a3"/><ellipse cx="140" cy="104" rx="5" ry="3" fill="#b9a6f0"/><ellipse cx="158" cy="104" rx="5" ry="3" fill="#7fd6e6"/><rect x="138" y="122" width="22" height="14" rx="4" fill="#ffb3d1"/></g>`;
+    case "capaestrellas": return `<g><path d="M62 112 Q100 100 138 112 L162 184 Q100 196 38 184 Z" fill="#2c2a5a"/>${[[60, 150], [84, 170], [116, 172], [140, 150], [100, 160], [74, 132], [128, 132]].map(([x, y], i) => `<path d="${starP(x, y, i % 2 ? 3 : 4.5)}" fill="#ffd23f"/>`).join("")}</g>`;
+  }
+  return null;
+}
+// efectos mágicos nuevos (v48)
+function fx2(id, layer) {
+  if (layer === "back") return ["fx_confeti", "fx_globitos", "fx_flores", "fx_hojas", "fx_rayos", "fx_mariposas"].includes(id) ? "" : null;
+  const P = [[34, 72], [168, 62], [24, 132], [178, 126], [58, 38], [146, 30], [100, 20]];
+  const C = ["#ff5c8a", "#ffd23f", "#4dd2ff", "#7cd67a", "#b48be0", "#ff9f1c"];
+  if (id === "fx_confeti") return P.concat([[70, 160], [130, 170]]).map(([x, y], i) => `<rect class="fxup" style="animation-delay:${(i * .35).toFixed(2)}s;animation-direction:reverse" x="${x}" y="${y}" width="5" height="9" rx="1" fill="${C[i % C.length]}" transform="rotate(${i * 37} ${x} ${y})"/>`).join("");
+  if (id === "fx_globitos") return [[30, 80, 0], [170, 70, 1], [20, 140, 2], [182, 130, 4]].map(([x, y, c], i) => `<g class="fxtw" style="animation-delay:${(i * .5).toFixed(1)}s"><path d="M${x} ${y + 10} q-2 8 1 16" stroke="#aaa" stroke-width="1" fill="none"/><ellipse cx="${x}" cy="${y}" rx="7" ry="9" fill="${C[c]}"/><ellipse cx="${x - 2}" cy="${y - 3}" rx="2" ry="3" fill="#fff" opacity=".5"/></g>`).join("");
+  if (id === "fx_flores") return P.map(([x, y], i) => `<g class="fxtw" style="animation-delay:${(i * .4).toFixed(2)}s" transform="translate(${x} ${y})">${[0, 72, 144, 216, 288].map(a => `<circle cx="${(4 * Math.cos(a * Math.PI / 180)).toFixed(1)}" cy="${(4 * Math.sin(a * Math.PI / 180)).toFixed(1)}" r="3.2" fill="${C[i % 3 === 0 ? 0 : i % 3 === 1 ? 4 : 1]}"/>`).join("")}<circle r="2" fill="#fff"/></g>`).join("");
+  if (id === "fx_hojas") return [30, 170, 48, 152, 20, 180].map((x, i) => `<g class="fxup" style="animation-delay:${(i * .55).toFixed(1)}s;animation-direction:reverse"><path d="M${x} ${70 + (i % 3) * 30} q6 -8 12 0 q-6 8 -12 0z" fill="${["#e07a2e", "#d9a62e", "#c8452c"][i % 3]}" transform="rotate(${i * 50} ${x + 6} ${70 + (i % 3) * 30})"/></g>`).join("");
+  if (id === "fx_rayos") return P.map(([x, y], i) => `<path class="fxtw" style="animation-delay:${(i * .25).toFixed(2)}s" d="M${x} ${y - 8} l-5 9 h5 l-4 9 l10 -12 h-5 l4 -6z" fill="#ffe14d" stroke="#e0a100" stroke-width=".8"/>`).join("");
+  if (id === "fx_mariposas") return [[30, 70], [170, 60], [24, 136], [178, 128]].map(([x, y], i) => `<g class="fxtw" style="animation-delay:${(i * .5).toFixed(1)}s"><ellipse cx="${x - 4}" cy="${y}" rx="5" ry="7" fill="${C[(i + 4) % 6]}" transform="rotate(-20 ${x - 4} ${y})"/><ellipse cx="${x + 4}" cy="${y}" rx="5" ry="7" fill="${C[(i + 4) % 6]}" transform="rotate(20 ${x + 4} ${y})"/><rect x="${x - 1}" y="${y - 6}" width="2" height="12" rx="1" fill="#2b1a10"/></g>`).join("");
+  return null;
+}
+// muebles nuevos (v48)
+Object.assign(FA, {
+  mesa: { t: "floor", w: 130, h: 80, p: { x: 70, y: 90 }, d: () => `<rect x="10" y="30" width="110" height="10" rx="4" fill="#c08457"/><rect x="10" y="26" width="110" height="6" rx="3" fill="#fffaf2"/><path d="M14 26 Q40 34 64 26 Q88 34 116 26" fill="#ff8fb8" opacity=".6"/><rect x="20" y="40" width="6" height="36" fill="#a86f45"/><rect x="104" y="40" width="6" height="36" fill="#a86f45"/><circle cx="64" cy="20" r="7" fill="#fff"/><circle cx="64" cy="20" r="4" fill="#e63946"/><path d="M0 46 h22 v30 M108 46 h22 v30" stroke="#8a5a38" stroke-width="5" fill="none"/><rect x="0" y="22" width="6" height="26" rx="2" fill="#8a5a38"/><rect x="124" y="22" width="6" height="26" rx="2" fill="#8a5a38"/>` },
+  nevera: { t: "floor", w: 64, h: 128, p: { x: 88, y: 84 }, d: () => `<rect x="2" y="2" width="60" height="124" rx="10" fill="#e8f4ff"/><rect x="2" y="2" width="60" height="124" rx="10" fill="none" stroke="#bcd3e8" stroke-width="2"/><path d="M2 48 H62" stroke="#bcd3e8" stroke-width="2"/><rect x="50" y="18" width="5" height="20" rx="2" fill="#9fb7cc"/><rect x="50" y="58" width="5" height="30" rx="2" fill="#9fb7cc"/><circle cx="18" cy="70" r="6" fill="#ff5c8a"/><rect x="26" y="78" width="12" height="10" fill="#ffd23f" transform="rotate(-8 32 83)"/><path d="M14 22 h20" stroke="#fff" stroke-width="4" stroke-linecap="round"/>` },
+  armario: { t: "floor", w: 92, h: 136, p: { x: 82, y: 76 }, d: () => `<rect x="2" y="4" width="88" height="128" rx="6" fill="#c08457"/><rect x="2" y="0" width="88" height="10" rx="4" fill="#a86f45"/><rect x="8" y="14" width="36" height="110" rx="4" fill="#d29a6a"/><rect x="48" y="14" width="36" height="110" rx="4" fill="#d29a6a"/><circle cx="40" cy="70" r="3" fill="#8a5a38"/><circle cx="52" cy="70" r="3" fill="#8a5a38"/><path d="M14 22 v94 M78 22 v94" stroke="#e0b08a" stroke-width="2" opacity=".6"/>` },
+  escritorio: { t: "floor", w: 120, h: 104, p: { x: 74, y: 82 }, d: o => `<rect x="4" y="56" width="112" height="9" rx="3" fill="#a86f45"/><rect x="10" y="65" width="7" height="36" fill="#8a5a38"/><rect x="88" y="65" width="26" height="36" rx="3" fill="#8a5a38"/><circle cx="101" cy="78" r="2" fill="#e0b08a"/><rect x="34" y="14" width="56" height="38" rx="4" fill="#2b2d42"/><rect x="38" y="18" width="48" height="30" rx="2" fill="${o.mode === "night" ? "#4dd2ff" : "#9fdcff"}"/><path d="M44 26 h20 M44 32 h30 M44 38 h14" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".8"/><rect x="58" y="50" width="8" height="7" fill="#3a3a48"/><rect x="40" y="58" width="44" height="5" rx="2" fill="#c9cdd6"/><circle cx="20" cy="50" r="6" fill="#ff8fb8"/><rect x="17" y="40" width="6" height="10" fill="#3fa34d"/>` },
+  hamaca: { t: "floor", w: 170, h: 100, p: { x: 30, y: 95 }, d: () => `<rect x="4" y="10" width="8" height="88" rx="3" fill="#8a5a38"/><rect x="158" y="10" width="8" height="88" rx="3" fill="#8a5a38"/><path d="M12 24 L40 46 M158 24 L130 46" stroke="#e8d9bf" stroke-width="2"/><path d="M40 46 Q85 86 130 46 Q85 70 40 46Z" fill="#ff9f1c"/><path d="M48 52 Q85 80 122 52" stroke="#fff" stroke-width="4" fill="none" opacity=".7"/><path d="M56 60 Q85 82 114 60" stroke="#ff5c8a" stroke-width="4" fill="none" opacity=".8"/>` },
+  barbacoa: { t: "floor", w: 84, h: 100, p: { x: 20, y: 92 }, d: () => `<path class="steam" d="M30 14 q-5 -6 0 -12 M50 14 q5 -6 0 -12" stroke="#ddd" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/><path d="M6 34 Q42 70 78 34Z" fill="#2b2d42"/><rect x="4" y="28" width="76" height="8" rx="3" fill="#5a5a6e"/><path d="M18 30 h48" stroke="#9aa0ab" stroke-width="2"/><ellipse cx="30" cy="26" rx="9" ry="4" fill="#a8452c"/><ellipse cx="52" cy="26" rx="8" ry="4" fill="#c8602c"/><path d="M28 56 L18 98 M56 56 L66 98 M42 60 V98" stroke="#3a3a48" stroke-width="4" stroke-linecap="round"/>` },
+  cunita: { t: "floor", w: 96, h: 80, p: { x: 36, y: 92 }, d: () => `<path d="M8 30 Q48 6 88 30 L84 66 H12Z" fill="#ffd6e7"/><path d="M12 66 Q48 80 84 66" stroke="#ff8fb8" stroke-width="3" fill="none"/>${[18, 30, 42, 54, 66, 78].map(x => `<path d="M${x} 34 V64" stroke="#fff" stroke-width="3"/>`).join("")}<path d="M8 30 Q48 6 88 30" stroke="#ff8fb8" stroke-width="4" fill="none"/><path d="M20 66 Q48 84 76 66" stroke="#c08457" stroke-width="4" fill="none"/><circle cx="48" cy="12" r="5" fill="#ffd23f"/>` },
+  chimenea: { t: "floor", w: 120, h: 120, p: { x: 27, y: 70 }, d: o => `<rect x="6" y="16" width="108" height="102" rx="4" fill="#c8745a"/><rect x="0" y="10" width="120" height="12" rx="3" fill="#8a5a38"/>${[30, 50, 70, 90].map((y, i) => `<path d="M6 ${y} H114" stroke="#a85a44" stroke-width="2"/>`).join("")}<path d="M30 118 V62 Q60 40 90 62 V118Z" fill="#2b1a10"/><g class="fxtw"><path d="M44 116 Q40 96 52 86 Q50 98 58 104 Q60 86 70 80 Q66 96 76 104 Q80 96 82 90 Q90 104 78 116Z" fill="#ff9f1c"/><path d="M52 116 Q50 104 58 98 Q60 106 66 108 Q68 100 72 98 Q76 110 70 116Z" fill="#ffd23f"/></g><rect x="40" y="112" width="40" height="5" rx="2" fill="#6e4429"/>${o.mode === "night" ? `<ellipse cx="60" cy="100" rx="50" ry="30" fill="#ffb347" opacity=".2"/>` : ""}` },
+  macetas: { t: "wall", w: 120, h: 70, p: { x: 50, y: 22 }, d: () => `<path d="M2 4 H118" stroke="#8a5a38" stroke-width="3"/>${[20, 60, 100].map((x, i) => `<path d="M${x} 4 V${20 + i % 2 * 8}" stroke="#e8d9bf" stroke-width="1.5"/><path d="M${x - 12} ${20 + i % 2 * 8} h24 l-4 18 h-16z" fill="${["#e07a2e", "#ff8fb8", "#4dd2ff"][i]}"/><g fill="#3fa34d"><ellipse cx="${x - 6}" cy="${18 + i % 2 * 8}" rx="4" ry="9" transform="rotate(-30 ${x - 6} ${18 + i % 2 * 8})"/><ellipse cx="${x + 6}" cy="${18 + i % 2 * 8}" rx="4" ry="9" transform="rotate(30 ${x + 6} ${18 + i % 2 * 8})"/><path d="M${x - 10} ${38 + i % 2 * 8} q-4 12 2 20" stroke="#3fa34d" stroke-width="3" fill="none"/></g>`).join("")}` },
+  poster: { t: "wall", w: 56, h: 74, p: { x: 30, y: 42 }, d: () => `<rect x="2" y="2" width="52" height="70" rx="2" fill="#2c2a5a"/><circle cx="18" cy="20" r="8" fill="#fff6c2"/><circle cx="21" cy="17" r="7" fill="#2c2a5a"/>${[[38, 14], [44, 34], [14, 46], [32, 58], [44, 56], [22, 34]].map(([x, y], i) => `<path d="${starP(x, y, i % 2 ? 2.5 : 4)}" fill="#ffd23f"/>`).join("")}<circle cx="28" cy="4" r="2.5" fill="#e63946"/>` },
+  mural: { t: "wall", w: 110, h: 64, p: { x: 50, y: 34 }, d: o => `<path d="M2 8 Q55 18 108 8" stroke="#8a5a38" stroke-width="1.5" fill="none"/>${[[10, 12, -6], [40, 16, 4], [72, 14, -3], [94, 10, 7]].map(([x, y, r], i) => `<g transform="rotate(${r} ${x + 10} ${y + 14})"><rect x="${x}" y="${y}" width="22" height="26" fill="#fff"/><rect x="${x + 2}" y="${y + 2}" width="18" height="16" fill="${["#ffb3cf", "#9fdcff", "#ffe7a3", "#c8f5e2"][i]}"/>${i === 1 && o.photo ? `<image href="${o.photo}" x="${x + 2}" y="${y + 2}" width="18" height="16" preserveAspectRatio="xMidYMid slice"/>` : `<path d="M${x + 11} ${y + 12} c-3 -2 -4 -5 -1.6 -6 c1 -.4 1.6 .2 1.6 .8 c0 -.6 .6 -1.2 1.6 -.8 c2.4 1 1.4 4 -1.6 6z" fill="#ff5c8a"/>`}<rect x="${x + 8}" y="${y - 3}" width="6" height="5" fill="#ffd23f" opacity=".85"/></g>`).join("")}` },
+  lamparaluna: { t: "shelf", w: 44, h: 50, p: { x: 70, y: 50 }, d: o => `${o.mode === "night" ? `<circle cx="22" cy="20" r="22" fill="#fff6c2" opacity=".3"/>` : ""}<path d="M14 4 A16 16 0 1 0 34 26 A12 12 0 1 1 14 4Z" fill="#fff3b0" stroke="#e0c25a" stroke-width="1.5"/><rect x="18" y="38" width="8" height="8" fill="#c08457"/><rect x="10" y="44" width="24" height="5" rx="2" fill="#a86f45"/>` },
+  osogigante: { t: "floor", w: 90, h: 100, p: { x: 88, y: 92 }, d: () => `<circle cx="20" cy="22" r="11" fill="#a86f45"/><circle cx="70" cy="22" r="11" fill="#a86f45"/><circle cx="20" cy="22" r="5" fill="#e0b08a"/><circle cx="70" cy="22" r="5" fill="#e0b08a"/><ellipse cx="45" cy="74" rx="34" ry="26" fill="#a86f45"/><ellipse cx="45" cy="78" rx="20" ry="16" fill="#e0b08a"/><circle cx="45" cy="38" r="26" fill="#b98158"/><ellipse cx="45" cy="46" rx="11" ry="8" fill="#e0b08a"/><circle cx="36" cy="34" r="3" fill="#2b1a10"/><circle cx="54" cy="34" r="3" fill="#2b1a10"/><ellipse cx="45" cy="43" rx="4" ry="3" fill="#2b1a10"/><ellipse cx="18" cy="92" rx="12" ry="8" fill="#a86f45"/><ellipse cx="72" cy="92" rx="12" ry="8" fill="#a86f45"/><path d="M34 58 Q45 66 56 58" stroke="#ff5c8a" stroke-width="5" fill="none"/>` },
+  banco: { t: "floor", w: 120, h: 70, p: { x: 74, y: 94 }, d: () => `${[8, 20, 32].map(y => `<rect x="6" y="${y}" width="108" height="8" rx="3" fill="#c08457"/>`).join("")}<rect x="4" y="42" width="112" height="9" rx="3" fill="#a86f45"/><path d="M14 8 V68 M106 8 V68" stroke="#3a3a48" stroke-width="5" stroke-linecap="round"/>` },
+  columpio: { t: "floor", w: 120, h: 140, p: { x: 80, y: 92 }, d: () => `<path d="M10 138 L30 4 L50 138 M70 138 L90 4 L110 138 M26 6 H94" stroke="#a86f45" stroke-width="7" stroke-linecap="round" fill="none"/><g class="swing" style="transform-origin:60px 8px"><path d="M44 8 V96 M76 8 V96" stroke="#e8d9bf" stroke-width="2.5"/><rect x="38" y="94" width="44" height="8" rx="3" fill="#ff5c8a"/></g>` },
+  arcade: { t: "floor", w: 70, h: 136, p: { x: 14, y: 76 }, d: o => `<path d="M6 132 V20 Q6 4 22 4 H48 Q64 4 64 20 V132Z" fill="#7b2ff7"/><rect x="12" y="20" width="46" height="38" rx="4" fill="#15131a"/><rect x="15" y="23" width="40" height="32" rx="2" fill="${o.mode === "night" ? "#2bd9a0" : "#1f9e78"}"/><path d="M20 46 h6 v-6 h6 v6 h6 v-10 h6 v10 h6" stroke="#ffd23f" stroke-width="2" fill="none"/><circle cx="26" cy="31" r="3" fill="#ff5c8a"/><path d="M8 62 H62 L66 76 H4Z" fill="#5a1fcc"/><circle cx="20" cy="68" r="3.5" fill="#e63946"/><circle cx="34" cy="70" r="3" fill="#ffd23f"/><circle cx="46" cy="70" r="3" fill="#4dd2ff"/><rect x="24" y="90" width="22" height="6" rx="2" fill="#15131a"/><path d="M14 8 h42" stroke="#ff8fd0" stroke-width="3"/>` }
+});
+
 const furnPos = (room, id) => { const q = (room.pos || {})[id]; return q && q.y != null ? q : FA[id].p; };
 const furnScale = (id, P) => (FA[id].t === "floor" && !FA[id].flat ? .8 + .2 * Math.max(0, Math.min(1, (P.y - 62) / 35)) : 1);
 // v40 · casita con volumen: molduras, zócalo, perspectiva del suelo y luz de la ventana
@@ -1647,20 +1915,31 @@ function roomSVG(room, mode) {
   const fan = (n, sp) => { let d = ""; for (let i = -n; i <= n; i++) { const x0 = VX + i * sp, x1 = VX + i * sp * 2.6; d += `M${x0.toFixed(1)} ${FY} L${x1.toFixed(1)} ${H}`; } return d; };
   const rows = k => { let d = "", y = FY, g = 7; for (let i = 0; i < k; i++) { g *= 1.28; y += g; if (y > H) break; d += `M0 ${y.toFixed(1)} H${W}`; } return d; };
   let floor = "";
-  if (fl === "f_madera" || fl === "f_azul") {
+  const fst = (CAT[fl] || {}).fs || ({ f_madera: "planks", f_azul: "planks", f_baldosa: "tiles", f_marmol: "tiles", f_moqueta: "carpet", f_rosa: "carpet" })[fl] || "";
+  if (fst === "planks") {
     floor = `<path d="${fan(9, 26)}" stroke="#3a1d00" stroke-opacity=".22" stroke-width="1.4"/>`;
     let seams = ""; for (let i = -9; i < 9; i++) { const t = (((i * 37 + 100) % 7 + 7) % 7) / 7, y = FY + 10 + t * 90, u = (y - FY) / (H - FY), x = VX + (i + .5) * 26 * (1 + 1.6 * u); seams += `M${(x - 5).toFixed(1)} ${y.toFixed(1)} h10`; }
     floor += `<path d="${seams}" stroke="#3a1d00" stroke-opacity=".2" stroke-width="1.2"/>`;
-  } else if (fl === "f_baldosa" || fl === "f_marmol") {
+  } else if (fst === "check") {
+    let q = ""; const rowsY = [FY]; { let y = FY, g = 7; while (y < H) { g *= 1.28; y += g; rowsY.push(Math.min(H, y)); } }
+    for (let r = 0; r < rowsY.length - 1; r++) for (let i = -8; i < 8; i++) { if ((i + r) % 2 === 0) continue; const y0 = rowsY[r], y1 = rowsY[r + 1], u0 = (y0 - FY) / (H - FY), u1 = (y1 - FY) / (H - FY), X = (i, u) => VX + i * 30 * (1 + 1.6 * u); q += `M${X(i, u0).toFixed(1)} ${y0.toFixed(1)} L${X(i + 1, u0).toFixed(1)} ${y0.toFixed(1)} L${X(i + 1, u1).toFixed(1)} ${y1.toFixed(1)} L${X(i, u1).toFixed(1)} ${y1.toFixed(1)}Z`; }
+    floor = `<path d="${q}" fill="#2b2d42" opacity=".78"/>`;
+  } else if (fst === "tiles") {
     floor = `<path d="${fan(7, 34)}${rows(8)}" stroke="#6b6159" stroke-opacity=".28" stroke-width="1.3"/>`;
-    if (fl === "f_marmol") floor += `<path d="M40 214 q30 10 60 -4 t70 8 M230 250 q40 -12 80 4 t60 -6 M10 272 q50 8 90 -6" stroke="#b9ada0" stroke-opacity=".45" stroke-width="1.2" fill="none"/>`;
-  } else if (fl === "f_moqueta" || fl === "f_rosa") {
+    if (fl === "f_marmol" || fl === "f_terrazo") floor += `<path d="M40 214 q30 10 60 -4 t70 8 M230 250 q40 -12 80 4 t60 -6 M10 272 q50 8 90 -6" stroke="#b9ada0" stroke-opacity=".45" stroke-width="1.2" fill="none"/>`;
+  } else if (fst === "carpet") {
     let dots = ""; for (let i = 0; i < 70; i++) { const x = (i * 97) % W, y = FY + 6 + ((i * 53) % (H - FY - 8)); dots += `<circle cx="${x}" cy="${y}" r="${(1 + (i % 3) * .4).toFixed(1)}"/>`; }
     floor = `<g fill="#fff" opacity=".12">${dots}</g><rect x="0" y="${FY}" width="${W}" height="${H - FY}" fill="url(#rmCarpet)"/>`;
   }
   const win = (room.items || {}).ventana, wp = win ? furnPos(room, "ventana") : null;
   const beam = win && mode !== "night" ? (() => { const x = wp.x / 100 * W; return `<path d="M${x - 26} ${FY} L${x + 26} ${FY} L${x + 90} ${H} L${x + 10} ${H}Z" fill="#fff8d8" opacity="${mode === "dawn" ? .16 : .22}"/>`; })() : "";
-  const paper = wl === "w_rosa" || wl === "w_lavanda" || wl === "w_melocoton" ? `<g fill="#fff" opacity=".22">${Array.from({ length: 48 }, (_, i) => `<circle cx="${(i % 12) * 34 + (Math.floor(i / 12) % 2) * 17 + 8}" cy="${Math.floor(i / 12) * 34 + 30}" r="2.4"/>`).join("")}</g>`
+  const wpat = {
+    w_ladrillo: `<g stroke="#fff" stroke-opacity=".28" stroke-width="2" fill="none">${Array.from({ length: 9 }, (_, r) => `<path d="M0 ${r * 16 + 12} H${W}"/>` + Array.from({ length: 11 }, (_, c) => `<path d="M${c * 40 + (r % 2) * 20} ${r * 16 - 4} V${r * 16 + 12}"/>`).join("")).join("")}</g>`,
+    w_rayas: `<g fill="#fff" opacity=".45">${Array.from({ length: 14 }, (_, i) => `<rect x="${i * 30}" y="0" width="13" height="${FY}"/>`).join("")}</g>`,
+    w_nubes: `<g fill="#fff" opacity=".7">${[[40, 30], [150, 60], [260, 26], [350, 74], [90, 104], [220, 112], [330, 140]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="22" ry="9"/><ellipse cx="${x + 12}" cy="${y - 6}" rx="14" ry="9"/><ellipse cx="${x - 10}" cy="${y - 4}" rx="10" ry="7"/>`).join("")}</g>`,
+    w_lunares: `<g fill="#fff" opacity=".6">${Array.from({ length: 60 }, (_, i) => `<circle cx="${(i % 12) * 34 + (Math.floor(i / 12) % 2) * 17 + 8}" cy="${Math.floor(i / 12) * 30 + 16}" r="5"/>`).join("")}</g>`
+  }[wl];
+  const paper = wpat ? wpat : wl === "w_rosa" || wl === "w_lavanda" || wl === "w_melocoton" ? `<g fill="#fff" opacity=".22">${Array.from({ length: 48 }, (_, i) => `<circle cx="${(i % 12) * 34 + (Math.floor(i / 12) % 2) * 17 + 8}" cy="${Math.floor(i / 12) * 34 + 30}" r="2.4"/>`).join("")}</g>`
     : wl === "w_crema" || wl === "w_menta" || wl === "w_azul" ? `<g stroke="#fff" stroke-opacity=".22" stroke-width="6">${Array.from({ length: 14 }, (_, i) => `<path d="M${i * 30 + 12} 14 V${FY - 58}"/>`).join("")}</g>` : "";
   return `<svg class="roomsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs>
     <linearGradient id="rmWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".16"/><stop offset=".18" stop-color="#fff" stop-opacity=".1"/><stop offset=".75" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".08"/></linearGradient>
@@ -1834,6 +2113,7 @@ function renderScene(I, pvScene, pvRoom) {
     S0.className = "scene land-on sc-" + scene + " " + (mode === "day" ? "" : mode);
     S0.style.removeProperty("--wall"); S0.style.removeProperty("--floor");
     sky += landscape(scene, mode, wk, month);
+    sky += ambientHTML(scene, mode, wk, month);
     if (mode !== "day") sky += `<div class="landveil ${mode}"></div>`;
     if (scene === "nieve" || wk === "snow") for (let i = 0; i < 16; i++) sky += `<i class="flake" style="left:${(Math.random() * 100).toFixed(0)}%;animation-delay:${(Math.random() * 6).toFixed(1)}s;animation-duration:${(5 + Math.random() * 4).toFixed(1)}s">❄</i>`;
     if ((wk === "rain" || wk === "storm") && scene !== "mar" && scene !== "espacio") { for (let i = 0; i < 30; i++) sky += `<i class="drop" style="left:${(Math.random() * 100).toFixed(0)}%;animation-delay:${(Math.random() * 1.2).toFixed(2)}s"></i>`; sky += `<span class="umbrella">☂️</span>`; }
@@ -1848,7 +2128,9 @@ function renderScene(I, pvScene, pvRoom) {
   (p.family || []).slice(-3).forEach((f, i) => { sky += `<div class="famfig" style="left:${4 + i * 14}%">${chickSVG(Math.min(6, f.stage || 6), "happy", f.wear || {}, 0, f.color, { species: f.species })}</div>`; });
   sky += famScene(p, I);
   if (I.bd) sky += `<span class="deco" style="left:6%;bottom:8%;font-size:40px">🎂</span><span class="deco flutter" style="right:8%;top:20%;font-size:34px">🎈</span>`;
+  sky += `<div class="vign"></div>`;
   $("petSky").innerHTML = sky; bindFamScene();
+  const vk = petView + curRoom; if (renderScene.vk && renderScene.vk !== vk) sceneFade(); renderScene.vk = vk;
   $("petView").textContent = petView === "in" ? "🌳 Salir" : "🏠 Casita";
   $("roomBar").classList.toggle("hidden", petView !== "in");
   $("roomBar").innerHTML = ROOMS.map(([id, n]) => `<button class="${id === curRoom ? "on" : ""}" data-room="${id}">${n}</button>`).join("") +
@@ -2938,31 +3220,64 @@ function fgPick() { const tot = FG_ITEMS.reduce((a, b) => a + b.w, 0); let r = M
 function fgLoop(t) {
   if (!fg || !fg.run) return;
   const dt = Math.min(50, t - fg.last) / 1000; fg.last = t;
-  const el = (t - fg.t0) / 1000; fg.left = Math.max(0, 30 - el);
+  const el = (t - fg.t0) / 1000; fg.left = Math.max(0, 30 + (fg.bonusT || 0) - el);
+  fg.parts = fg.parts || []; fg.combo = fg.combo || 0; fg.tt = el;
   fg.spawn -= dt; const rate = 0.55 - Math.min(0.3, el * 0.01);
-  if (fg.spawn <= 0) { fg.spawn = rate; const it = fgPick(); fg.items.push({ ...it, x: 20 + Math.random() * (fg.W - 40), y: -20, vy: 160 + el * 6 + Math.random() * 60 }); }
-  const cy = fg.H - 60;
-  fg.items.forEach(o => { o.y += o.vy * dt; if (!o.hit && o.y > cy - 26 && o.y < cy + 20 && Math.abs(o.x - fg.x) < 38) { o.hit = true; fg.score = Math.max(0, fg.score + o.v); fg.flash = { v: o.v, t: 0.6 }; if (navigator.vibrate) navigator.vibrate(o.v > 0 ? 15 : [30, 30, 30]); } });
+  if (fg.spawn <= 0) {
+    fg.spawn = rate; let it = fgPick();
+    const r = Math.random(); if (r < .035) it = { e: "🧲", v: 0, pw: "mag" }; else if (r < .06) it = { e: "⏰", v: 0, pw: "time" }; else if (r < .085) it = { e: "🌈", v: 0, pw: "x2" };
+    fg.items.push({ ...it, x: 20 + Math.random() * (fg.W - 40), y: -20, vy: 160 + el * 6 + Math.random() * 60, rot: Math.random() * 6, vr: (Math.random() - .5) * 3 });
+  }
+  const cy = fg.H - 70, now = performance.now();
+  fg.items.forEach(o => {
+    o.y += o.vy * dt; o.rot += o.vr * dt;
+    if (fg.mag > now && o.v > 0) o.x += (fg.x - o.x) * Math.min(1, dt * 4);
+    if (!o.hit && o.y > cy - 34 && o.y < cy + 18 && Math.abs(o.x - fg.x) < 40) {
+      o.hit = true;
+      if (o.pw) {
+        if (o.pw === "mag") { fg.mag = now + 5000; fg.flash = { txt: "🧲 ¡Imán!", t: 1 }; }
+        if (o.pw === "time") { fg.bonusT = (fg.bonusT || 0) + 5; fg.flash = { txt: "⏰ +5 s", t: 1 }; }
+        if (o.pw === "x2") { fg.x2 = now + 8000; fg.flash = { txt: "🌈 ¡Puntos x2!", t: 1 }; }
+        SFX.ding(); mgBurst(fg.parts, o.x, o.y, ["✨", "⭐", "💫"], 10); fg.squish = .25; return;
+      }
+      if (o.v > 0) { fg.combo++; const mult = (fg.combo >= 10 ? 3 : fg.combo >= 5 ? 2 : 1) * (fg.x2 > now ? 2 : 1); const pts = o.v * mult; fg.score += pts; fg.flash = { v: pts, t: .6, mult }; SFX.pop(); mgBurst(fg.parts, o.x, o.y, ["✨", o.e, "💖"], 6); if (fg.combo === 5 || fg.combo === 10) { SFX.ding(); fg.flash = { txt: `¡Combo x${fg.combo >= 10 ? 3 : 2}! 🔥`, t: 1.1 }; } }
+      else { fg.combo = 0; fg.score = Math.max(0, fg.score + o.v); fg.flash = { v: o.v, t: .6 }; SFX.fail(); fg.shake = .3; mgBurst(fg.parts, o.x, o.y, ["💨", "🔥"], 6); }
+      fg.squish = .2; buzz(o.v > 0 ? 15 : [30, 20, 30]);
+    }
+    if (!o.hit && o.y > fg.H + 10 && o.v > 0) fg.combo = 0;
+  });
   fg.items = fg.items.filter(o => !o.hit && o.y < fg.H + 30);
-  if (fg.flash) fg.flash.t -= dt;
-  $("fgScore").textContent = "🍓 " + fg.score; $("fgTime").textContent = "⏱ " + Math.ceil(fg.left);
-  fgDraw();
+  if (fg.flash) fg.flash.t -= dt; if (fg.squish) fg.squish = Math.max(0, fg.squish - dt); if (fg.shake) fg.shake = Math.max(0, fg.shake - dt);
+  if (fg.left <= 5 && Math.ceil(fg.left) !== fg.lastTick) { fg.lastTick = Math.ceil(fg.left); if (fg.left > 0) SFX.tap(); }
+  $("fgScore").textContent = "🍓 " + fg.score + (fg.combo >= 5 ? ` 🔥x${fg.combo >= 10 ? 3 : 2}` : ""); $("fgTime").textContent = "⏱ " + Math.ceil(fg.left);
+  fgDraw(dt);
   if (fg.left <= 0) return fgEnd();
   fg.raf = requestAnimationFrame(fgLoop);
 }
-function fgDraw() {
-  const { ctx, W, H } = fg; ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#7cc95b"; ctx.beginPath(); ctx.ellipse(W / 2, H + 30, W * .8, 70, 0, 0, Math.PI * 2); ctx.fill();
+function fgDraw(dt = 0) {
+  const { ctx, W, H } = fg, now = performance.now(), t = fg.tt || now / 1000;
+  ctx.save(); if (fg.shake) ctx.translate((Math.random() - .5) * 10 * fg.shake / .3, 0);
+  mgSky(ctx, W, H, "#7ec8ff", "#d8f1ff", t);
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.font = "32px system-ui, Apple Color Emoji, Segoe UI Emoji"; fg.items.forEach(o => ctx.fillText(o.e, o.x, o.y));
-  const p = state.pet || {}, C = COLORS.find(c => c.id === p.color) || COLORS[0], cy = fg.H - 60, x = fg.x;
-  ctx.fillStyle = C.dark; ctx.beginPath(); ctx.ellipse(x - 27, cy + 6, 9, 16, .4, 0, Math.PI * 2); ctx.ellipse(x + 27, cy + 6, 9, 16, -.4, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = C.body; ctx.beginPath(); ctx.arc(x, cy, 30, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = C.belly; ctx.beginPath(); ctx.ellipse(x, cy + 12, 18, 14, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#2b1a10"; ctx.beginPath(); ctx.arc(x - 10, cy - 6, 4, 0, Math.PI * 2); ctx.arc(x + 10, cy - 6, 4, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#ff9f1c"; ctx.beginPath(); ctx.moveTo(x - 8, cy + 1); ctx.lineTo(x + 8, cy + 1); ctx.lineTo(x, cy + (fg.run ? 12 : 8)); ctx.fill();
-  ctx.fillStyle = "rgba(255,143,163,.7)"; ctx.beginPath(); ctx.ellipse(x - 19, cy + 4, 5, 3, 0, 0, Math.PI * 2); ctx.ellipse(x + 19, cy + 4, 5, 3, 0, 0, Math.PI * 2); ctx.fill();
-  if (fg.flash && fg.flash.t > 0) { ctx.font = "bold 22px system-ui"; ctx.fillStyle = fg.flash.v > 0 ? "#1f8a4c" : "#d0304a"; ctx.fillText((fg.flash.v > 0 ? "+" : "") + fg.flash.v, x, cy - 50 - (0.6 - fg.flash.t) * 40); }
+  for (const o of fg.items) {
+    ctx.save(); ctx.translate(o.x, o.y); ctx.rotate(o.pw ? 0 : Math.sin(o.rot) * .4);
+    ctx.fillStyle = "rgba(0,0,0,.12)"; ctx.beginPath(); ctx.ellipse(3, 18, 12, 4, 0, 0, 7); ctx.fill();
+    if (o.pw) { ctx.fillStyle = "rgba(255,255,255,.65)"; ctx.beginPath(); ctx.arc(0, 0, 22 + Math.sin(now / 150) * 2, 0, 7); ctx.fill(); }
+    ctx.fillStyle = "#000"; ctx.font = "32px system-ui, Apple Color Emoji, Segoe UI Emoji"; ctx.fillText(o.e, 0, 0); ctx.restore();
+  }
+  const cy = fg.H - 70, x = fg.x, sq = 1 + (fg.squish || 0) * .6;
+  ctx.fillStyle = "rgba(0,0,0,.16)"; ctx.beginPath(); ctx.ellipse(x, cy + 44, 34, 8, 0, 0, 7); ctx.fill();
+  if (fg.mag > now) { ctx.strokeStyle = "rgba(255,92,138,.5)"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, cy, 60 + Math.sin(now / 90) * 4, 0, 7); ctx.stroke(); }
+  mgPet(ctx, x, cy + 18, 104, fg.run ? (fg.flash && fg.flash.t > 0 && fg.flash.v < 0 ? "sad" : "laugh") : "happy", 0, sq);
+  mgParts(ctx, fg.parts || [], dt);
+  if (fg.flash && fg.flash.t > 0) {
+    ctx.font = "900 24px system-ui"; ctx.lineWidth = 5; ctx.strokeStyle = "#fff";
+    const txt = fg.flash.txt || ((fg.flash.v > 0 ? "+" : "") + fg.flash.v + (fg.flash.mult > 1 ? ` (x${fg.flash.mult})` : "")), yy = cy - 70 - (1 - fg.flash.t) * 30;
+    ctx.fillStyle = fg.flash.txt ? "#7b2ff7" : fg.flash.v > 0 ? "#1f8a4c" : "#d0304a"; ctx.strokeText(txt, x, yy); ctx.fillText(txt, x, yy);
+  }
+  if (fg.run && fg.left <= 5) { ctx.font = "900 64px system-ui"; ctx.fillStyle = "rgba(255,92,138," + (.25 + (fg.left % 1) * .5) + ")"; ctx.fillText(Math.ceil(fg.left), W / 2, H * .35); }
+  if (fg.x2 > now) { ctx.font = "800 15px system-ui"; ctx.fillStyle = "#7b2ff7"; ctx.fillText("🌈 x2", 40, 20); }
+  ctx.restore();
 }
 function fgEnd() {
   fg.run = false; cancelAnimationFrame(fg.raf);
@@ -3698,7 +4013,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "47";
+const APP_VERSION = "54";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -4044,7 +4359,7 @@ function petPlace(x, ms) {
   const box = $("petBox"); x = Math.max(24, Math.min(76, x));
   const dx = x - petX; if (Math.abs(dx) < 1) return 0;
   const dur = ms != null ? ms : Math.min(3400, Math.round(Math.abs(dx) * 60));
-  box.style.transition = dur ? `left ${dur}ms linear` : "none";
+  box.style.transition = dur ? `left ${dur}ms cubic-bezier(.42,0,.38,1)` : "none";
   if (petPose && petPose !== "bed") setPose("");
   box.classList.toggle("flip", dx < 0); if (dur > 400) { box.classList.add("walking"); crewWalk(dx, dur); }
   box.style.left = x + "%"; petX = x; $("petScene").style.setProperty("--px", x + "%");
@@ -4457,6 +4772,8 @@ async function aiSend() {
 $("petChat").onclick = e => { e.stopPropagation(); openPetChat(); };
 window.__aiCtx = () => aiContext.last;
 window.__chick = (...a) => chickSVG(...a);
+window.__furn = id => furnSVG(id, { mode: "day" });
+window.__new = () => CATALOG.filter(i => i.nw === 3).map(i => [i.id, i.cat, i.slot || i.kind || "", i.n]);
 
 
 // =====================================================================
@@ -4464,7 +4781,7 @@ window.__chick = (...a) => chickSVG(...a);
 // =====================================================================
 const ITK = k => (k && String(k).startsWith("color:") ? COLM[String(k).slice(6)] : CAT[k]);   // clave única (los colores llevan "color:")
 const keyOf = it => ownKey(it);
-const isNewIt = it => it.nw === 2;
+const isNewIt = it => it.nw === 3;
 const DEPTS = [["ropa", "👒", "Ropa"], ["fx", "✨", "Magia"], ["color", "🎨", "Colores"], ["comida", "🍰", "Comida"], ["juguete", "🧸", "Juguetes"],
   ["casa", "🏠", "Casa"], ["lugar", "🏞️", "Lugares"], ["cofres", "🎁", "Cofres"], ["armario", "👗", "Armario"], ["deseos", "💝", "Deseos"]];
 let FLASH = null, mirrorMsg = null;
@@ -5905,6 +6222,678 @@ function sleepPose(expr) {
   if (!bed && petPose !== "curl") setPose("curl");
 }
 
+
+// =====================================================================
+//   v49 · Calidad: sonidos, animaciones más suaves, ambiente y sprites
+// =====================================================================
+// ---------- Sonidos (sintetizados, sin archivos) ----------
+const SFX = (() => {
+  let ac = null, master = null;
+  const on = () => ls.get("snd") !== "0";
+  const ctx = () => {
+    if (!on()) return null;
+    try {
+      if (!ac) { ac = (typeof audioCtx !== "undefined" && audioCtx) || new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = .55; master.connect(ac.destination); }
+      if (ac.state === "suspended") ac.resume();
+      return ac;
+    } catch (e) { return null; }
+  };
+  const env = (g, t, a, peak, d) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + a + d); };
+  const osc = (type, f0, f1, dur, peak = .25, delay = 0) => {
+    const a = ctx(); if (!a) return; const t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    env(g, t, .012, peak, dur); o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .05);
+  };
+  const noise = (dur, peak = .2, filt = 1200, delay = 0, q = 1) => {
+    const a = ctx(); if (!a) return; const t = a.currentTime + delay, n = Math.floor(a.sampleRate * dur), b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); s.buffer = b; f.type = "bandpass"; f.frequency.value = filt; f.Q.value = q;
+    env(g, t, .005, peak, dur); s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + dur + .02);
+  };
+  let lastP = 0;
+  const S = {
+    unlock() { const a = ctx(); if (a) { const o = a.createOscillator(), g = a.createGain(); g.gain.value = .0001; o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime + .01); } },
+    pio(force) { const n = Date.now(); if (!force && n - lastP < 1400) return; lastP = n; const b = 1700 + Math.random() * 500; osc("sine", b, b * 1.45, .09, .16); osc("sine", b * 1.1, b * 1.6, .08, .12, .12); },
+    tap() { osc("sine", 880, 660, .05, .07); },
+    pop() { osc("sine", 420, 900, .09, .22); },
+    coin() { osc("square", 988, null, .07, .08); osc("square", 1319, null, .16, .08, .07); },
+    eat() { for (let i = 0; i < 3; i++) noise(.06, .25, 1800 + Math.random() * 800, i * .14, 2); },
+    splash() { noise(.45, .22, 900, 0, .7); for (let i = 0; i < 4; i++) osc("sine", 600 + Math.random() * 700, 1400, .06, .06, .1 + i * .07); },
+    hug() { [523, 659, 784].forEach((f, i) => osc("triangle", f, null, .35, .09, i * .05)); },
+    bounce() { osc("sine", 220, 520, .12, .2); osc("sine", 260, 600, .1, .14, .16); },
+    fanfare() { [523, 659, 784, 1047].forEach((f, i) => osc("triangle", f, null, .22, .14, i * .09)); osc("triangle", 1319, null, .5, .1, .4); },
+    fail() { osc("sawtooth", 220, 110, .35, .08); },
+    whoosh() { noise(.18, .14, 600, 0, .6); },
+    ding() { osc("sine", 1568, null, .18, .12); osc("sine", 2093, null, .25, .08, .06); },
+    lullaby() { [659, 587, 523, 587, 659].forEach((f, i) => osc("sine", f, null, .3, .07, i * .28)); },
+    on, set(v) { ls.set("snd", v ? "1" : "0"); if (v) S.pop(); }
+  };
+  return S;
+})();
+document.addEventListener("pointerdown", () => SFX.unlock(), { once: true, capture: true });
+// enganchar sonidos a lo que ya pasa en la app
+{
+  const _hearts = hearts, _coinPop = coinPop, _confetti = confetti, _say = say; let lastH = 0;
+  hearts = (el, e) => { const n = Date.now(); if (n - lastH > 350) { lastH = n; SFX.hug(); } return _hearts(el, e); };
+  coinPop = (el, t) => { SFX.coin(); return _coinPop(el, t); };
+  confetti = () => { SFX.fanfare(); return _confetti(); };
+  say = (t, ms) => { const r = _say(t, ms); const b = $("petSay"); if (b && !b.classList.contains("hidden") && !$("tab-pet").classList.contains("hidden")) SFX.pio(); return r; };
+  const _lv = lvlToast; lvlToast = l => { if (l) setTimeout(() => SFX.fanfare(), 900); return _lv(l); };
+  const hook = (id, f) => { const b = $(id); if (b) b.addEventListener("click", f); };
+  hook("petFeed", () => SFX.eat()); hook("petBath", () => SFX.splash()); hook("petPlay", () => SFX.bounce()); hook("petSleep", () => SFX.lullaby());
+  document.addEventListener("click", e => { if (e.target.closest("nav button, .act, .seg button, #roomBar button, .viewbtn")) SFX.tap(); }, true);
+}
+// ajuste de sonido en ⚙️
+(() => {
+  const f = $("sPush"); if (!f || $("sSnd")) return;
+  const d = document.createElement("div"); d.className = "field";
+  d.innerHTML = `<label class="sndrow"><span>🔊 Sonidos de la mascota y de los juegos</span><input type="checkbox" id="sSnd" ${SFX.on() ? "checked" : ""}></label><div class="sub" style="font-size:12px;margin-top:4px">En iPhone la vibración no está disponible en apps web; los sonidos sí (con el modo silencio quitado).</div>`;
+  f.parentNode.insertBefore(d, f.nextSibling);
+  $("sSnd").onchange = e => SFX.set(e.target.checked);
+})();
+
+// ---------- Animaciones más naturales ----------
+// parpadeo a intervalos aleatorios (como de verdad)
+(function blinkLoop() {
+  const b = $("petBox");
+  if (b && !document.hidden) { b.classList.remove("blinkn"); void b.offsetWidth; b.classList.add("blinkn"); if (Math.random() < .2) setTimeout(() => { b.classList.remove("blinkn"); void b.offsetWidth; b.classList.add("blinkn"); }, 260); }
+  setTimeout(blinkLoop, 2200 + Math.random() * 4200);
+})();
+// aplastarse un poquito al tocarle
+$("petBox").addEventListener("pointerdown", () => { const b = $("petBox"); b.classList.remove("squash"); void b.offsetWidth; b.classList.add("squash"); setTimeout(() => b.classList.remove("squash"), 260); SFX.pio(true); });
+// fundido suave al cambiar de habitación o salir
+function sceneFade() { const s = $("petSky"); if (!s) return; s.classList.remove("fadein"); void s.offsetWidth; s.classList.add("fadein"); }
+
+// ---------- Ambiente: pájaros, luciérnagas, hojas y luz ----------
+function ambientHTML(scene, mode, wk, month) {
+  let h = "";
+  if (["rain", "storm", "snow"].includes(wk) || scene === "espacio" || scene === "mar") return h;
+  if (mode === "day") {
+    for (let i = 0; i < 2; i++) h += `<svg class="bird" style="top:${12 + i * 9}%;animation-delay:${-i * 7 - Math.random() * 6}s;animation-duration:${16 + i * 5}s" viewBox="0 0 30 12"><path d="M1 6 Q8 0 15 6 Q22 0 29 6" stroke="#3a3a48" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
+    h += `<div class="sunrays"></div>`;
+    for (let i = 0; i < 6; i++) h += `<i class="mote" style="left:${(10 + Math.random() * 80).toFixed(0)}%;top:${(30 + Math.random() * 40).toFixed(0)}%;animation-delay:${(-Math.random() * 8).toFixed(1)}s"></i>`;
+  } else if (mode === "night") {
+    for (let i = 0; i < 9; i++) h += `<i class="firefly" style="left:${(6 + Math.random() * 88).toFixed(0)}%;top:${(45 + Math.random() * 45).toFixed(0)}%;animation-delay:${(-Math.random() * 6).toFixed(1)}s;animation-duration:${(5 + Math.random() * 4).toFixed(1)}s"></i>`;
+  }
+  if (month === 9 || month === 10) for (let i = 0; i < 4; i++) h += `<i class="leaf" style="left:${(Math.random() * 100).toFixed(0)}%;animation-delay:${(-Math.random() * 9).toFixed(1)}s;animation-duration:${(7 + Math.random() * 5).toFixed(1)}s">${rnd(["🍂", "🍁"])}</i>`;
+  return h;
+}
+
+// ---------- Mascota de verdad en los minijuegos ----------
+let mgSprites = {};
+function mgSprite(expr) {
+  const p = state.pet || {}, si = Math.max(1, stageOf(p.xp || 0)), key = [expr, si, p.color, JSON.stringify(p.wear || {}), p.species].join("|");
+  if (mgSprites[key]) return mgSprites[key].ok ? mgSprites[key].img : null;
+  const img = new Image(), rec = mgSprites[key] = { img, ok: false };
+  const svg = chickSVG(si, expr, { ...(p.wear || {}), fx: null }, 0, p.color, { species: p.species }).replace('<svg viewBox="0 0 200 200"', '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"');
+  img.onload = () => { rec.ok = true; }; img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  return null;
+}
+function mgPet(ctx, x, y, size, expr = "happy", rot = 0, sq = 1) {
+  const im = mgSprite(expr);
+  if (!im) return mgChick(ctx, x, y, size / 90, expr === "laugh");
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.scale(1 / sq, sq); ctx.drawImage(im, -size / 2, -size * .62, size, size); ctx.restore();
+}
+// partículas para los juegos
+function mgBurst(arr, x, y, list, n = 8) { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = 80 + Math.random() * 160; arr.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, t: .7 + Math.random() * .4, e: rnd(list), s: 12 + Math.random() * 10 }); } }
+function mgParts(ctx, arr, dt) {
+  for (const q of arr) { q.t -= dt; q.vy += 420 * dt; q.x += q.vx * dt; q.y += q.vy * dt; }
+  for (let i = arr.length - 1; i >= 0; i--) if (arr[i].t <= 0) arr.splice(i, 1);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillStyle = "#000";
+  for (const q of arr) { ctx.globalAlpha = Math.max(0, Math.min(1, q.t * 1.6)); ctx.font = `${q.s}px system-ui, Apple Color Emoji`; ctx.fillText(q.e, q.x, q.y); }
+  ctx.globalAlpha = 1;
+}
+function mgSky(ctx, W, H, top, bot, t, hills = "#7cc95b") {
+  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, top); g.addColorStop(1, bot); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(255,255,255,.85)";
+  for (let i = 0; i < 4; i++) { const cx = ((i * 157 + t * (12 + i * 6)) % (W + 160)) - 80, cy = 40 + i * 46; ctx.beginPath(); ctx.ellipse(W - cx, cy, 34, 13, 0, 0, 7); ctx.ellipse(W - cx + 20, cy - 8, 22, 13, 0, 0, 7); ctx.ellipse(W - cx - 18, cy - 4, 16, 10, 0, 0, 7); ctx.fill(); }
+  ctx.fillStyle = "rgba(0,0,0,.06)"; ctx.beginPath(); ctx.moveTo(0, H); for (let x = 0; x <= W; x += 20) ctx.lineTo(x, H - 80 - Math.sin((x + t * 18) / 70) * 18); ctx.lineTo(W, H); ctx.fill();
+  ctx.fillStyle = hills; ctx.beginPath(); ctx.moveTo(0, H); for (let x = 0; x <= W; x += 20) ctx.lineTo(x, H - 46 - Math.sin((x + t * 40) / 55) * 10); ctx.lineTo(W, H); ctx.fill();
+}
+
+
+// =====================================================================
+//   v50 · 🌶️ Zona privada (solo si la activáis los dos, con PIN)
+// =====================================================================
+const SP_LV = [["coqueto", "😊", "Coqueto"], ["atrevido", "🔥", "Atrevido"], ["picante", "🌶️", "Picante"]];
+const SP_TRUTH = {
+  coqueto: ["¿Qué fue lo primero que te atrajo de mí?", "¿Cuál es la parte de mi cuerpo que más te gusta?", "¿Qué ropa mía te encanta verme puesta?", "¿Dónde te gustaría que te diera un beso ahora mismo?", "¿Qué es lo que más echas de menos de tenerme cerca?", "¿Qué canción te pone en modo romántico?", "¿Qué gesto mío te derrite?", "¿Cuál ha sido nuestro beso más bonito?", "¿Qué es lo más romántico que te gustaría que hiciera por ti?", "¿En qué momento del día piensas más en mí?"],
+  atrevido: ["¿Cuál ha sido tu sueño más atrevido conmigo?", "¿Qué es lo que más te gusta que te haga?", "¿En qué sitio raro te gustaría que nos besáramos?", "¿Qué te pondrías para sorprenderme?", "¿Qué te gustaría que te susurrara al oído?", "¿Hay algo que nunca te has atrevido a pedirme?", "Describe nuestro mejor beso con detalle.", "¿Qué es lo que más te pone nerviosa/o de mí… en el buen sentido?", "¿Cuál es tu recuerdo nuestro más intenso?", "¿Qué mensaje mío te ha dejado pensando todo el día?"],
+  picante: ["¿Cuál es tu fantasía conmigo que nunca me has contado?", "¿Qué es lo primero que harías si me tuvieras delante ahora mismo?", "¿Qué es lo que más te enciende de mí?", "¿Qué recuerdo nuestro todavía te sube la temperatura?", "Si tuviéramos una noche entera solo para nosotros, ¿cómo sería?", "¿Qué te gustaría que probáramos juntos que aún no hemos probado?", "¿Cuál es tu sitio favorito para que te bese?", "Luces apagadas o encendidas… ¿y por qué?", "¿Qué es lo que más te gusta que te diga en la intimidad?", "¿Qué harías si supieras que no te puedo decir que no?"]
+};
+const SP_DARE = {
+  coqueto: ["Mándale una foto con tu sonrisa más pícara 😏", "Envíale un audio diciéndole lo que más te gusta de su cuerpo", "Escríbele un piropo que le haga ponerse rojo/a", "Dile en qué estás pensando ahora mismo, sin mentir", "Mándale un beso a cámara lenta por videollamada", "Describe en tres palabras cómo te hace sentir"],
+  atrevido: ["Mándale un audio susurrando algo bonito al oído", "Ponte la prenda que más le gusta y mándale una foto (vestido/a 😇)", "Escríbele cómo sería vuestra próxima cita perfecta… con final incluido", "Dile algo que te gustaría hacerle la próxima vez que os veáis", "Videollamada solo con la luz de una vela durante un minuto", "Elige una canción para «vuestro momento» y mándasela"],
+  picante: ["Escríbele un mensaje que solo se pueda leer a solas", "Graba un audio de 20 segundos diciéndole todo lo que le harías", "Planea con detalle vuestra próxima noche juntos y mándaselo", "Cuéntale una fantasía que tengas con él/ella", "Videollamada: miraos 30 segundos sin reíros… y lo que surja", "Regálale un cupón picante de esta zona 🎟️"]
+};
+const SP_DICE_A = ["Besar", "Acariciar", "Susurrar", "Mordisquear", "Masajear", "Abrazar"], SP_DICE_B = ["el cuello", "los labios", "la oreja", "la espalda", "las manos", "donde tú elijas 😏"];
+const SP_IDEAS = ["Un baño juntos con velas", "Una noche en un hotel bonito", "Masaje con aceites", "Bailar lento en el salón", "Ver el amanecer desde la cama", "Un fin de semana sin salir de casa", "Desayuno en la cama con sorpresa", "Juego de roles: conocernos como desconocidos en un bar", "Una videollamada atrevida", "Mensajes picantes durante todo un día", "Ropa especial de sorpresa", "Escapada a una cabaña", "Bañarnos en el mar de noche", "Besarnos bajo la lluvia", "Escribirnos una carta muy atrevida", "Masaje con los ojos vendados", "Un juego de mesa picante", "Una noche de «sí a todo» (con límites claros)", "Dormir abrazados sin móviles", "Una cita sorpresa organizada por el otro", "Recrear nuestra primera cita", "Un jacuzzi para los dos", "Bailar una canción sensual", "Dejarnos notas por la casa", "Despertarnos a besos", "Probar algo nuevo que proponga el otro", "Una ducha juntos", "Cocinar juntos… con poca ropa", "Una noche de pelis abrazados", "Hacer una lista de deseos juntos"];
+const SP_COUPONS = ["💆 Un masaje de 20 minutos", "🌙 Una noche de lo que tú quieras", "💋 Besos ilimitados durante una hora", "🛁 Un baño juntos", "🥐 Desayuno en la cama", "💃 Un baile lento", "👗 Tú eliges lo que me pongo", "🎁 Una cita sorpresa", "✅ Un «sí» a una petición", "🤫 Un secreto al oído"];
+let spState = {}, spCoupons = [], spLetters = [], spOpen = false, spTab = "juego", spLevel = ls.get("spLv") || "coqueto", spUnlockedAt = 0;
+const spOpted = w => !!((spState.opt || {})[w]);
+const spOn = () => spOpted("a") && spOpted("b");
+async function spHash(t) { try { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("nosotros:" + t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); } catch (e) { return "x" + t; } }
+function watchSpicy() {
+  S.watchDoc("state/spicy", d => { spState = d || {}; renderSpEntry(); renderSpSettings(); if (spOpen) renderSp(); });
+  S.watchCol("spcoupons", l => { spCoupons = l; if (spOpen) renderSp(); }, 60);
+  S.watchCol("spletters", l => { spLetters = l; if (spOpen) renderSp(); renderSpEntry(); }, 40);
+}
+function renderSpSettings() {
+  const el = $("sSpicy"); if (!el) return;
+  const me = spOpted(who), ot = spOpted(other()), o = esc(name(other()));
+  el.innerHTML = `<label class="sndrow"><span>🌶️ Zona privada para los dos</span><input type="checkbox" id="spOpt" ${me ? "checked" : ""}></label>
+    <div class="sub" style="font-size:12px;margin-top:4px">${me && ot ? "Activada por los dos ✅ La encontrarás en la pestaña Nosotros, con PIN." : me ? `Tú la has activado. Falta que ${o} la active en su móvil.` : ot ? `${o} la ha activado. Actívala tú también si te apetece 😏` : "Juegos y mensajes íntimos solo para vosotros. Solo aparece si la activáis los dos."}${me ? ` · <button class="linkbtn" id="spPinReset" style="font-size:12px">cambiar PIN</button>` : ""}</div>`;
+  $("spOpt").onchange = e => { S.merge("state/spicy", { opt: { [who]: e.target.checked } }); if (e.target.checked && !ot) notifyOther("🌶️ Te he propuesto algo… mira en ⚙️ Ajustes"); };
+  const pr = $("spPinReset"); if (pr) pr.onclick = () => { ls.set("spPinH", ""); toast("PIN borrado. Pondrás uno nuevo al entrar 🔒"); };
+}
+function renderSpEntry() {
+  const el = $("spEntry"); if (!el) return;
+  el.classList.toggle("hidden", !spOn());
+  if (!spOn()) return;
+  const n = spLetters.filter(l => l.to === who && !l.read).length + spCoupons.filter(c => c.to === who && !c.seen).length;
+  el.innerHTML = `<button class="spbtn" id="spGo"><span>🔒</span><div><b>Zona privada</b><small>Solo para vosotros dos${n ? ` · ${n} nuevo${n > 1 ? "s" : ""} 🔥` : ""}</small></div><i>›</i></button>`;
+  $("spGo").onclick = spEnter;
+}
+function spEnter() {
+  if (!spOn()) return;
+  if (Date.now() - spUnlockedAt < 3 * 6e4) return spShow();
+  const has = !!ls.get("spPinH");
+  spPinPad(has ? "Escribe tu PIN" : "Crea un PIN de 4 números", async pin => {
+    if (!has) { const p2 = await new Promise(res => spPinPad("Repítelo", res)); if (p2 !== pin) { toast("No coinciden, prueba otra vez"); return false; } ls.set("spPinH", await spHash(pin)); }
+    else if (await spHash(pin) !== ls.get("spPinH")) { buzz([40, 30, 40]); return false; }
+    spUnlockedAt = Date.now(); spShow(); return true;
+  });
+}
+function spPinPad(title, cb) {
+  const v = $("spPin"); let code = "";
+  const draw = (err) => { v.classList.remove("hidden"); v.innerHTML = `<div class="pinbox"><div class="pinlock">🔒</div><b>${esc(title)}</b><div class="pindots ${err ? "err" : ""}">${[0, 1, 2, 3].map(i => `<i class="${i < code.length ? "on" : ""}"></i>`).join("")}</div>
+    <div class="pinpad">${[1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "⌫"].map(k => k === "" ? "<span></span>" : `<button data-k="${k}">${k}</button>`).join("")}</div><button class="linkbtn" id="pinX">Cancelar</button></div>`;
+    v.querySelectorAll("[data-k]").forEach(b => b.onclick = async () => {
+      const k = b.dataset.k; if (k === "⌫") code = code.slice(0, -1); else if (code.length < 4) code += k; SFX.tap(); draw();
+      if (code.length === 4) { const c = code; code = ""; const r = await cb(c); if (r === false) { draw(true); } else if (r !== undefined) v.classList.add("hidden"); else v.classList.add("hidden"); }
+    });
+    $("pinX").onclick = () => { v.classList.add("hidden"); };
+  };
+  v.classList.remove("hidden"); draw();
+}
+function spShow() { spOpen = true; $("spView").classList.remove("hidden"); document.body.style.overflow = "hidden"; renderSp(); }
+function spClose() { spOpen = false; $("spView").classList.add("hidden"); document.body.style.overflow = ""; }
+document.addEventListener("visibilitychange", () => { if (document.hidden && spOpen) { spClose(); spUnlockedAt = 0; } });
+function renderSp() {
+  const v = $("spBody"); if (!v) return;
+  document.querySelectorAll("#spTabs button").forEach(b => b.classList.toggle("on", b.dataset.t === spTab));
+  const o = esc(name(other())), me = esc(name(who));
+  let h = "";
+  if (spTab === "juego") {
+    h = `<div class="splv">${SP_LV.map(([k, e, n]) => `<button class="${spLevel === k ? "on" : ""}" data-lv="${k}">${e} ${n}</button>`).join("")}</div>
+      <div class="spcard" id="spCard"><div class="spk">Elige verdad o reto</div><div class="spq">🎲</div></div>
+      <div class="sprow"><button class="spb" id="spTruth">🗣️ Verdad</button><button class="spb hot" id="spDare">🔥 Reto</button></div>
+      <button class="spb ghost" id="spSendQ" style="width:100%;margin-top:8px">💌 Mandárselo a ${o}</button>`;
+  } else if (spTab === "dados") {
+    h = `<div class="sub sptxt">Tirad los dados… y apuntadlo para cuando os veáis 😏</div><div class="dice"><div class="die" id="d1">💋</div><div class="die" id="d2">✨</div></div><div class="spres" id="dRes"></div>
+      <button class="spb hot" id="dRoll" style="width:100%">🎲 Tirar los dados</button>`;
+  } else if (spTab === "atreves") {
+    const mine = ((spState.dare || {})[who]) || {}, theirs = ((spState.dare || {})[other()]) || {};
+    const both = SP_IDEAS.map((t, i) => [t, i]).filter(([, i]) => mine[i] === 2 && theirs[i] === 2), maybe = SP_IDEAS.map((t, i) => [t, i]).filter(([, i]) => (mine[i] === 2 && theirs[i] === 1) || (mine[i] === 1 && theirs[i] === 2));
+    const done = Object.keys(mine).length, odone = Object.keys(theirs).length;
+    h = `<div class="sub sptxt">Marca cada idea. <b>Solo veréis las que os apetezcan a los dos</b>; lo que diga que no ${o} no lo verás nunca, y al revés 🤫</div>
+      ${both.length ? `<div class="spsec">💞 Os apetece a los dos</div>${both.map(([t]) => `<div class="spmatch">🔥 ${esc(t)}</div>`).join("")}` : ""}
+      ${maybe.length ? `<div class="spsec">💛 Uno dice sí y otro quizá… habladlo</div>${maybe.map(([t]) => `<div class="spmatch maybe">${esc(t)}</div>`).join("")}` : ""}
+      ${!both.length && !maybe.length ? `<div class="spmatch empty">${odone ? "Aún no hay coincidencias… ¡sigue marcando!" : `Cuando ${o} marque las suyas, aquí saldrán las que coincidan 😏`}</div>` : ""}
+      <div class="spsec">Tus respuestas · ${done}/${SP_IDEAS.length}</div>
+      ${SP_IDEAS.map((t, i) => `<div class="spidea"><span>${esc(t)}</span><div class="ynm">${[[2, "💚"], [1, "💛"], [0, "✕"]].map(([val, e]) => `<button class="${mine[i] === val ? "on v" + val : ""}" data-i="${i}" data-v="${val}">${e}</button>`).join("")}</div></div>`).join("")}`;
+  } else if (spTab === "cupones") {
+    const got = spCoupons.filter(c => c.to === who), sent = spCoupons.filter(c => c.from === who);
+    h = `<div class="spsec">🎟️ Regálale un cupón a ${o}</div><div class="cpgrid">${SP_COUPONS.map((c, i) => `<button class="cpopt" data-cp="${i}">${esc(c)}</button>`).join("")}</div>
+      <div class="sprow"><input id="cpTxt" maxlength="80" placeholder="O escribe uno tú…"><button class="spb hot" id="cpSend" style="flex:none">Regalar</button></div>
+      <div class="spsec">💝 Tus cupones</div>${got.length ? got.map(c => `<div class="coupon ${c.used ? "used" : ""}"><b>${esc(c.text)}</b><small>de ${esc(name(c.from))} · ${fmtDate(c.at, { day: "numeric", month: "short" })}</small>${c.used ? `<em>Canjeado ✓</em>` : `<button class="spb" data-use="${c.id}">Canjear</button>`}</div>`).join("") : `<div class="spmatch empty">Todavía no tienes cupones… 😏</div>`}
+      ${sent.length ? `<div class="spsec">📤 Los que has regalado</div>${sent.map(c => `<div class="coupon mine ${c.used ? "used" : ""}"><b>${esc(c.text)}</b><small>para ${o}${c.used ? " · ¡canjeado! 🔥" : ""}</small></div>`).join("")}` : ""}`;
+  } else if (spTab === "cartas") {
+    const L = spLetters.filter(l => l.to === who || l.from === who);
+    h = `<div class="sub sptxt">Mensajes que solo se pueden leer aquí dentro, con el PIN 🔒</div>
+      <textarea id="slTxt" maxlength="1500" placeholder="Escríbele algo que solo pueda leer a solas…"></textarea><button class="spb hot" id="slSend" style="width:100%;margin-top:8px">💌 Enviar en secreto</button>
+      <div class="spsec">Vuestros mensajes</div>${L.length ? L.map(l => `<div class="sletter ${l.from === who ? "mine" : ""} ${l.to === who && !l.read ? "new" : ""}" data-l="${l.id}"><small>${l.from === who ? "Tú → " + o : esc(name(l.from)) + " → tú"} · ${fmtDate(l.at, { day: "numeric", month: "short" })} ${hhmm(l.at)}</small><p>${esc(l.text)}</p></div>`).join("") : `<div class="spmatch empty">Aún no hay mensajes secretos</div>`}`;
+  } else if (spTab === "cal") { h = renderSpCal();
+  } else if (spTab === "ks") { h = renderKs();
+  }
+  v.innerHTML = h;
+  if (spTab === "cal") bindSpCal();
+  v.querySelectorAll("[data-kf]").forEach(b => b.onclick = () => { ksFilter = b.dataset.kf; renderSp(); });
+  v.querySelectorAll("[data-ks]").forEach(b => b.onclick = () => ksOpen(b.dataset.ks));
+  if ($("ksSpin")) $("ksSpin").onclick = ksSpin;
+  if (ksOpenId) renderKsSheet();
+  // marcar como vistos
+  const unseen = spCoupons.filter(c => c.to === who && !c.seen); if (spTab === "cupones" && unseen.length) unseen.forEach(c => S.merge("spcoupons/" + c.id, { seen: 1 }));
+  const unread = spLetters.filter(l => l.to === who && !l.read); if (spTab === "cartas" && unread.length) unread.forEach(l => S.merge("spletters/" + l.id, { read: Date.now() }));
+  const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
+  v.querySelectorAll("[data-lv]").forEach(b => b.onclick = () => { spLevel = b.dataset.lv; ls.set("spLv", spLevel); renderSp(); });
+  let last = null;
+  const showQ = kind => { const L = (kind === "t" ? SP_TRUTH : SP_DARE)[spLevel]; const q = rnd(L); last = { kind, q }; const c = $("spCard"); c.classList.remove("flip"); void c.offsetWidth; c.classList.add("flip"); c.innerHTML = `<div class="spk">${kind === "t" ? "🗣️ Verdad" : "🔥 Reto"} · ${SP_LV.find(x => x[0] === spLevel)[1]}</div><div class="spq">${esc(q)}</div>`; SFX.pop(); };
+  on("spTruth", () => showQ("t")); on("spDare", () => showQ("d"));
+  on("spSendQ", () => { if (!last) return toast("Primero saca una verdad o un reto 😏"); S.add("spletters", { from: who, to: other(), text: `${last.kind === "t" ? "🗣️ Verdad" : "🔥 Reto"} para ti: ${last.q}`, at: Date.now(), read: 0 }); notifyOther("🔒 Tienes algo nuevo en la zona privada 😏"); toast(`Enviado a ${name(other())} en secreto 🔒`); });
+  on("dRoll", () => {
+    const a = $("d1"), b = $("d2"); a.classList.add("roll"); b.classList.add("roll"); SFX.bounce(); let n = 0;
+    const it = setInterval(() => { a.textContent = rnd(["💋", "🤲", "👄", "😘", "💆", "🤗"]); b.textContent = rnd(["✨", "🌙", "🔥", "💫", "❤️", "🌶️"]); if (++n > 10) { clearInterval(it); a.classList.remove("roll"); b.classList.remove("roll"); const x = rnd(SP_DICE_A), y = rnd(SP_DICE_B); $("dRes").innerHTML = `<b>${x}</b> ${y}`; SFX.ding(); } }, 90);
+  });
+  v.querySelectorAll("[data-v]").forEach(b => b.onclick = () => { const i = b.dataset.i, val = +b.dataset.v; S.merge("state/spicy", { dare: { [who]: { [i]: val } } }); SFX.tap(); });
+  v.querySelectorAll("[data-cp]").forEach(b => b.onclick = () => { $("cpTxt").value = SP_COUPONS[+b.dataset.cp]; });
+  on("cpSend", () => { const t = ($("cpTxt").value || "").trim(); if (!t) return toast("Elige o escribe un cupón 🎟️"); S.add("spcoupons", { from: who, to: other(), text: t.slice(0, 80), at: Date.now(), used: 0, seen: 0 }); notifyOther("🎟️ Te han regalado algo en la zona privada 😏"); toast("Cupón regalado 🎟️🔥"); SFX.coin(); });
+  v.querySelectorAll("[data-use]").forEach(b => b.onclick = () => { if (!confirm("¿Canjear este cupón? 😏")) return; S.merge("spcoupons/" + b.dataset.use, { used: Date.now() }); notifyOther("🎟️ Han canjeado un cupón… 🔥"); confetti(); });
+  on("slSend", () => { const t = ($("slTxt").value || "").trim(); if (!t) return; S.add("spletters", { from: who, to: other(), text: t.slice(0, 1500), at: Date.now(), read: 0 }); notifyOther("🔒 Tienes un mensaje secreto 💌"); $("slTxt").value = ""; toast("Enviado en secreto 🔒"); });
+}
+document.querySelectorAll("#spTabs button").forEach(b => b.onclick = () => { spTab = b.dataset.t; renderSp(); $("spBody").scrollTop = 0; });
+$("spClose").onclick = spClose;
+(() => { const f = $("sSnd") ? $("sSnd").closest(".field") : $("sPush"); if (!f || $("sSpicy")) return; const d = document.createElement("div"); d.className = "field"; d.id = "sSpicy"; f.parentNode.insertBefore(d, f.nextSibling); renderSpSettings(); })();
+
+
+// ---------- 🌶️ Calendario íntimo + Kamasutra (v51) ----------
+const KS = [
+  { id: "misionero", n: "El misionero", d: 1, i: 3, t: "Cara a cara: una persona tumbada boca arriba y la otra encima. Permite besarse y mirarse a los ojos todo el rato.", tip: "Una almohada bajo las caderas cambia el ángulo y la sensación." },
+  { id: "amazona", n: "La amazona", d: 1, i: 3, t: "Una persona tumbada boca arriba y la otra encima, sentada a horcajadas y de frente. Quien está arriba marca el ritmo.", tip: "Ideal para ir despacio y con las manos entrelazadas." },
+  { id: "amazonainv", n: "La amazona invertida", d: 2, i: 1, t: "Como la amazona, pero quien está encima mira hacia los pies de la otra persona.", tip: "Apoyarse en las rodillas de la pareja da estabilidad." },
+  { id: "cucharita", n: "La cucharita", d: 1, i: 3, t: "Tumbados de lado, uno detrás del otro, como dos cucharas encajadas. Muy cómoda y cariñosa.", tip: "Perfecta para mañanas perezosas o cuando hay cansancio." },
+  { id: "perrito", n: "El perrito", d: 2, i: 1, t: "Una persona a cuatro patas y la otra detrás, de rodillas.", tip: "Bajar el pecho hacia la cama hace la postura más cómoda." },
+  { id: "loto", n: "El loto (Yab-Yum)", d: 2, i: 3, t: "Postura tántrica: una persona sentada con las piernas cruzadas y la otra sentada encima, de frente, rodeándola con las piernas.", tip: "Respirad al mismo ritmo: es más de conexión que de velocidad." },
+  { id: "mariposa", n: "La mariposa", d: 2, i: 2, t: "Una persona tumbada boca arriba al borde de la cama, con las piernas elevadas; la otra de pie frente a ella.", tip: "La altura de la cama es clave; un cojín ayuda a ajustarla." },
+  { id: "yunque", n: "El yunque", d: 3, i: 2, t: "Variante del misionero en la que quien está abajo apoya las piernas sobre los hombros de la otra persona.", tip: "Requiere flexibilidad: id poco a poco." },
+  { id: "silla", n: "La silla", d: 2, i: 3, t: "Una persona sentada en una silla firme y la otra sentada encima, de frente o de espaldas.", tip: "Una silla sin ruedas y sin brazos es la mejor opción." },
+  { id: "tijera", n: "La tijera", d: 2, i: 2, t: "Tumbados de lado o semi-incorporados, con las piernas entrelazadas como unas tijeras.", tip: "Muy cómoda para alargar el momento sin cansarse." },
+  { id: "depie", n: "De pie", d: 3, i: 2, t: "Los dos de pie, cara a cara o uno detrás del otro, con apoyo en la pared o en un mueble.", tip: "Un escalón o unos tacones ayudan si hay diferencia de altura." },
+  { id: "elefante", n: "El elefante", d: 2, i: 1, t: "Una persona tumbada boca abajo y estirada; la otra encima, detrás, apoyada en los brazos.", tip: "Un cojín bajo las caderas de quien está abajo lo hace más cómodo." },
+  { id: "cascada", n: "La cascada", d: 3, i: 2, t: "Una persona tumbada boca arriba con la cabeza y los hombros fuera del borde de la cama; la otra encima.", tip: "Hacedlo sobre una superficie baja y sin prisas." },
+  { id: "carretilla", n: "La carretilla", d: 4, i: 1, t: "Una persona se apoya en las manos en el suelo y la otra, de pie, le sujeta las piernas por la cintura.", tip: "Postura acrobática: mejor como juego corto." },
+  { id: "bailarina", n: "La bailarina", d: 4, i: 3, t: "De pie y cara a cara, una persona levanta una pierna y la apoya en la cadera o el hombro de la otra.", tip: "Apoyaos en la pared para mantener el equilibrio." },
+  { id: "69", n: "El 69", d: 2, i: 2, t: "Estimulación oral mutua y a la vez, tumbados en direcciones opuestas, de lado o uno encima del otro.", tip: "De lado es la variante más cómoda para los dos." },
+  { id: "puente", n: "El puente", d: 4, i: 2, t: "Una persona forma un puente arqueando la espalda sobre manos y pies; la otra se coloca encima o de rodillas.", tip: "Muy exigente físicamente: solo un ratito." },
+  { id: "lado", n: "Cara a cara de lado", d: 1, i: 3, t: "Tumbados de lado, mirándose, con las piernas entrelazadas. Lenta y muy cercana.", tip: "Ideal para besarse y hablar a la vez." }
+];
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const KSM = Object.fromEntries(KS.map(k => [k.id, k]));
+const SP_PLACES = [["cama", "🛏️ Cama"], ["sofa", "🛋️ Sofá"], ["ducha", "🚿 Ducha"], ["cocina", "🍳 Cocina"], ["hotel", "🏨 Hotel"], ["coche", "🚗 Coche"], ["fuera", "🌲 Al aire libre"], ["otro", "✨ Otro"]];
+const SP_TIMES = [["manana", "🌅 Mañana"], ["tarde", "☀️ Tarde"], ["noche", "🌙 Noche"], ["madrugada", "🌌 Madrugada"]];
+let spCal = [], spCalMonth = null, spCalSel = null, ksFilter = "todas";
+const calEntry = k => spCal.find(e => e.id === k) || null;
+let spCalLoaded = false;
+function watchSpCal() { S.watchCol("spcal", l => { spCal = l; spCalLoaded = true; if (spOpen && (spTab === "cal" || spTab === "ks")) renderSp(); }, 500); }
+function calStats() {
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth(), E = spCal.filter(e => e.n > 0);
+  const inMonth = (e, yy, mm) => { const d = new Date(e.id + "T12:00:00"); return d.getFullYear() === yy && d.getMonth() === mm; };
+  const month = E.filter(e => inMonth(e, y, m)).reduce((a, e) => a + e.n, 0), year = E.filter(e => e.id.startsWith(String(y))).reduce((a, e) => a + e.n, 0);
+  const days = new Set(E.map(e => e.id)); let streak = 0; { const d = new Date(); d.setHours(12); if (!days.has(localKey(d))) d.setDate(d.getDate() - 1); while (days.has(localKey(d))) { streak++; d.setDate(d.getDate() - 1); } }
+  const pc = {}; E.forEach(e => (e.pos || []).forEach(p => { pc[p] = (pc[p] || 0) + 1; }));
+  const fav = Object.entries(pc).sort((a, b) => b[1] - a[1])[0];
+  const pl = {}; E.forEach(e => e.place && (pl[e.place] = (pl[e.place] || 0) + 1)); const favPl = Object.entries(pl).sort((a, b) => b[1] - a[1])[0];
+  const last = E.map(e => e.id).sort().pop();
+  const rated = E.filter(e => e.rating), avg = rated.length ? rated.reduce((a, e) => a + e.rating, 0) / rated.length : 0;
+  const bars = []; for (let i = 5; i >= 0; i--) { const d = new Date(y, m - i, 1); bars.push([d.toLocaleDateString("es-ES", { month: "short" }).replace(".", ""), E.filter(e => inMonth(e, d.getFullYear(), d.getMonth())).reduce((a, e) => a + e.n, 0)]); }
+  return { month, year, streak, fav, favPl, last, avg, bars, tried: Object.keys(pc).length, total: E.reduce((a, e) => a + e.n, 0) };
+}
+let spDraft = null;
+
+
+// ---------- 🌶️ v52 · Kamasutra ilustrado, lista de deseos, ruleta, insignias ----------
+const KF = { t: 30, ua: 14, fa: 13, th: 19, sh: 18 };
+const kfR = d => d * Math.PI / 180, kfP = (p, a, l) => [p[0] + Math.cos(kfR(a)) * l, p[1] + Math.sin(kfR(a)) * l];
+const kfN = v => Math.round(v * 10) / 10, kfQ = p => kfN(p[0]) + " " + kfN(p[1]);
+let kfUid = 0;
+// segmento cónico con extremos redondeados
+function kfSeg(p1, p2, w1, w2, fill) {
+  const dx = p2[0] - p1[0], dy = p2[1] - p1[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+  const a = [p1[0] + nx * w1 / 2, p1[1] + ny * w1 / 2], b = [p2[0] + nx * w2 / 2, p2[1] + ny * w2 / 2], c = [p2[0] - nx * w2 / 2, p2[1] - ny * w2 / 2], d = [p1[0] - nx * w1 / 2, p1[1] - ny * w1 / 2];
+  return `<path d="M${kfQ(a)}L${kfQ(b)}A${kfN(w2 / 2)} ${kfN(w2 / 2)} 0 0 0 ${kfQ(c)}L${kfQ(d)}A${kfN(w1 / 2)} ${kfN(w1 / 2)} 0 0 0 ${kfQ(a)}Z" fill="${fill}"/>`;
+}
+// contorno suave a partir de secciones [t, ancho]
+function kfBody(p1, p2, secs, fill) {
+  const dx = p2[0] - p1[0], dy = p2[1] - p1[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
+  const P = secs.map(([t, w]) => [p1[0] + dx * t, p1[1] + dy * t, w / 2]);
+  const left = P.map(([x, y, h]) => [x + nx * h, y + ny * h]), right = P.map(([x, y, h]) => [x - nx * h, y - ny * h]).reverse();
+  const pts = [...left, ...right], n = pts.length;
+  let d = `M${kfQ([(pts[0][0] + pts[n - 1][0]) / 2, (pts[0][1] + pts[n - 1][1]) / 2])}`;
+  for (let i = 0; i < n; i++) { const p = pts[i], q = pts[(i + 1) % n]; d += `Q${kfQ(p)} ${kfQ([(p[0] + q[0]) / 2, (p[1] + q[1]) / 2])}`; }
+  return `<path d="${d}Z" fill="${fill}"/>`;
+}
+
+// contorno cerrado suave
+function kfSmooth(pts, closed = true) {
+  const n = pts.length, mid = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+  if (!closed) { let d = `M${kfQ(pts[0])}`; for (let i = 1; i < n - 1; i++) d += `Q${kfQ(pts[i])} ${kfQ(i === n - 2 ? pts[n - 1] : mid(pts[i], pts[i + 1]))}`; return d; }
+  let d = `M${kfQ(mid(pts[n - 1], pts[0]))}`; for (let i = 0; i < n; i++) d += `Q${kfQ(pts[i])} ${kfQ(mid(pts[i], pts[(i + 1) % n]))}`; return d + "Z";
+}
+// cabeza de perfil: x hacia la cara, y hacia arriba
+const KF_HEAD = {
+  face: [[-5.4, -3.2], [-7, 1], [-6, 5.6], [-2, 7.8], [2.6, 7.4], [5.4, 5], [6.3, 2.2], [6, 1], [7.7, -1.2], [6.2, -2.1], [6.6, -3.2], [6, -4.1], [6.3, -5.2], [4.4, -7], [1, -6.6], [-1.6, -4.2]],
+  hairA: [[6.5, 5.6], [4.8, 8.2], [0.5, 9.4], [-4.4, 8.6], [-7.4, 5.2], [-7.7, 1], [-6.3, -2.6], [-4.4, -3.1], [-3.3, -0.4], [-2.6, 1.6], [0, 0], [0.9, 3.6], [3.1, 5.4], [5.2, 4.9]],
+  hairB: [[6.3, 6], [4, 9], [-1, 10], [-6.4, 7.8], [-8.6, 3], [-8.2, -3], [-5.6, -6.4], [-2.4, -6], [-0.4, -3.6], [0.6, 0.6], [1.4, 4.2], [3.6, 5.2], [5.8, 4.4]],
+  backB: [[-5.2, 7], [-8.8, 3.4], [-10, -4], [-9.6, -11], [-7.6, -16.5], [-4.6, -15.5], [-2.8, -11], [-2.2, -6.5], [-1.6, -2]],
+};
+function kfHead(head, u, face, who, G, part) {
+  const W = (x, y) => [head[0] + (face[0] * x + u[0] * y) * .9, head[1] + (face[1] * x + u[1] * y) * .9], M = a => a.map(p => W(p[0], p[1]));
+  if (part === "back") return who === "b" ? `<path d="${kfSmooth(M(KF_HEAD.backB))}" fill="${G.hairD}"/><path d="${kfSmooth(M([[-7.2, 3], [-8.4, -4], [-7.4, -10.5]]), false)}" stroke="${G.hairL}" stroke-width=".7" fill="none" opacity=".55"/>` : "";
+  let s = `<path d="${kfSmooth(M(KF_HEAD.face))}" fill="${G.body}"/>`;
+  // oreja
+  const ear = W(-1.2, -.4); if (who === "a") s += `<ellipse cx="${kfN(ear[0])}" cy="${kfN(ear[1])}" rx="1.5" ry="2.3" transform="rotate(${kfN(Math.atan2(u[1], u[0]) * 180 / Math.PI + 90)} ${kfN(ear[0])} ${kfN(ear[1])})" fill="${G.skinD}"/>`;
+  // ojo, ceja, labios
+  const eye = W(4.4, 1.5), br = M([[3.1, 3.1], [4.6, 3.5], [5.9, 3.1]]), lp = W(6.35, -3.2);
+  s += `<ellipse cx="${kfN(eye[0])}" cy="${kfN(eye[1])}" rx=".95" ry=".55" transform="rotate(${kfN(Math.atan2(face[1], face[0]) * 180 / Math.PI)} ${kfN(eye[0])} ${kfN(eye[1])})" fill="#2a1a16"/>`;
+  s += `<path d="${kfSmooth(br, false)}" stroke="${G.hairD}" stroke-width=".75" fill="none" stroke-linecap="round"/>`;
+  s += `<circle cx="${kfN(lp[0])}" cy="${kfN(lp[1])}" r="${who === "b" ? .85 : .6}" fill="${who === "b" ? "#c56f6f" : "#a8655a"}" opacity=".85"/>`;
+  if (who === "a") s += `<path d="${kfSmooth(M([[-1.4, -4.1], [1, -6.4], [4.4, -6.9], [6.2, -5.2], [5.6, -4.5], [3.6, -5.2], [1.2, -4.4], [-.4, -2.6]]))}" fill="${G.hairD}" opacity=".16"/>`;
+  // pelo
+  const H = who === "a" ? KF_HEAD.hairA : KF_HEAD.hairB;
+  s += `<path d="${kfSmooth(M(H))}" fill="url(#${G.hairG})"/>`;
+  const strands = who === "a" ? [[[5.6, 5.4], [2.5, 8], [-2.5, 8.6]], [[3.5, 6], [-1, 7.6], [-5.6, 6]], [[-4.6, 7], [-6.8, 3.6], [-6.6, 0]]] : [[[5.4, 5.6], [1, 8.6], [-5, 7.4]], [[3, 6.4], [-2.5, 7.6], [-7, 3.4]], [[-6.4, 6], [-7.8, 1.5], [-6.4, -1]]];
+  strands.forEach(st => { s += `<path d="${kfSmooth(M(st), false)}" stroke="${G.hairD}" stroke-width=".45" fill="none" stroke-linecap="round" opacity=".38"/>`; });
+  s += `<path d="${kfSmooth(M(who === "a" ? [[3.6, 7.6], [0.4, 8.7], [-3.6, 8]] : [[3, 8.2], [-1, 9.1], [-5, 7.6]]), false)}" stroke="${G.hairL}" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".6"/>`;
+  return s;
+}
+
+// tipos de cuerpo: a (más ancho de hombros), b (más curvas)
+const KF_BODY = {
+  a: { secs: [[-.08, 11], [.12, 13.5], [.42, 12], [.74, 14.5], [.93, 15.5], [1.04, 9]], thigh: [10, 7], calf: [7, 4.2], ua: [6, 4.8], fa: [4.8, 3.6], hair: "short" },
+  b: { secs: [[-.08, 12], [.12, 15.5], [.45, 9.6], [.72, 12.4], [.92, 12], [1.04, 8]], thigh: [10.5, 6.4], calf: [6.4, 3.6], ua: [5, 4], fa: [4, 3], hair: "long" },
+};
+function kfLimb(start, a, l1, l2, wU, wL, fill, end) {
+  const k = kfP(start, a[0], l1), e = kfP(k, a[1], l2);
+  let s = kfSeg(start, k, wU[0], wU[1], fill) + kfSeg(k, e, wL[0], wL[1], fill);
+  if (end === "hand") s += `<ellipse cx="${kfN(e[0])}" cy="${kfN(e[1])}" rx="3" ry="2.4" transform="rotate(${kfN(a[1])} ${kfN(e[0])} ${kfN(e[1])})" fill="${fill}"/>`;
+  if (end && end.foot) { const fe = kfP(e, a[1] + end.foot, 6.5); s += kfSeg(e, fe, 3.8, 3, fill); }
+  return s;
+}
+// o: {h cadera, t torso, n cabeza, a brazos, l piernas, fc: 1 mira a la derecha / -1 izquierda}
+function kfFig(o, who, G) {
+  const B = KF_BODY[who], fc = o.fc || -1, hip = o.h, sh = kfP(hip, o.t, KF.t - 3), neck = kfP(hip, o.t, KF.t), hn = o.n ?? o.t, head = kfP(neck, hn, 9.2);
+  const A = o.a || [[90, 90], [90, 90]], L = o.l || [[90, 90], [90, 90]];
+  const u = [Math.cos(kfR(hn)), Math.sin(kfR(hn))], face = [-u[1] * fc, u[0] * fc];
+  // el pie apunta hacia donde mira la figura
+  const footOff = l => { const sa = kfR(l[1]), fx = -Math.sin(sa) * fc, fy = Math.cos(sa) * fc; return (Math.atan2(face[1], face[0]) - Math.atan2(Math.sin(sa), Math.cos(sa))) * 180 / Math.PI; };
+  const ft = l => { let d = footOff(l); d = ((d + 540) % 360) - 180; return { foot: d > 0 ? 80 : -80 }; };
+  let s = "";
+  s += kfLimb(sh, A[1], KF.ua, KF.fa, B.ua, B.fa, G.back, "hand") + kfLimb(hip, L[1], KF.th, KF.sh, B.thigh, B.calf, G.back, ft(L[1]));
+  s += kfBody(hip, kfP(hip, o.t, KF.t), B.secs, G.body);
+  s += kfBody(hip, kfP(hip, o.t, KF.t), B.secs.map(([t, w]) => [t, w * .55]), "rgba(255,240,228,.07)");
+  s += kfSeg(neck, kfP(neck, hn, 5), 5.2, 5, G.body);
+  s += kfHead(head, u, face, who, G, "back");
+  s += kfHead(head, u, face, who, G, "front");
+  s += kfLimb(hip, L[0], KF.th, KF.sh, B.thigh, B.calf, G.body, ft(L[0])) + kfLimb(sh, A[0], KF.ua, KF.fa, B.ua, B.fa, G.body, "hand");
+  return s;
+}
+const KP = {
+  bed: (x1 = 14, x2 = 186, y = 100, hb = 1) => `<rect x="${x1}" y="${y + 13}" width="${x2 - x1}" height="9" rx="2" fill="url(#@wood)"/><rect x="${x1 + 3}" y="${y + 21}" width="5" height="6" rx="1.5" fill="#3b2418"/><rect x="${x2 - 8}" y="${y + 21}" width="5" height="6" rx="1.5" fill="#3b2418"/><rect x="${x1}" y="${y - 1}" width="${x2 - x1}" height="16" rx="6" fill="url(#@sheet)"/><path d="M${x1 + 30} ${y + 4}q20 3 40 0t40 1" stroke="rgba(120,90,110,.18)" stroke-width="1.2" fill="none"/>${hb ? `<rect x="${x1 - 6}" y="${y - 34}" width="10" height="62" rx="3" fill="url(#@wood)"/>` : ""}`,
+  pillow: (x, y) => `<rect x="${x}" y="${y - 1}" width="30" height="11" rx="5.5" fill="url(#@pillow)"/>`,
+  floor: (y = 122) => `<rect x="0" y="${y}" width="200" height="${130 - y}" fill="url(#@floor)"/>`,
+  wall: (x = 30) => `<rect x="${x - 2}" y="0" width="8" height="130" fill="url(#@wallv)"/>`,
+  chair: (x, y, fl = 122) => `<rect x="${x - 18}" y="${y - 40}" width="5" height="46" rx="2" fill="url(#@wood)"/><rect x="${x - 15}" y="${y + 4}" width="4" height="${fl - y - 4}" rx="1.5" fill="#3b2418"/><rect x="${x + 15}" y="${y + 4}" width="4" height="${fl - y - 4}" rx="1.5" fill="#3b2418"/><rect x="${x - 19}" y="${y}" width="42" height="6" rx="2" fill="url(#@wood)"/>`,
+  table: (x1, x2, y) => `<rect x="${x1 + 5}" y="${y + 5}" width="4" height="${122 - y - 5}" rx="1.5" fill="#3b2418"/><rect x="${x2 - 9}" y="${y + 5}" width="4" height="${122 - y - 5}" rx="1.5" fill="#3b2418"/><rect x="${x1}" y="${y}" width="${x2 - x1}" height="6" rx="2" fill="url(#@wood)"/>`,
+};
+const KPOSE = {};
+function ksSVG(id, cls = "") {
+  const p = KPOSE[id]; if (!p) return "";
+  const u = "k" + (++kfUid) + "_", R = s => s.replace(/@/g, u);
+  const G = {
+    a: { body: `url(#${u}ga)`, back: `url(#${u}gab)`, skinD: "#a86c50", hairD: "#1f1410", hairL: "#7a5a48", hairG: `${u}ha` },
+    b: { body: `url(#${u}gb)`, back: `url(#${u}gbb)`, skinD: "#c98c70", hairD: "#3a1f14", hairL: "#c08a5a", hairG: `${u}hb` },
+  };
+  const grad = (id, c1, c2, us) => `<linearGradient id="${u}${id}" ${us ? 'gradientUnits="userSpaceOnUse" x1="0" y1="34" x2="0" y2="124"' : 'x1="0" y1="0" x2="0" y2="1"'}><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient>`;
+  const defs = `<defs>${grad("ga", "#ecb894", "#b8795a", 1)}${grad("gab", "#c48c6c", "#8f5a40", 1)}${grad("gb", "#fad6be", "#d99e82", 1)}${grad("gbb", "#d9ab90", "#a87058", 1)}
+    ${grad("ha", "#4a3428", "#1c120e")}${grad("hb", "#8a5634", "#4a2616")}${grad("sheet", "#fbeff3", "#d9c3cd")}${grad("pillow", "#ffffff", "#e3d3da")}${grad("wood", "#8a5a3c", "#5a3622")}${grad("floor", "#4a2a2e", "#2a1418")}
+    <linearGradient id="${u}wallv" x1="0" x2="1"><stop offset="0" stop-color="#3a2228"/><stop offset="1" stop-color="#5a3a40"/></linearGradient>
+    <radialGradient id="${u}glow" cx=".5" cy=".35" r=".7"><stop offset="0" stop-color="#ffb38a" stop-opacity=".28"/><stop offset="1" stop-color="#ffb38a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="${u}shd" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs>`;
+  const figs = p.f.map(([o, who]) => kfFig(o, who, G[who])).join("");
+  return `<svg class="kssvg ${cls}" viewBox="8 24 184 104" aria-hidden="true">${defs}<rect x="0" y="0" width="200" height="130" fill="url(#${u}glow)"/>${R(p.bg || "")}<ellipse cx="${p.sx || 105}" cy="${p.sy || 121}" rx="60" ry="5" fill="url(#${u}shd)"/>${figs}${R(p.fg || "")}</svg>`;
+}
+Object.assign(KPOSE, {
+  misionero: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [112, 93], t: 180, a: [[-30, -10], [-25, -5]], l: [[-45, 45], [-50, 40]] }, "b"], [{ fc: -1, h: [116, 80], t: 188, n: 192, a: [[100, 85], [95, 90]], l: [[35, 5], [30, 2]] }, "a"]] },
+  amazona: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [118, 93], t: 180, a: [[200, 250], [195, 260]], l: [[0, 0], [-5, 5]] }, "a"], [{ fc: -1, h: [116, 82], t: -95, n: -100, a: [[120, 100], [115, 95]], l: [[150, 0], [145, 5]] }, "b"]] },
+  amazonainv: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [104, 93], t: 180, a: [[200, 250], [195, 260]], l: [[-15, 15], [-10, 10]] }, "a"], [{ fc: 1, h: [104, 82], t: -85, n: -80, a: [[60, 80], [65, 85]], l: [[30, 180], [35, 175]] }, "b"]] },
+  cucharita: { bg: KP.bed() + KP.pillow(22, 82), f: [[{ fc: 1, h: [120, 84], t: 184, a: [[120, 170], [175, 180]], l: [[22, -15], [18, -12]] }, "a"], [{ fc: 1, h: [112, 93], t: 181, a: [[160, 190], [165, 190]], l: [[22, -15], [18, -12]] }, "b"]] },
+  perrito: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: -1, h: [124, 77], t: 184, n: 190, a: [[92, 88], [88, 92]], l: [[95, 2], [90, 0]] }, "b"], [{ fc: -1, h: [137, 76], t: -100, n: -110, a: [[115, 100], [110, 95]], l: [[85, 3], [80, 0]] }, "a"]] },
+  loto: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [88, 93], t: -88, a: [[-20, -50], [-15, -45]], l: [[-5, 170], [5, 175]] }, "a"], [{ fc: -1, h: [100, 84], t: -92, n: -100, a: [[190, 170], [200, 175]], l: [[185, 120], [175, 110]] }, "b"]] },
+  mariposa: { bg: KP.bed(14, 116) + KP.floor() + KP.pillow(22, 92), f: [[{ fc: 1, h: [110, 93], t: 180, a: [[200, 250], [195, 260]], l: [[-70, -80], [-65, -75]] }, "b"], [{ fc: -1, h: [128, 82], t: -92, a: [[170, 60], [165, 55]], l: [[95, 90], [85, 90]] }, "a"]] },
+  yunque: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: -1, h: [118, 80], t: 190, n: 194, a: [[100, 85], [95, 90]], l: [[35, 5], [30, 2]] }, "a"], [{ fc: 1, h: [112, 93], t: 180, a: [[200, 250], [195, 260]], l: [[-135, -150], [-130, -145]] }, "b"]] },
+  silla: { bg: KP.chair(88, 102) + KP.floor(), f: [[{ fc: 1, h: [88, 96], t: -92, a: [[-20, 0], [-25, -5]], l: [[0, 80], [5, 85]] }, "a"], [{ fc: -1, h: [103, 88], t: -88, n: -80, a: [[200, 180], [195, 175]], l: [[170, 100], [180, 95]] }, "b"]] },
+  tijera: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [96, 93], t: 180, a: [[200, 240], [190, 250]], l: [[-8, 0], [5, 0]] }, "a"], [{ fc: -1, h: [124, 90], t: -3, n: 0, a: [[-20, -60], [-10, -70]], l: [[175, 185], [188, 180]] }, "b"]] },
+  depie: { bg: KP.wall(34) + KP.floor(), f: [[{ fc: 1, h: [52, 81], t: -90, a: [[-15, -30], [-25, -40]], l: [[92, 90], [80, 95]] }, "b"], [{ fc: -1, h: [72, 81], t: -97, n: -100, a: [[190, 200], [200, 205]], l: [[95, 90], [100, 92]] }, "a"]] },
+  elefante: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: -1, h: [115, 93], t: 180, a: [[170, 180], [175, 180]], l: [[0, 0], [-3, 3]] }, "b"], [{ fc: -1, h: [120, 84], t: 188, n: 192, a: [[120, 130], [115, 125]], l: [[2, 0], [-2, 2]] }, "a"]] },
+  cascada: { bg: KP.bed(70, 190, 100, 0), f: [[{ fc: 1, h: [102, 93], t: 180, n: 120, a: [[110, 100], [100, 95]], l: [[0, 0], [-4, 4]] }, "b"], [{ fc: -1, h: [104, 82], t: -100, n: -105, a: [[130, 110], [125, 105]], l: [[150, 0], [145, 5]] }, "a"]] },
+  carretilla: { bg: KP.floor(), f: [[{ fc: -1, h: [108, 84], t: 160, n: 150, a: [[110, 100], [100, 95]], l: [[-5, 0], [5, 0]] }, "b"], [{ fc: -1, h: [146, 80], t: -92, a: [[110, 135], [115, 140]], l: [[95, 90], [85, 90]] }, "a"]] },
+  bailarina: { bg: KP.floor(), f: [[{ fc: 1, h: [78, 81], t: -90, a: [[-20, 0], [-30, -10]], l: [[92, 90], [-35, -80]] }, "b"], [{ fc: -1, h: [100, 81], t: -92, n: -95, a: [[190, 170], [200, 175]], l: [[95, 88], [85, 92]] }, "a"]] },
+  "69": { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [118, 93], t: 180, a: [[200, 190], [190, 180]], l: [[-30, 30], [-35, 35]] }, "a"], [{ fc: 1, h: [78, 80], t: 0, n: 10, a: [[70, 110], [80, 100]], l: [[150, 180], [155, 180]] }, "b"]] },
+  puente: { bg: KP.floor(112), f: [[{ fc: 1, h: [100, 80], t: 155, n: 120, a: [[115, 100], [105, 95]], l: [[50, 90], [55, 85]] }, "b"], [{ fc: -1, h: [128, 86], t: -105, n: -115, a: [[140, 125], [135, 120]], l: [[88, 0], [83, 5]] }, "a"]] },
+  lado: { bg: KP.bed() + KP.pillow(22, 80), f: [[{ fc: -1, h: [116, 82], t: 176, n: 170, a: [[150, 170], [165, 175]], l: [[10, 15], [3, -3]] }, "b"], [{ fc: 1, h: [114, 93], t: 184, n: 192, a: [[-60, -20], [190, 180]], l: [[-8, 0], [6, 12]] }, "a"]] },
+  rana: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [118, 93], t: 180, a: [[200, 250], [195, 260]], l: [[0, 0], [-5, 5]] }, "a"], [{ fc: -1, h: [118, 83], t: -92, n: -98, a: [[150, 170], [145, 165]], l: [[210, 85], [205, 80]] }, "b"]] },
+  arado: { bg: KP.bed(14, 112) + KP.floor() + KP.pillow(22, 92), f: [[{ fc: -1, h: [106, 93], t: 180, a: [[170, 180], [175, 180]], l: [[-5, -2], [-2, -5]] }, "b"], [{ fc: -1, h: [124, 80], t: -95, n: -100, a: [[100, 60], [95, 55]], l: [[95, 85], [85, 95]] }, "a"]] },
+  mesa: { bg: KP.table(28, 102, 88) + KP.floor(), f: [[{ fc: 1, h: [94, 82], t: -120, n: -110, a: [[120, 100], [115, 95]], l: [[-10, 40], [0, 50]] }, "b"], [{ fc: -1, h: [118, 81], t: -92, n: -98, a: [[170, 190], [175, 195]], l: [[95, 90], [88, 90]] }, "a"]] },
+});
+
+KS.push(
+  { id: "rana", n: "La rana", d: 2, i: 2, t: "Variante de la amazona: quien está encima se pone en cuclillas, con los pies apoyados en la cama, en lugar de de rodillas.", tip: "Apoyar las manos en el pecho o en las rodillas ayuda a mantener el equilibrio." },
+  { id: "arado", n: "El arado", d: 3, i: 1, t: "Una persona tumbada boca abajo al borde de la cama; la otra, de pie detrás, le sujeta las piernas a la altura de la cintura.", tip: "Mejor con una cama alta y solo un ratito." },
+  { id: "mesa", n: "La mesa", d: 2, i: 3, t: "Una persona sentada en el borde de una mesa o encimera firme y la otra de pie frente a ella, cara a cara y abrazadas.", tip: "Comprobad antes que el mueble aguanta bien 😉" }
+);
+KS.forEach(k => { KSM[k.id] = k; });
+const KS_D = ["", "Fácil", "Media", "Difícil", "Experta"], KS_I = ["", "Juguetona", "Cercana", "Muy íntima"];
+const ksPc = () => { const pc = {}, last = {}; spCal.forEach(e => (e.n > 0) && (e.pos || []).forEach(p => { pc[p] = (pc[p] || 0) + 1; if (!last[p] || e.id > last[p]) last[p] = e.id; })); return { pc, last }; };
+const ksWant = (u, id) => !!(((spState.ksw || {})[u] || {})[id]);
+const ksBoth = id => ksWant("a", id) && ksWant("b", id);
+let ksOpenId = null, ksSpinTok = 0;
+const ksMeter = (n, max, cls = "") => `<span class="kmt ${cls}">${Array.from({ length: max }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("")}</span>`;
+function renderKs() {
+  const { pc } = ksPc(), tried = KS.filter(k => pc[k.id]).length, both = KS.filter(k => ksBoth(k.id)), mine = KS.filter(k => ksWant(who, k.id));
+  const L = KS.filter(k => ksFilter === "todas" || (ksFilter === "probadas" ? pc[k.id] : ksFilter === "nuevas" ? !pc[k.id] : ksFilter === "lista" ? ksBoth(k.id) : ksFilter === "mias" ? ksWant(who, k.id) : String(k.d) === ksFilter));
+  const day = KS[hashStr(localKey()) % KS.length], pct = Math.round(tried / KS.length * 100);
+  const F = [["todas", "Todas"], ["nuevas", "Sin probar"], ["probadas", `✓ Probadas (${tried})`], ["mias", `❤️ Mis deseos (${mine.length})`], ["lista", `💞 Los dos (${both.length})`], ["1", "🔥 Fácil"], ["2", "🔥🔥 Media"], ["3", "🔥🔥🔥 Difícil"], ["4", "🔥🔥🔥🔥 Experta"]];
+  return `<div class="ksprog"><div class="ksring" style="--p:${pct}"><div><b>${tried}</b><small>/${KS.length}</small></div></div><div class="ksprogt"><b>Vuestro Kamasutra</b><small>${pct}% explorado · ${both.length ? `💞 ${both.length} ${both.length === 1 ? "deseo compartido" : "deseos compartidos"}` : "marcad las que os apetezcan ❤️"}</small><div class="ksbar"><i style="width:${pct}%"></i></div></div></div>
+    <button class="ksday" data-ks="${day.id}"><div class="ksdayart">${ksSVG(day.id)}</div><div class="ksdayt"><small>✨ Postura del día</small><b>${esc(day.n)}</b><span>${"🔥".repeat(day.d)} · ${KS_I[day.i]}</span></div><i>›</i></button>
+    <button class="spb hot ksspin" id="ksSpin">🎰 Ruleta de posturas <small>¿no sabéis cuál? que elija la suerte</small></button>
+    <div class="chips ksfil">${F.map(([k, t]) => `<button class="chip ${ksFilter === k ? "on" : ""}" data-kf="${k}">${t}</button>`).join("")}</div>
+    ${ksFilter === "lista" && !both.length ? `<div class="spmatch empty">Abrid las fichas y pulsad <b>🤍 ¿Te apetece?</b>. Solo saldrán aquí las que queráis <b>los dos</b>; lo que marque cada uno por separado es secreto 🤫</div>` : ""}
+    <div class="ksgrid">${L.map(k => `<button class="kstile ${pc[k.id] ? "done" : ""}" data-ks="${k.id}"><div class="kstart">${ksSVG(k.id)}${ksBoth(k.id) ? `<em class="kmatch">💞</em>` : ksWant(who, k.id) ? `<em class="kmatch">❤️</em>` : ""}${pc[k.id] ? `<em class="kdone">✓ ${pc[k.id]}</em>` : ""}</div><b>${esc(k.n)}</b><small>${ksMeter(k.d, 4)}<span>${KS_D[k.d]}</span></small></button>`).join("") || (ksFilter === "lista" ? "" : `<div class="spmatch empty" style="grid-column:1/-1">Nada por aquí todavía</div>`)}</div>
+    <div class="sub sptxt" style="font-size:12px;margin-top:12px;text-align:center">Id siempre a vuestro ritmo, con comunicación y respetando los límites de cada uno 💛</div>`;
+}
+function ksSheetEl(id, cls) { let s = $(id); if (!s) { s = document.createElement("div"); s.id = id; s.className = cls + " hidden"; $("spView").appendChild(s); } return s; }
+function ksOpen(id) { ksOpenId = id; const s = ksSheetEl("ksSheet", "kssheet"); s.classList.remove("hidden"); renderKsSheet(true); SFX.pop(); }
+function ksCloseSheet() { ksOpenId = null; const s = $("ksSheet"); if (s) s.classList.add("hidden"); }
+function renderKsSheet(anim) {
+  const s = $("ksSheet"); if (!s || !ksOpenId) return;
+  const k = KSM[ksOpenId], i = KS.indexOf(k), { pc, last } = ksPc(), me = ksWant(who, k.id), both = ksBoth(k.id);
+  s.innerHTML = `<div class="ksbg" data-x="1"></div><div class="kspanel ${anim ? "in" : ""}"><div class="ksgrab"></div>
+    <div class="ksnav"><button data-nav="-1" aria-label="Anterior">‹</button><span>${i + 1} / ${KS.length}</span><button data-nav="1" aria-label="Siguiente">›</button></div>
+    <div class="ksart">${ksSVG(k.id, "big")}</div>
+    <h3>${esc(k.n)}</h3>
+    <div class="ksmeters"><div><small>Dificultad</small>${ksMeter(k.d, 4)}<em>${KS_D[k.d]}</em></div><div><small>Intimidad</small>${ksMeter(k.i, 3, "pink")}<em>${KS_I[k.i]}</em></div><div><small>Probada</small><b>${pc[k.id] || 0}</b><em>${pc[k.id] ? (pc[k.id] === 1 ? "vez" : "veces") : "aún no"}</em></div></div>
+    <p class="ksdesc">${esc(k.t)}</p><div class="kstip">💡 ${esc(k.tip)}</div>
+    ${both ? `<div class="ksboth">💞 ¡Los dos queréis probarla!</div>` : ""}
+    ${pc[k.id] ? `<div class="ksstat">🗓️ La última vez fue el <b>${fmtDate(new Date(last[k.id] + "T12:00:00"), { day: "numeric", month: "long" })}</b></div>` : ""}
+    <div class="sprow" style="margin-top:12px"><button class="spb ${me ? "want" : ""}" id="ksWant">${me ? "❤️ Me apetece" : "🤍 ¿Te apetece?"}</button><button class="spb hot" id="ksLog">📅 Apuntar hoy</button></div>
+    <div class="sub sptxt" style="font-size:11.5px;text-align:center;margin:8px 0 0">${me && !both ? `Si ${esc(name(other()))} también la marca, os saldrá a los dos 😏` : "Lo que marques es secreto hasta que coincidáis"}</div>
+    <button class="spb ghost" id="ksX" style="width:100%;margin-top:10px">Cerrar</button></div>`;
+  s.querySelectorAll("[data-x]").forEach(b => b.onclick = ksCloseSheet); $("ksX").onclick = ksCloseSheet;
+  s.querySelectorAll("[data-nav]").forEach(b => b.onclick = () => { ksOpenId = KS[(i + +b.dataset.nav + KS.length) % KS.length].id; SFX.tap(); renderKsSheet(); });
+  $("ksWant").onclick = () => {
+    const nv = !me; S.merge("state/spicy", { ksw: { [who]: { [k.id]: nv } } }); SFX.tap();
+    if (nv && ksWant(other(), k.id)) { confetti(); toast(`💞 ¡${name(other())} también quiere probar «${k.n}»!`); notifyOther("💞 Tenéis algo nuevo en común en la zona privada 😏"); }
+    else if (nv) toast("Guardado en tus deseos ❤️ (en secreto)");
+  };
+  $("ksLog").onclick = () => {
+    ksCloseSheet(); const t = localKey(), base = calEntry(t) || {};
+    spTab = "cal"; spCalMonth = null; spCalSel = t;
+    spDraft = { n: base.n || 1, pos: [...new Set([...(base.pos || []), k.id])], times: [...(base.times || [])], place: base.place || "", rating: base.rating || 0 };
+    spDraft.note = base.note || ""; renderSp(); calOpenSheet();
+  };
+  // deslizar para cambiar
+  const art = s.querySelector(".ksart"); let x0 = null;
+  art.ontouchstart = e => { x0 = e.touches[0].clientX; };
+  art.ontouchend = e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 40) { ksOpenId = KS[(i + (dx < 0 ? 1 : -1) + KS.length) % KS.length].id; SFX.tap(); renderKsSheet(); } };
+}
+function ksSpin() {
+  const { pc } = ksPc(), tok = ++ksSpinTok; let pool = KS.filter(k => !pc[k.id]); if (pool.length < 3) pool = KS;
+  const pick = rnd(pool), r = ksSheetEl("ksRoul", "ksroul"); r.classList.remove("hidden");
+  r.innerHTML = `<div class="ksbg" data-x="1"></div><div class="ksrbox"><small>🎰 La ruleta está eligiendo…</small><div class="ksrart" id="ksrArt"></div><b id="ksrName">…</b><span id="ksrMeta"></span>
+    <div class="sprow" style="margin-top:14px"><button class="spb" id="ksrAgain">🔄 Otra</button><button class="spb hot" id="ksrSee" disabled>Ver ficha</button></div><button class="spb ghost" id="ksrX" style="width:100%;margin-top:8px">Cerrar</button></div>`;
+  const close = () => { ksSpinTok++; r.classList.add("hidden"); };
+  r.querySelector("[data-x]").onclick = close; $("ksrX").onclick = close; $("ksrAgain").onclick = ksSpin;
+  let n = 0, d = 55; const steps = 16 + Math.floor(Math.random() * 6), seq = [];
+  const step = () => {
+    if (tok !== ksSpinTok) return;
+    const last = n >= steps, k = last ? pick : KS[(KS.indexOf(pick) + steps - n + KS.length * 3) % KS.length];
+    $("ksrArt").innerHTML = ksSVG(k.id); $("ksrName").textContent = k.n; $("ksrArt").classList.remove("tick"); void $("ksrArt").offsetWidth; $("ksrArt").classList.add("tick");
+    if (!last) { SFX.tap(); n++; d *= 1.13; seq.push(setTimeout(step, d)); return; }
+    $("ksrArt").classList.add("win"); r.querySelector("small").textContent = pc[k.id] ? "🎰 La suerte ha decidido" : "🎰 ¡Una que aún no habéis probado!";
+    $("ksrMeta").innerHTML = `${"🔥".repeat(k.d)} · ${KS_I[k.i]}`; SFX.ding(); buzz([20, 40, 20]);
+    const b = $("ksrSee"); b.disabled = false; b.onclick = () => { close(); ksOpen(k.id); };
+  };
+  step();
+}
+// ---- insignias ----
+function spBadgeStats() {
+  const E = spCal.filter(e => e.n > 0).sort((a, b) => a.id < b.id ? -1 : 1), days = new Set(E.map(e => e.id)), { pc } = ksPc();
+  let best = 0; E.forEach(e => { const d = new Date(e.id + "T12:00:00"); d.setDate(d.getDate() - 1); if (days.has(localKey(d))) return; let c = 0; const x = new Date(e.id + "T12:00:00"); while (days.has(localKey(x))) { c++; x.setDate(x.getDate() + 1); } best = Math.max(best, c); });
+  const months = {}; E.forEach(e => { const m = e.id.slice(0, 7); months[m] = (months[m] || 0) + e.n; });
+  const finde = E.some(e => new Date(e.id + "T12:00:00").getDay() === 6 && (() => { const d = new Date(e.id + "T12:00:00"); d.setDate(d.getDate() + 1); return days.has(localKey(d)); })());
+  return {
+    days: E.length, total: E.reduce((a, e) => a + e.n, 0), best, maxN: Math.max(0, ...E.map(e => e.n)), tried: KS.filter(k => pc[k.id]).length,
+    places: new Set(E.map(e => e.place).filter(Boolean)).size, madr: E.some(e => (e.times || []).includes("madrugada")), man: E.some(e => (e.times || []).includes("manana")),
+    five: E.filter(e => e.rating === 5).length, wish: KS.some(k => ksBoth(k.id) && pc[k.id]), month: Math.max(0, ...Object.values(months)), finde
+  };
+}
+const SP_BADGES = [
+  ["primera", "🌱", "El primer día", "Apuntad vuestro primer día", s => [s.days, 1]],
+  ["diez", "🔥", "10 veces", "Llegad a 10 en total", s => [s.total, 10]],
+  ["cincuenta", "🎖️", "50 veces", "Llegad a 50 en total", s => [s.total, 50]],
+  ["cien", "👑", "Club de los 100", "Llegad a 100 en total", s => [s.total, 100]],
+  ["doble", "✌️", "Doblete", "Dos veces el mismo día", s => [s.maxN, 2]],
+  ["triple", "🎩", "Hat-trick", "Tres veces el mismo día", s => [s.maxN, 3]],
+  ["racha3", "⚡", "Racha de 3", "Tres días seguidos", s => [s.best, 3]],
+  ["racha7", "🌋", "Semana de fuego", "Siete días seguidos", s => [s.best, 7]],
+  ["mes10", "📆", "Mes intenso", "10 veces en un mismo mes", s => [s.month, 10]],
+  ["pos5", "📖", "Curiosos", "Probad 5 posturas distintas", s => [s.tried, 5]],
+  ["pos12", "🧘", "Aventureros", "Probad 12 posturas distintas", s => [s.tried, 12]],
+  ["todas", "🏆", "Maestros del Kamasutra", "Probad todas las posturas", s => [s.tried, KS.length]],
+  ["sitios", "🗺️", "Exploradores", "Hacedlo en 4 sitios distintos", s => [s.places, 4]],
+  ["madr", "🌌", "Noctámbulos", "Una vez de madrugada", s => [s.madr ? 1 : 0, 1]],
+  ["man", "🌅", "Buenos días", "Una vez por la mañana", s => [s.man ? 1 : 0, 1]],
+  ["finde", "🛌", "Finde de manta", "Sábado y domingo seguidos", s => [s.finde ? 1 : 0, 1]],
+  ["cinco", "⭐", "Cinco estrellas", "5 días valorados con 5★", s => [s.five, 5]],
+  ["deseo", "💞", "Deseo cumplido", "Probad una de vuestra lista", s => [s.wish ? 1 : 0, 1]],
+];
+function spBadgesHTML() {
+  const s = spBadgeStats(), R = SP_BADGES.map(([id, e, n, d, f]) => { const [c, g] = f(s); return { id, e, n, d, c: Math.min(c, g), g, ok: c >= g }; });
+  const got = R.filter(b => b.ok);
+  // avisar de insignias nuevas
+  let seen = null; try { seen = JSON.parse(ls.get("spBdg") || "null"); } catch (e) { }
+  const ids = got.map(b => b.id);
+  if (!spCalLoaded) { }
+  else if (seen === null) ls.set("spBdg", JSON.stringify(ids));
+  else { const nw = got.filter(b => !seen.includes(b.id)); if (nw.length) { ls.set("spBdg", JSON.stringify(ids)); setTimeout(() => { confetti(); toast(`🏅 Nueva insignia: ${nw[0].e} ${nw[0].n}`); }, 400); } }
+  return `<div class="spsec">🏅 Insignias · ${got.length}/${R.length}</div><div class="bdgs">${R.sort((a, b) => b.ok - a.ok).map(b => `<div class="bdg ${b.ok ? "on" : ""}"><span>${b.e}</span><b>${b.n}</b><small>${b.ok ? "¡Conseguida!" : b.d}</small>${b.ok ? "" : `<div class="bdgbar"><i style="width:${Math.round(b.c / b.g * 100)}%"></i></div><em>${b.c}/${b.g}</em>`}</div>`).join("")}</div>`;
+}
+function spCalExtraHTML() {
+  const E = spCal.filter(e => e.n > 0), M = {}; E.forEach(e => { M[e.id] = e.n; });
+  // mapa de calor de 26 semanas
+  const end = new Date(); end.setHours(12); const start = new Date(end); start.setDate(start.getDate() - ((start.getDay() + 6) % 7) - 25 * 7);
+  let cells = ""; const d = new Date(start), tk = localKey();
+  while (localKey(d) <= tk) { const k = localKey(d), n = M[k] || 0; cells += `<i class="h${Math.min(3, n)}" title="${k}"></i>`; d.setDate(d.getDate() + 1); }
+  const wd = [0, 0, 0, 0, 0, 0, 0]; E.forEach(e => { wd[(new Date(e.id + "T12:00:00").getDay() + 6) % 7] += e.n; }); const wmax = Math.max(1, ...wd);
+  const tm = {}; let tt = 0; E.forEach(e => (e.times || []).forEach(t => { tm[t] = (tm[t] || 0) + 1; tt++; }));
+  const fav = calStats().fav, fk = fav && KSM[fav[0]];
+  return `${fk ? `<button class="favpose" data-ks="${fk.id}"><div>${ksSVG(fk.id)}</div><span><small>💞 Vuestra postura favorita</small><b>${esc(fk.n)}</b><em>${fav[1]} ${fav[1] === 1 ? "vez" : "veces"} · ver ficha ›</em></span></button>` : ""}
+    <div class="spsec">Últimas 26 semanas</div><div class="heat">${cells}</div><div class="callegend" style="margin-top:6px"><span>Menos</span><span><i class="hh0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i></span><span>Más</span></div>
+    <div class="twocol"><div class="mini"><small>Día de la semana</small><div class="wdbars">${wd.map((v, i) => `<div><i style="height:${Math.round(v / wmax * 100)}%"></i><span>${"LMXJVSD"[i]}</span></div>`).join("")}</div></div>
+    <div class="mini"><small>Momento del día</small>${SP_TIMES.map(([id, t]) => { const p = tt ? Math.round((tm[id] || 0) / tt * 100) : 0; return `<div class="tmrow"><span>${t}</span><b>${p}%</b><div><i style="width:${p}%"></i></div></div>`; }).join("")}</div></div>
+    ${spBadgesHTML()}`;
+}
+
+
+// ---------- 📅 v53 · calendario estilo iPhone ----------
+let icAnim = 0;
+function renderSpCal() {
+  const now = new Date(), today = localKey(); if (!spCalMonth) spCalMonth = [now.getFullYear(), now.getMonth()]; if (!spCalSel) spCalSel = today;
+  const [Y, M] = spCalMonth, first = new Date(Y, M, 1), off = (first.getDay() + 6) % 7, nd = new Date(Y, M + 1, 0).getDate();
+  const st = calStats(), max = Math.max(1, ...st.bars.map(b => b[1]));
+  const total = Math.ceil((off + nd) / 7) * 7; let rows = "", row = "";
+  for (let i = 0; i < total; i++) {
+    const dt = new Date(Y, M, i - off + 1, 12), k = localKey(dt), inM = dt.getMonth() === M, e = calEntry(k), n = (e && e.n) || 0;
+    row += `<button class="icd${inM ? "" : " out"}${k === today ? " today" : ""}${k === spCalSel ? " sel" : ""}${k > today ? " fut" : ""}${i % 7 >= 5 ? " wk" : ""}${n ? " has" : ""}" data-day="${k}"><b>${dt.getDate()}</b><i>${n ? Array.from({ length: Math.min(3, n) }, () => "<u></u>").join("") : ""}</i></button>`;
+    if (i % 7 === 6) { rows += `<div class="icrow">${row}</div>`; row = ""; }
+  }
+  const pre = `${Y}-${String(M + 1).padStart(2, "0")}`, monthN = spCal.filter(e => e.n > 0 && e.id.startsWith(pre)).reduce((a, e) => a + e.n, 0), monthD = spCal.filter(e => e.n > 0 && e.id.startsWith(pre)).length;
+  const isNow = Y === now.getFullYear() && M === now.getMonth();
+  const anim = icAnim > 0 ? " sl" : icAnim < 0 ? " sr" : ""; icAnim = 0;
+  return `<div class="ical"><div class="icalhead"><div class="ictitle"><b>${cap(first.toLocaleDateString("es-ES", { month: "long" }))}</b><span>${Y}</span></div><div class="icbtns">${!isNow || spCalSel !== today ? `<button class="ictoday" data-today="1">Hoy</button>` : ""}<button class="icnav" data-m="-1" aria-label="Mes anterior">‹</button><button class="icnav" data-m="1" aria-label="Mes siguiente">›</button></div></div>
+      <div class="icsub">${monthN ? `<b>${monthN}</b> ${monthN === 1 ? "vez" : "veces"} en ${monthD} ${monthD === 1 ? "día" : "días"}` : "Sin registros este mes"}</div>
+      <div class="icwd">${["L", "M", "X", "J", "V", "S", "D"].map((x, i) => `<span class="${i >= 5 ? "wk" : ""}">${x}</span>`).join("")}</div>
+      <div class="icgrid${anim}" id="icGrid">${rows}</div></div>
+    ${icAgenda(spCalSel)}
+    <div class="spsec">Resumen</div>
+    <div class="kpis"><div class="kpi"><b>${st.month}</b><small>este mes</small></div><div class="kpi"><b>${st.year}</b><small>este año</small></div><div class="kpi"><b>${st.streak}</b><small>racha</small></div><div class="kpi"><b>${st.avg ? st.avg.toFixed(1) : "—"}</b><small>★ media</small></div></div>
+    <div class="spsec">Últimos 6 meses</div><div class="bars6">${st.bars.map(([l, v]) => `<div class="b6"><i style="height:${Math.round(v / max * 100)}%"></i><b>${v}</b><small>${l}</small></div>`).join("")}</div>
+    <div class="igroup" style="margin-top:14px">
+      <div class="irow"><span>🔥 Total</span><em>${st.total} ${st.total === 1 ? "vez" : "veces"}</em></div>
+      <div class="irow"><span>📍 Sitio favorito</span><em>${st.favPl ? (SP_PLACES.find(p => p[0] === st.favPl[0]) || ["", st.favPl[0]])[1] : "—"}</em></div>
+      <div class="irow"><span>📖 Posturas probadas</span><em>${st.tried}/${KS.length}</em></div>
+      <div class="irow"><span>🗓️ Última vez</span><em>${st.last ? fmtDate(new Date(st.last + "T12:00:00"), { day: "numeric", month: "long" }) : "—"}</em></div></div>
+    ${spCalExtraHTML()}`;
+}
+function icAgenda(k) {
+  const e = calEntry(k), today = localKey(), d = new Date(k + "T12:00:00");
+  const head = `<div class="icaghead"><b>${cap(fmtDate(d, { weekday: "long", day: "numeric", month: "long" }))}</b>${k === today ? `<span>HOY</span>` : ""}</div>`;
+  if (!e || !e.n) return `<div class="icag">${head}<div class="icempty">${k > today ? "Este día aún no ha llegado 😏" : "Sin registros"}</div>${k > today ? "" : `<button class="icadd" data-edit="1">＋ Añadir registro</button>`}</div>`;
+  const tm = (e.times || []).map(t => (SP_TIMES.find(x => x[0] === t) || ["", t])[1]).join(" · "), pl = e.place ? (SP_PLACES.find(x => x[0] === e.place) || ["", e.place])[1] : "";
+  const P = (e.pos || []).filter(p => KSM[p]);
+  return `<div class="icag">${head}<button class="icev" data-edit="1"><div class="icevbar"></div><div class="icevb">
+      <div class="icevt"><b>🔥 ${e.n} ${e.n === 1 ? "vez" : "veces"}</b>${e.rating ? `<span class="icstars">${"★".repeat(e.rating)}<i>${"★".repeat(5 - e.rating)}</i></span>` : ""}</div>
+      ${tm || pl ? `<small>${[tm, pl].filter(Boolean).join(" · ")}</small>` : ""}
+      ${P.length ? `<div class="icpos">${P.map(p => `<span>${ksSVG(p, "kthumb")}<em>${esc(KSM[p].n)}</em></span>`).join("")}</div>` : ""}
+      ${e.note ? `<p>“${esc(e.note)}”</p>` : ""}
+      <div class="icevf"><span>${e.by ? `Apuntado por ${esc(name(e.by))}` : ""}</span><span class="ed">Editar ›</span></div></div></button></div>`;
+}
+function icShift(d) { let [y, m] = spCalMonth; m += d; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } spCalMonth = [y, m]; icAnim = d; SFX.tap(); renderSp(); }
+function bindSpCal() {
+  const v = $("spBody");
+  v.querySelectorAll("[data-m]").forEach(b => b.onclick = () => icShift(+b.dataset.m));
+  v.querySelectorAll("[data-today]").forEach(b => b.onclick = () => { const n = new Date(); icAnim = 0; spCalMonth = [n.getFullYear(), n.getMonth()]; spCalSel = localKey(); renderSp(); });
+  v.querySelectorAll("[data-day]").forEach(b => b.onclick = () => { const k = b.dataset.day; if (b.classList.contains("out")) { const d = new Date(k + "T12:00:00"); icAnim = d < new Date(spCalMonth[0], spCalMonth[1], 1) ? -1 : 1; spCalMonth = [d.getFullYear(), d.getMonth()]; } spCalSel = k; SFX.tap(); renderSp(); });
+  v.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { spDraft = null; calOpenSheet(); });
+  const g = $("icGrid"); let x0 = null, y0 = 0;
+  if (g) { g.ontouchstart = e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }; g.ontouchend = e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null; if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) icShift(dx < 0 ? 1 : -1); }; }
+}
+function calOpenSheet() {
+  const k = spCalSel; if (!k || k > localKey()) return;
+  const base = calEntry(k) || {};
+  spDraft = spDraft || { n: base.n || 1, pos: [...(base.pos || [])], times: [...(base.times || [])], place: base.place || "", rating: base.rating || 0, note: base.note || "" };
+  const s = ksSheetEl("calSheet", "kssheet"); s.classList.remove("hidden"); renderCalSheet(); SFX.pop();
+}
+function calCloseSheet() { spDraft = null; const s = $("calSheet"); if (s) s.classList.add("hidden"); }
+function renderCalSheet() {
+  const s = $("calSheet"), k = spCalSel, D = spDraft, base = calEntry(k);
+  s.innerHTML = `<div class="ksbg" data-x="1"></div><div class="kspanel icsheet in">
+    <div class="icsh"><button data-x="1">Cancelar</button><b>${base ? "Editar registro" : "Nuevo registro"}</b><button class="ok" id="cfSave">Guardar</button></div>
+    <div class="igroup"><div class="irow"><span>📅 Fecha</span><em>${cap(fmtDate(new Date(k + "T12:00:00"), { weekday: "long", day: "numeric", month: "long" }))}</em></div>
+      <div class="irow"><span>🔥 Veces</span><div class="stepper"><button data-n="-1" aria-label="Menos">−</button><b id="cfN">${D.n}</b><button data-n="1" aria-label="Más">+</button></div></div></div>
+    <div class="ilabel">Momento del día</div><div class="iseg">${SP_TIMES.map(([id, t]) => `<button class="${D.times.includes(id) ? "on" : ""}" data-tm="${id}">${t.replace(" ", "<br>")}</button>`).join("")}</div>
+    <div class="ilabel">Dónde</div><div class="chips">${SP_PLACES.map(([id, t]) => `<button class="chip ${D.place === id ? "on" : ""}" data-pl="${id}">${t}</button>`).join("")}</div>
+    <div class="ilabel">Posturas <small id="cfPc">${D.pos.length ? D.pos.length + (D.pos.length === 1 ? " elegida" : " elegidas") : ""}</small></div>
+    <div class="ipos">${KS.map(p => `<button class="${D.pos.includes(p.id) ? "on" : ""}" data-po="${p.id}">${ksSVG(p.id, "kthumb")}<span>${esc(p.n)}</span></button>`).join("")}</div>
+    <div class="ilabel">Valoración</div><div class="igroup"><div class="irow"><span>¿Qué tal fue?</span><div class="stars">${[1, 2, 3, 4, 5].map(i => `<button class="${D.rating >= i ? "on" : ""}" data-r="${i}">★</button>`).join("")}</div></div></div>
+    <div class="ilabel">Nota</div><textarea id="cfNote" maxlength="300" placeholder="Algo para recordar (opcional)">${esc(D.note || "")}</textarea>
+    ${base ? `<button class="idel" id="cfDel">Eliminar registro</button>` : ""}</div>`;
+  s.querySelectorAll("[data-x]").forEach(b => b.onclick = calCloseSheet);
+  $("cfNote").oninput = e => { D.note = e.target.value; };
+  s.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { D.n = Math.max(1, Math.min(20, D.n + +b.dataset.n)); $("cfN").textContent = D.n; SFX.tap(); });
+  s.querySelectorAll("[data-tm]").forEach(b => b.onclick = () => { const x = b.dataset.tm; D.times = D.times.includes(x) ? D.times.filter(y => y !== x) : [...D.times, x]; b.classList.toggle("on", D.times.includes(x)); SFX.tap(); });
+  s.querySelectorAll("[data-pl]").forEach(b => b.onclick = () => { D.place = D.place === b.dataset.pl ? "" : b.dataset.pl; s.querySelectorAll("[data-pl]").forEach(c => c.classList.toggle("on", c.dataset.pl === D.place)); SFX.tap(); });
+  s.querySelectorAll("[data-po]").forEach(b => b.onclick = () => { const x = b.dataset.po; D.pos = D.pos.includes(x) ? D.pos.filter(y => y !== x) : [...D.pos, x]; b.classList.toggle("on", D.pos.includes(x)); $("cfPc").textContent = D.pos.length ? D.pos.length + (D.pos.length === 1 ? " elegida" : " elegidas") : ""; SFX.tap(); });
+  s.querySelectorAll("[data-r]").forEach(b => b.onclick = () => { D.rating = +b.dataset.r === D.rating ? 0 : +b.dataset.r; s.querySelectorAll("[data-r]").forEach(c => c.classList.toggle("on", D.rating >= +c.dataset.r)); SFX.tap(); });
+  $("cfSave").onclick = () => {
+    const kk = spCalSel, note = (D.note || "").trim().slice(0, 300), isNew = !base;
+    S.merge("spcal/" + kk, { at: Date.parse(kk + "T12:00:00"), n: D.n, pos: D.pos, times: D.times, place: D.place, rating: D.rating, note, by: (base && base.by) || who, upd: Date.now() });
+    calCloseSheet(); SFX.ding(); toast(isNew ? "Apuntado 🔥" : "Cambios guardados ✓"); renderSp();
+  };
+  const dl = $("cfDel"); if (dl) dl.onclick = () => { if (!confirm("¿Eliminar el registro de este día?")) return; S.del("spcal/" + spCalSel); calCloseSheet(); renderSp(); };
+}
+
 // si le das de comer, mimos, etc. y no está contigo, viene corriendo
 document.querySelector(".actions.six").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || !["petFeed", "petBag", "petHug", "petPlay", "petBath", "petSleep", "petTricks"].includes(b.id)) return;
@@ -5925,7 +6914,7 @@ async function start() {
   S.merge("state/main", { tz: { [who]: myTz } });
   S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); renderPush(); renderMeet(); });
   S.watchDoc("state/pet", d => { state.pet = d; checkFirsts(d); renderPet(); fgInfo(); });
-  watchDiary(); watchOTD(); watchPresence(); watchPetPics(); watchAiMem(); watchWeekly(); watchLive();
+  watchDiary(); watchOTD(); watchPresence(); watchPetPics(); watchAiMem(); watchWeekly(); watchLive(); watchSpicy(); watchSpCal();
   loadWeather(true);
   S.watchDoc("quiz/main", d => { state.quiz = d; renderQuiz(); });
   S.watchDoc("state/ttt", d => { state.ttt = d; renderTTT(); renderQuiz(); renderGameMenu(); });
