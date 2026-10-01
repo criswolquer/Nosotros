@@ -2313,7 +2313,7 @@ function renderPet() {
   $("stages").innerHTML = STAGES.map((s, k) => `<span class="${k <= si ? "on" : ""}" title="${esc(stageName(k, p.species))}">${k <= si ? stageEmoji(k, p.species) : "?"}<small>${s.xp}</small></span>`).join("");
   renderAlbum(p, color, wear);
   renderShop(p, I);
-  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderEvent(p); renderDuelBadge(); renderFamily(p, I); renderLove(p, I); renderTree(p);
+  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderEvent(p); renderDuelBadge(); jobCheck(p); renderFamily(p, I); renderLove(p, I); renderTree(p);
   $("dotPet").classList.toggle("hidden", I.meT && !I.sick && I.nv.food >= 30 && !(forMe || replyForMe) && !missionsClaimable(p) && !(p.trip && tripBack(p)));
 
   if (si > 0 && !p.sick && !setOn(p, "lluvia") && I.low >= 2 && sickChecked !== I.today && Date.now() - (p.curedAt || 0) > 12 * 36e5) { sickChecked = I.today; petTx(q => { if (q.sick) return null; q.sick = true; q.sickAt = Date.now(); firstMark(q, "sick"); return q; }).then(r => { if (r) sendMsg(`🤒 ${r.name || "El pollito"} se ha puesto malito. Necesita medicina 💊`, "pet"); }).catch(() => {}); }
@@ -4107,7 +4107,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "2.4";
+const APP_VERSION = "2.6";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -5717,7 +5717,7 @@ function markIcon(it) {
 }
 
 // ---------- en la escena ----------
-function famSig(p) { const m = mateOf(p), I0 = petInfo(); return Array.from({ length: PLOTS }, (_, i) => { const G0 = plotInfo(plotOf(p, i)); return G0 ? G0.st + (G0.wilt ? "w" : "") : "-"; }).join("") + ((curEvent() || {}).id || "") + JSON.stringify([viewLoc(), petLoc(p, I0), mateLoc(p, I0), kidsOf(p).map(k => kidLoc(p, I0, k)).join(), I0.si && currentExpr(I0) === "sleep",m && [m.name, m.c, m.mark, m.status, relStatus(relOf(m))[1], m.weddingAt && Date.now() - m.weddingAt < DAY], kidsOf(p).map(k => [k.id, kidStage(k), k.name, JSON.stringify(k.wear || {})]), p.nest && [p.nest.n, p.nest.at]]); }
+function famSig(p) { const m = mateOf(p), I0 = petInfo(); return ((guestOf(p) || {}).nb || "") + ((visitOf(p) || {}).nb || "") + Array.from({ length: PLOTS }, (_, i) => { const G0 = plotInfo(plotOf(p, i)); return G0 ? G0.st + (G0.wilt ? "w" : "") : "-"; }).join("") + ((curEvent() || {}).id || "") + JSON.stringify([viewLoc(), petLoc(p, I0), mateLoc(p, I0), kidsOf(p).map(k => kidLoc(p, I0, k)).join(), I0.si && currentExpr(I0) === "sleep",m && [m.name, m.c, m.mark, m.status, relStatus(relOf(m))[1], m.weddingAt && Date.now() - m.weddingAt < DAY], kidsOf(p).map(k => [k.id, kidStage(k), k.name, JSON.stringify(k.wear || {})]), p.nest && [p.nest.n, p.nest.at]]); }
 function famScene(p, I) {
   let h = "";
   const m = mateOf(p), vl = viewLoc(), pl = petLoc(p, I);
@@ -5736,6 +5736,7 @@ function famScene(p, I) {
   });
   if (p.nest && !p.nest.hatched && (vl === "dorm" || vl === "jardin" || vl === "out")) h += `<button class="nestfig" id="nestFig" aria-label="Huevo">${nestSVG(p)}</button>`;
   if (vl === "jardin" || vl === "out") h += gardenSceneHTML(p);
+  h += guestSceneHTML(p, vl);
   h += evDecoHTML();
   return h;
 }
@@ -5752,6 +5753,7 @@ function bindFamScene() {
   document.querySelectorAll("#petSky [data-kid]").forEach(b => b.onclick = e => { e.stopPropagation(); openKid(b.dataset.kid); });
   const nf = $("nestFig"); if (nf) nf.onclick = e => { e.stopPropagation(); warmEgg(); };
   const gf = $("gardenFig"); if (gf) gf.onclick = e => { e.stopPropagation(); openGarden(); };
+  const gu = $("guestFig"); if (gu) gu.onclick = e => { e.stopPropagation(); guestTap(); };
 }
 
 // ---------- relación estilo Sims: amistad + romance ----------
@@ -6159,6 +6161,7 @@ function schedW(h) {
 function petLoc(p, I) {
   p = p || state.pet || {}; I = I || petInfo();
   if (!I.si || tripAway(p)) return viewLoc();
+  if (visitOf(p)) return "visita";
   const now = Date.now();
   if (p.here && p.here.until > now && LOCN[p.here.loc]) return p.here.loc;
   if (isNapping(p) || currentExpr(I) === "sleep") return "dorm";
@@ -6185,9 +6188,10 @@ const locHere = () => petLoc() === viewLoc();
 function summonPet(silent) {
   const loc = viewLoc(), pn = (state.pet || {}).name || "Pollito";
   if (locHere()) return Promise.resolve();
+  const vj = visitOf(state.pet); if (vj && vj.job) { if (!silent) toast(`💼 ${pn} está trabajando con ${NB[vj.nb].n} hasta las ${hhmm(vj.until)}`, 2600); return Promise.resolve(); }
   locNav = true; locCalled = true;
   if (!silent) toast(`📣 ¡${pn}! Ya viene corriendo… 🐾`, 2200);
-  return petTx(q => { q.here = { loc, until: Date.now() + 15 * 6e4, by: who }; return q; }).then(() => { sceneSig = ""; petSig = ""; renderPet(); walkIn(); }).catch(offline);
+  return petTx(q => { q.here = { loc, until: Date.now() + 15 * 6e4, by: who }; q.visit = null; return q; }).then(() => { sceneSig = ""; petSig = ""; renderPet(); walkIn(); }).catch(offline);
 }
 function renderLocate(p, I) {
   const box = $("petBox"), look = $("petLook"); if (!box || !look) return true;
@@ -6203,7 +6207,8 @@ function renderLocate(p, I) {
   } else box.classList.toggle("gone", !here);
   look.classList.toggle("hidden", here);
   if (!here) {
-    if (look.dataset.loc !== vl) { look.dataset.loc = vl; look.innerHTML = `<b>${pn} no está aquí</b><button class="btn" id="lookCall">📣 Llamarle</button>`; $("lookCall").onclick = e => { e.stopPropagation(); summonPet(); }; }
+    const vis = visitOf(p), lk = vl + "|" + (vis ? vis.nb : "");
+    if (look.dataset.loc !== lk) { look.dataset.loc = lk; look.innerHTML = vis ? `<b>${pn} está ${vis.job ? "trabajando" : "de visita"} en casa de ${esc(NB[vis.nb].n)} ${NB[vis.nb].e}${vis.job ? `<br><small>vuelve a las ${hhmm(vis.until)} con ${vis.pay} 🪙</small>` : ""}</b><div class="row" style="gap:8px;justify-content:center"><button class="btn" id="lookGo">🏘️ Ir a verle</button><button class="btn" id="lookCall">📣 Llamarle</button></div>` : `<b>${pn} no está aquí</b><button class="btn" id="lookCall">📣 Llamarle</button>`; $("lookCall").onclick = e => { e.stopPropagation(); summonPet(); }; const lg = $("lookGo"); if (lg) lg.onclick = e => { e.stopPropagation(); openBarrio(); nbCur = vis.nb; nbSay = ""; renderBarrio(); }; }
     locMiss = true;
   } else if (locMiss && !locCalled && I.si) {
     locMiss = false;
@@ -7332,7 +7337,7 @@ function renderGarden() {
       <small>${I.ready ? "¡Lista para cosechar!" : I.wilt ? "Mustia… ¡necesita agua!" : `Faltan ${I.left} ${I.left === 1 ? "día" : "días"} de riego`}</small>
       ${I.ready ? `<button class="btn primary" data-gharv="${i}">🧺 Cosechar</button>` : `<div class="gwat"><span class="${wm ? "on" : ""}">💧 Tú</span><span class="${wo ? "on" : ""}">💧 ${o}</span></div><button class="btn ${wm ? "" : "primary"}" data-gwat="${i}" ${wm ? "disabled" : ""}>${wm ? "Regada hoy ✓" : "💧 Regar"}</button>`}</div>`;
   }).join("");
-  const pick = gardenPick != null ? `<div class="slotname">¿Qué plantamos? · tienes ${coinsOf(p)} 🪙</div><div class="gseeds">${Object.entries(CROPS).map(([id, C]) => `<button class="gseed" data-gseed="${id}" ${coinsOf(p) < cropPrice(id) ? "disabled" : ""}><i>${C.e}</i><b>${esc(C.n)}</b><small>${cropPrice(id)} 🪙 · ${C.d} días · da ${C.y}</small>${cropPrice(id) < C.c ? `<em>¡Mitad de precio!</em>` : ""}</button>`).join("")}</div><button class="linkbtn" data-gcancel="1">Cancelar</button>` : "";
+  const pick = gardenPick != null ? `<div class="slotname">¿Qué plantamos? · tienes ${coinsOf(p)} 🪙</div><div class="gseeds">${Object.entries(CROPS).filter(([, C]) => !C.noSeed).map(([id, C]) => `<button class="gseed" data-gseed="${id}" ${coinsOf(p) < cropPrice(id) ? "disabled" : ""}><i>${C.e}</i><b>${esc(C.n)}</b><small>${cropPrice(id)} 🪙 · ${C.d} días · da ${C.y}</small>${cropPrice(id) < C.c ? `<em>¡Mitad de precio!</em>` : ""}</button>`).join("")}</div><button class="linkbtn" data-gcancel="1">Cancelar</button>` : "";
   const pk = Object.entries(pan).filter(([, n]) => n > 0);
   b.innerHTML = `<div class="sub" style="margin-bottom:10px">Plantad, regad <b>cada día</b> y cosechad. Si regáis <b>los dos</b> el mismo día, crece más rápido 💞 Sin agua 2 días se pone mustia.</div>
     <div class="ggrid">${cells}</div>${pick}
@@ -7497,10 +7502,10 @@ function renderDuels() {
   const a = $("dAccept"); if (a) a.onclick = duelAccept;
   b.querySelectorAll("[data-dplay]").forEach(x => x.onclick = () => { closeSheet(); duelPlaying = null; duelLaunch(x.dataset.dplay); });
 }
-function duelLaunch(g) { if (g === "fresas") $("fgPlay").click(); else mgOpen(g); }
+function duelLaunch(g) { if (g === "fresas") $("fgPlay").click(); else if (g === "pesca") { openBarrio(); nbCur = "lake"; renderBarrio(); } else mgOpen(g); }
 function duelAccept() { const c = duelForMe(); if (!c) return; closeSheet(); duelPlaying = { game: c.game, target: c.score, at: c.at }; duelLaunch(c.game); setTimeout(() => toast(`⚔️ Duelo: tienes que superar ${c.score}`, 3000), 300); }
-function duelAfter(game, score) {
-  const box = $("fgMsg"); if (!box) return;
+function duelAfter(game, score, box = $("fgMsg")) {
+  if (!box) return;
   if (duelPlaying && duelPlaying.game === game) {
     const D = duelPlaying, c = (duel.ch || {})[other()]; duelPlaying = null;
     if (!c || c.at !== D.at || c.st !== "open") return;
@@ -7609,12 +7614,12 @@ let nbCur = null, nbSay = "";
 function nbEl() { let v = $("nbView"); if (!v) { v = document.createElement("div"); v.id = "nbView"; v.className = "nbview hidden"; document.body.appendChild(v); } return v; }
 function openBarrio() { if (!hatched()) return toast("Primero tiene que nacer 🥚"); nbCur = null; const v = nbEl(); v.classList.remove("hidden"); document.body.style.overflow = "hidden"; renderBarrio(); SFX.whoosh && SFX.whoosh(); }
 function closeBarrio() { const v = $("nbView"); if (v) { v.classList.add("hidden"); v.innerHTML = ""; } document.body.style.overflow = ""; nbCur = null; }
-function renderBarrio() { if (nbCur) return renderNbHouse(); const v = nbEl(); v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbX">‹ Volver</button><b>🏘️ Vuestro barrio</b><span></span></div><div class="nbmap">${barrioSVG()}</div><div class="nbhint">Toca una casa para entrar · ❗ = tiene un encargo para vosotros</div>`; $("nbX").onclick = closeBarrio; v.querySelectorAll("[data-nb]").forEach(g => g.onclick = () => { const id = g.dataset.nb; if (id === "home") { closeBarrio(); if (petView !== "in") $("petView").click(); return; } nbCur = id; nbSay = ""; SFX.pop(); renderBarrio(); }); }
+function renderBarrio() { if (nbCur) return renderNbHouse(); const v = nbEl(); v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbX">‹ Volver</button><b>🏘️ Vuestro barrio</b><span></span></div><div class="nbmap">${barrioSVG()}${barrioWx()}${[...NEIGH.map(N => [N.id, N.x, N.y, N.n]), ...(mateOf(state.pet || {}) ? [["mate", 290, 368, mateOf(state.pet).name]] : []), ["home", 180, 560, "Vuestra casa"], ["lake", 292, 112, "El lago"], ["plaza", 168, 286, "La plaza y el mercadillo"]].map(([id, x, y, n]) => `<button class="nbhit" data-nb="${id}" aria-label="${esc(n)}" style="left:${(x / 360 * 100).toFixed(1)}%;top:${(y / 600 * 100).toFixed(1)}%"></button>`).join("")}</div><div class="nbhint">${isFiesta() ? "🎉 <b>¡Hoy es domingo de fiesta en la plaza!</b><br>" : ""}Toca una casa, el lago 🎣 o la plaza 🛒 · ❗ = tiene un encargo para vosotros</div>`; $("nbX").onclick = closeBarrio; v.querySelectorAll(".nbhit[data-nb]").forEach(g => g.onclick = () => { const id = g.dataset.nb; if (id === "home") { closeBarrio(); if (petView !== "in") $("petView").click(); return; } nbCur = id; nbSay = ""; SFX.pop(); renderBarrio(); }); }
 function barrioSVG() {
   const p = state.pet || {}, m = mateOf(p), I = petInfo(), pn = esc(p.name || "Pollito");
   const tree = (x, y, r) => `<g><circle cx="${x + 2}" cy="${y + 3}" r="${r}" fill="rgba(0,0,0,.15)"/><circle cx="${x}" cy="${y}" r="${r}" fill="#3f9a4a"/><circle cx="${x - r * .3}" cy="${y - r * .3}" r="${r * .55}" fill="#5cb85c"/></g>`;
   const house = (o) => {
-    const { x, y, roof, label, emoji, id, big, badge } = o, w = big ? 92 : 74, h = big ? 66 : 54, dark = hexMix(roof, "#000000", .25), lite = hexMix(roof, "#ffffff", .18);
+    const { x, y, roof, label, emoji, id, big, badge, visitor } = o, w = big ? 92 : 74, h = big ? 66 : 54, dark = hexMix(roof, "#000000", .25), lite = hexMix(roof, "#ffffff", .18);
     return `<g class="nbh" data-nb="${id}" style="cursor:pointer"><rect x="${x - w / 2 - 8}" y="${y - h / 2 - 6}" width="${w + 16}" height="${h + 26}" rx="10" fill="#9fdc7a" opacity=".55"/>
       <rect x="${x - w / 2 + 3}" y="${y - h / 2 + 4}" width="${w}" height="${h}" rx="6" fill="rgba(0,0,0,.18)"/>
       <rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h / 2}" rx="5" fill="${lite}"/><rect x="${x - w / 2}" y="${y}" width="${w}" height="${h / 2}" rx="5" fill="${dark}"/>
@@ -7623,26 +7628,31 @@ function barrioSVG() {
       <rect x="${x - 7}" y="${y + h / 2}" width="14" height="10" rx="2" fill="#e8dcc6"/>
       <text x="${x}" y="${y + 4}" text-anchor="middle" font-size="${big ? 22 : 18}">${emoji}</text>
       <g transform="translate(${x} ${y + h / 2 + 22})"><rect x="${-label.length * 3.6 - 10}" y="-10" width="${label.length * 7.2 + 20}" height="19" rx="9.5" fill="rgba(255,255,255,.92)"/><text text-anchor="middle" y="4" font-size="11" font-weight="800" fill="#3a2330" font-family="system-ui">${esc(label)}</text></g>
+      ${visitor ? `<g><circle cx="${x - w / 2 + 4}" cy="${y + h / 2 - 2}" r="13" fill="#fff" stroke="#ffb800" stroke-width="3"/><text x="${x - w / 2 + 4}" y="${y + h / 2 + 3}" text-anchor="middle" font-size="14">${visitor}</text></g>` : ""}
       ${badge ? `<g class="nbbadge"><circle cx="${x + w / 2 - 2}" cy="${y - h / 2 + 2}" r="11" fill="${badge === "❗" ? "#ff3d6e" : "#fff"}" stroke="#fff" stroke-width="2"/><text x="${x + w / 2 - 2}" y="${y - h / 2 + 7}" text-anchor="middle" font-size="12">${badge}</text></g>` : ""}</g>`;
   };
   let s = `<svg viewBox="0 0 360 600" class="nbsvg"><rect width="360" height="600" fill="#8fd16a"/>`;
   for (let i = 0; i < 70; i++) { const h = hashStr("g" + i); s += `<circle cx="${h % 360}" cy="${(h >> 9) % 600}" r="${1 + (h >> 18) % 2}" fill="${["#7cc35a", "#a3dc82", "#ffe680", "#ffb3c8"][(h >> 4) % 4]}" opacity=".8"/>`; }
   s += `<ellipse cx="292" cy="112" rx="58" ry="42" fill="#6cc3f0"/><ellipse cx="292" cy="112" rx="50" ry="35" fill="#8fd6f7"/><path d="M262 104 q8 -6 16 0 M298 124 q8 -6 16 0" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/><text x="306" y="104" font-size="14">🦆</text><text x="270" y="130" font-size="11">🪷</text>`;
+  s += `<rect x="226" y="113" width="34" height="9" rx="2" fill="#a0703f"/><path d="M232 113 v9 M240 113 v9 M248 113 v9" stroke="#7a5230" stroke-width="1.2"/><text x="244" y="110" font-size="15">🎣</text><g transform="translate(292 168)"><rect x="-34" y="-10" width="68" height="19" rx="9.5" fill="rgba(255,255,255,.92)"/><text text-anchor="middle" y="4" font-size="11" font-weight="800" fill="#3a2330" font-family="system-ui">El lago 🎣</text></g>`;
   s += `<rect x="163" y="0" width="34" height="548" fill="#e3d2ad"/><rect x="0" y="282" width="360" height="30" fill="#e3d2ad"/><path d="M180 6 V270 M180 324 V540" stroke="#fff" stroke-width="2.5" stroke-dasharray="10 9"/><path d="M6 297 H140 M220 297 H354" stroke="#fff" stroke-width="2.5" stroke-dasharray="10 9"/>`;
   s += `<circle cx="180" cy="297" r="40" fill="#e9dcc0"/><circle cx="180" cy="297" r="40" fill="none" stroke="#d2bf98" stroke-width="3"/><circle cx="180" cy="297" r="17" fill="#8fd6f7" stroke="#b8a888" stroke-width="4"/><circle cx="180" cy="297" r="5" fill="#fff"/><text x="180" y="301" text-anchor="middle" font-size="10">⛲</text>`;
+  s += `<g><rect x="121" y="246" width="38" height="26" rx="3" fill="#fff3d6" stroke="#d9b98a"/><path d="M118 246 h44 l-3 -10 h-38z" fill="#ff5c8a"/>${[0, 1, 2, 3].map(i => `<path d="M${123 + i * 9} 236 h4.5 l-1 10 h-4.5z" fill="#fff"/>`).join("")}<text x="140" y="265" text-anchor="middle" font-size="13">🛒</text></g>`;
   [[30, 30, 14], [130, 40, 12], [126, 160, 11], [28, 300, 13], [130, 360, 12], [236, 30, 12], [340, 190, 12], [236, 400, 11], [340, 300, 12], [128, 470, 12], [236, 560, 13], [24, 580, 12], [128, 580, 10], [340, 580, 12], [236, 180, 10]].forEach(([x, y, r]) => s += tree(x, y, r));
   const today = dayKey();
-  NEIGH.forEach(N => { const r = nbReq(N.id, p), st = nbOf(p, N.id); s += house({ x: N.x, y: N.y, roof: N.roof, label: `${N.n} ${SPECIES[N.sp].e}`, emoji: N.e, id: N.id, badge: r && !r.done ? "❗" : st.talk !== today ? "💬" : "" }); });
+  const vis = visitOf(p), pe = SPECIES[p.species || "pollito"].e;
+  NEIGH.forEach(N => { const r = nbReq(N.id, p), st = nbOf(p, N.id); s += house({ x: N.x, y: N.y, roof: N.roof, label: `${N.n} ${SPECIES[N.sp].e}`, emoji: N.e, id: N.id, badge: r && !r.done ? "❗" : st.talk !== today ? "💬" : "", visitor: vis && vis.nb === N.id ? pe : "" }); });
   if (m) s += house({ x: 290, y: 368, roof: sexOf(m) === "m" ? "#5a8fd6" : "#e86a9a", label: `${m.name} ${SPECIES[m.species || "pollito"].e}`, emoji: p.mateOut ? "💕" : "💤", id: "mate", badge: p.mateOut ? "" : "" });
   s += house({ x: 180, y: 560, roof: "#ff5c8a", label: `Vuestra casa · ${pn}`, emoji: "🏡", id: "home", big: 1 });
-  return s + `</svg>`;
+  return s + barrioOverlay() + `</svg>`;
 }
-function nbScene(N, fig, bubble) {
+function nbScene(N, fig, bubble, fig2) {
   const room = { wall: N.room.wall, floor: N.room.floor, items: Object.fromEntries(N.room.items.map(i => [i, true])), pos: {} }, W = CAT[room.wall] || CAT.w_crema, F = CAT[room.floor] || CAT.f_madera;
-  let sky = roomSVG(room, "day"); N.room.items.filter(i => FA[i]).sort((a, b) => (FA[a].flat ? 0 : FA[a].t === "floor" ? 2 : 1) - (FA[b].flat ? 0 : FA[b].t === "floor" ? 2 : 1)).forEach(i => sky += furnHTML(i, room, "day"));
-  return `<div class="scene room nbscene ${room.wall} ${room.floor}" style="--wall:${W.sw};--floor:${F.sw}"><div class="sky">${sky}<div class="nbfig">${fig}</div>${bubble ? `<div class="nbbub">${bubble}</div>` : ""}</div></div>`;
+  const md = barrioMood().night ? "night" : "day"; let sky = roomSVG(room, md); N.room.items.filter(i => FA[i]).sort((a, b) => (FA[a].flat ? 0 : FA[a].t === "floor" ? 2 : 1) - (FA[b].flat ? 0 : FA[b].t === "floor" ? 2 : 1)).forEach(i => sky += furnHTML(i, room, md));
+  return `<div class="scene room nbscene ${md === "night" ? "nbnight" : ""} ${room.wall} ${room.floor}" style="--wall:${W.sw};--floor:${F.sw}"><div class="sky">${sky}<div class="nbfig ${fig2 ? "l" : ""}">${fig}</div>${fig2 ? `<div class="nbfig r arrive">${fig2}</div>` : ""}${bubble ? `<div class="nbbub">${bubble}</div>` : ""}</div></div>`;
 }
 function renderNbHouse() {
+  if (nbCur === "lake") return renderLake(); if (nbCur === "plaza") return renderPlaza();
   const v = nbEl(), p = state.pet || {};
   if (nbCur === "mate") {
     const m = mateOf(p); if (!m) { nbCur = null; return renderBarrio(); }
@@ -7660,19 +7670,25 @@ function renderNbHouse() {
   }
   const N = NB[nbCur]; if (!N) { nbCur = null; return renderBarrio(); }
   const st = nbOf(p, N.id), today = dayKey(), lv = NB_LV(st.f || 0), r = nbReq(N.id, p);
-  if (!nbSay) nbSay = rnd(N.hi);
-  const fig = chickSVG(4, "happy", N.wear, 0, N.c, { species: N.sp });
+  const vis = visitOf(p), withMe = vis && vis.nb === N.id;
+  if (!nbSay) nbSay = barrioMood().night && !withMe ? rnd(["Zzz… 💤", "Zzz… mmm… ¿quién es a estas horas? 🥱"]) : rnd(N.hi);
+  const fig = chickSVG(4, nbSay.startsWith("Zzz") ? "sleep" : "happy", N.wear, 0, N.c, { species: N.sp });
+  const fig2 = withMe ? chickSVG(Math.max(1, stageOf(p.xp || 0)), "laugh", p.wear || {}, 0, p.color, { species: p.species }) : "";
   v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>${N.e} Casa de ${esc(N.n)}</b><span></span></div>
-    ${nbScene(N, fig, esc(nbSay))}
+    ${nbScene(N, fig, esc(nbSay), fig2)}
     <div class="nbbox"><div class="nbwho"><b>${esc(N.n)} ${sxTag(N.sex)}</b><small>${SPECIES[N.sp].e} ${esc(N.job)} · le encanta ${esc(N.likeT)}</small></div>
       <div class="nbfr"><span>${lv[0]} ${lv[1]}</span><div class="gbar"><i style="width:${Math.min(100, st.f || 0)}%"></i></div><span>${Math.round(st.f || 0)}/100</span></div>
       ${r ? `<div class="nbreq ${r.done ? "done" : ""}"><b>📦 Encargo de hoy</b><span>${r.done ? "¡Hecho! Gracias 💛" : `Necesita ${r.n} ${itemE(r.item)} ${esc(itemN(r.item))} · tienes ${haveOf(p, r)}`}</span>${r.done ? "" : `<button class="btn primary" id="nbGive" ${haveOf(p, r) >= r.n ? "" : "disabled"}>Entregar · +${r.coins} 🪙</button>`}</div>` : `<div class="nbreq none">Hoy no necesita nada 😊</div>`}
+      ${nbVisitPanel(N, p)}${jobPanel(N, p)}
       <div class="nbacts"><button class="btn ${st.talk === today ? "" : "primary"}" id="nbTalk">${st.talk === today ? "💬 Charlar" : "💬 Charlar · +5 💛"}</button><button class="btn ${st.gift === today ? "" : "primary"}" id="nbGift" ${st.gift === today ? "disabled" : ""}>${st.gift === today ? "🎁 Regalado hoy" : "🎁 Hacerle un regalo"}</button></div>
       <div class="nbgifts hidden" id="nbGifts"></div></div>`;
   $("nbBack").onclick = () => { nbCur = null; renderBarrio(); };
   $("nbTalk").onclick = () => nbTalk(N);
   $("nbGift").onclick = () => nbGiftPick(N);
   const g = $("nbGive"); if (g) g.onclick = () => nbDeliver(N);
+  nbVisitBind(N);
+  v.querySelectorAll("[data-job]").forEach(b => b.onclick = () => { const [h, pay] = b.dataset.job.split(":").map(Number); jobStart(N, h, pay); });
+  const jc = $("jobCancel"); if (jc) jc.onclick = () => { if (confirm("¿Que vuelva ya? No cobrará el sueldo.")) nbVisitEnd(); };
 }
 let nbMsg = null;
 function nbTx(id, fn) { nbMsg = null; return petTx(q => { q.nb = { ...(q.nb || {}) }; const s = { f: 0, ...(q.nb[id] || {}) }; const before = s.f; const r = fn(q, s); if (r === null) return null; s.f = Math.min(100, s.f); q.nb[id] = s; nbMsg = nbMilestone(id, before, s.f, q); return q; }); }
@@ -7707,6 +7723,260 @@ function nbDeliver(N) {
 }
 
 $("petBarrio").onclick = openBarrio;
+
+// ---------- 🐤 2.5 · Visitas: tu mascota va a casa de los vecinos y ellos vienen a la vuestra ----------
+const VISIT_MIN = 45, GUEST_MIN = 120;
+const visitOf = p => (p && p.visit && p.visit.until > Date.now() && NB[p.visit.nb]) ? p.visit : null;
+const guestOf = p => (p && p.guest && p.guest.until > Date.now() && NB[p.guest.nb]) ? p.guest : null;
+const NB_ACT = {
+  lola: ["🧁", "Hornear magdalenas", "Os lleváis una magdalena 🧁", (q) => { q.inv = { ...(q.inv || {}) }; q.inv.cupcake = (q.inv.cupcake || 0) + 1; }],
+  nube: ["🌱", "Plantar juntos", "Nube os regala 2 zanahorias 🥕", (q) => { q.pantry = { ...(q.pantry || {}) }; q.pantry.zanahoria = (q.pantry.zanahoria || 0) + 2; }],
+  bruno: ["🏃", "Entrenar en la plaza", "¡Qué buena forma! +12 experiencia 💪", (q) => { gainExp(q, 12); setNeed(q, "energy", -15); }],
+  pingo: ["🎶", "Tocar música juntos", "¡Qué concierto! +diversión y cariño 🎵", (q) => { setNeed(q, "fun", 30); setNeed(q, "love", 10); }],
+  canela: ["🖌️", "Pintar un cuadro", "Canela vende el cuadro y os da 25 🪙", (q) => { q.coins = coinsOf(q) + 25; }],
+  tofu: ["🫖", "Tomar el té", "Tofu os da un té para casa 🍵", (q) => { setNeed(q, "love", 20); setNeed(q, "energy", 15); q.inv = { ...(q.inv || {}) }; q.inv.te = (q.inv.te || 0) + 1; }]
+};
+function nbVisitStart(N) {
+  const p = state.pet || {}, I = petInfo();
+  if (tripAway(p)) return toast("Está de excursión, ¡aún no ha vuelto! 🧳");
+  if (isNapping(p)) return toast("Está echándose la siesta 😴");
+  petTx(q => { q.visit = { nb: N.id, at: Date.now(), until: Date.now() + VISIT_MIN * 6e4, by: who }; q.here = null; return q; })
+    .then(() => { nbSay = rnd([`¡Hola, ${p.name || "pollito"}! ¡Pasa, pasa! 😊`, "¡Qué alegría que vengas a verme! 💛", "¡Bienvenido! Ponte cómodo 🏡"]); SFX.pop(); sceneSig = ""; petSig = ""; renderPet(); renderNbHouse(); notifyOther(`🏘️ ${p.name || "El pollito"} se ha ido de visita a casa de ${N.n}`); })
+    .catch(offline);
+}
+function nbVisitEnd() { petTx(q => { q.visit = null; return q; }).then(() => { sceneSig = ""; petSig = ""; renderPet(); renderNbHouse(); toast("🏠 ¡De vuelta a casa!"); }).catch(offline); }
+function nbDo(N, k) {
+  const today = dayKey(); let ok = false, msg = "";
+  nbTx(N.id, (q, s) => {
+    s.acts = s.acts && s.acts.day === today ? { ...s.acts } : { day: today }; if (s.acts[k]) return null; s.acts[k] = 1; ok = true; s.f += 6;
+    if (k === "merienda") { setNeed(q, "food", 25); msg = "¡Qué merienda más rica! 🍪"; }
+    else if (k === "jugar") { setNeed(q, "fun", 25); setNeed(q, "energy", -8); msg = "¡Qué bien lo habéis pasado! 🎲"; }
+    else { const A = NB_ACT[N.id]; A[3](q); msg = A[2]; }
+    gainExp(q, 4); bump(q, "visit");
+  }).then(() => { if (!ok) return renderNbHouse(); nbSay = msg; SFX.ding(); toast(`💛 +6 amistad con ${N.n}`); nbAfter(); renderNbHouse(); }).catch(offline);
+}
+function nbInvite(N) {
+  petTx(q => { q.guest = { nb: N.id, at: Date.now(), until: Date.now() + GUEST_MIN * 6e4, by: who }; return q; })
+    .then(() => { nbSay = rnd(["¡Me encantaría! Ahora mismo voy 🥰", "¡Voy para allá! ¿Pongo el té? 🫖", "¡Sí! Llevo algo rico 😋"]); SFX.ding(); toast(`📨 ${N.n} va a vuestra casa: estará en el salón un par de horas`); sceneSig = ""; renderPet(); renderNbHouse(); notifyOther(`🏘️ ${N.n} ha venido de visita a vuestra casa 🏡`); })
+    .catch(offline);
+}
+function nbVisitPanel(N, p) {
+  const vis = visitOf(p), here = vis && vis.nb === N.id, st = nbOf(p, N.id), today = dayKey(), done = (st.acts && st.acts.day === today) ? st.acts : {}, pn = esc(p.name || "Pollito");
+  const A = NB_ACT[N.id], acts = [["merienda", "🍪", "Merendar juntos"], ["jugar", "🎲", "Jugar juntos"], ["esp", A[0], A[1]]];
+  const g = guestOf(p), gHere = g && g.nb === N.id;
+  if (vis && vis.job) return here ? "" : `<div class="nbreq none">💼 ${pn} está trabajando en casa de ${esc(NB[vis.nb].n)} hasta las ${hhmm(vis.until)}</div>`;
+  return here ? `<div class="nbvis"><div class="nbvhead"><b>🐤 ${pn} está de visita</b><small>hasta las ${hhmm(vis.until)}</small></div>
+      <div class="nbvacts">${acts.map(([k, e, n]) => `<button class="btn ${done[k] ? "" : "primary"}" data-nbdo="${k}" ${done[k] ? "disabled" : ""}><span>${e}</span>${esc(n)}${done[k] ? " ✓" : ""}</button>`).join("")}</div>
+      <button class="btn" id="nbHome" style="width:100%;margin-top:8px">🏠 Volver a casa con ${pn}</button></div>`
+    : `<div class="nbvis"><button class="btn primary" id="nbVisit" style="width:100%">🐤 Quedarse de visita con ${pn}</button>
+      <button class="btn" id="nbInv" style="width:100%;margin-top:8px" ${gHere ? "disabled" : ""}>${gHere ? `🏡 ${esc(N.n)} ya está en vuestra casa` : `📨 Invitar a ${esc(N.n)} a vuestra casa`}</button></div>`;
+}
+function nbVisitBind(N) {
+  const a = $("nbVisit"); if (a) a.onclick = () => nbVisitStart(N);
+  const h = $("nbHome"); if (h) h.onclick = nbVisitEnd;
+  const iv = $("nbInv"); if (iv) iv.onclick = () => nbInvite(N);
+  document.querySelectorAll("#nbView [data-nbdo]").forEach(b => b.onclick = () => nbDo(N, b.dataset.nbdo));
+}
+// invitado en vuestro salón
+function guestSceneHTML(p, vl) {
+  const g = guestOf(p); if (!g || vl !== "salon") return "";
+  const N = NB[g.nb];
+  return `<button class="guestfig" id="guestFig" aria-label="${esc(N.n)}">${chickSVG(4, "happy", N.wear, 0, N.c, { species: N.sp })}<b>${SPECIES[N.sp].e} ${esc(N.n)}</b></button>`;
+}
+function guestTap() {
+  const p = state.pet || {}, g = guestOf(p); if (!g) return; const N = NB[g.nb], today = dayKey();
+  const gf = $("guestFig"); if (gf) hearts(gf, "💛");
+  toast(`${SPECIES[N.sp].e} ${N.n}: ${rnd(N.talk)}`, 3800);
+  nbTx(N.id, (q, s) => { if (s.talk === today) return null; s.talk = today; s.f += 5; }).then(() => { toast(`💛 +5 amistad con ${N.n}`); nbAfter(); }).catch(() => { });
+}
+LOCN.visita = "casa de un vecino"; LOC_GO.visita = ["¡Me voy de visita al barrio! 🏘️"];
+
+// ---------- 🎣 2.6 · Pesca, acuario, mercadillo, trabajos, barrio de noche y fiesta del domingo ----------
+CROPS.pescado = { e: "🐟", n: "Pescado", noSeed: 1, c: 14, d: 1, y: 1 };
+RECIPES.push(
+  { id: "pescadito", n: "Pescadito frito", e: "🍤", ing: { pescado: 1, patata: 1 }, out: "x_gambas" },
+  { id: "sushicasero", n: "Sushi casero", e: "🍣", ing: { pescado: 2, trigo: 1 }, out: "sushi" },
+  { id: "caldero", n: "Caldero marinero", e: "🍲", ing: { pescado: 1, tomate: 1, patata: 1 }, out: "sopa", qty: 2 }
+);
+const FISH = [
+  { id: "bota", e: "🥾", n: "Bota vieja", pts: 0, w: 9, junk: 1 }, { id: "alga", e: "🌿", n: "Alga", pts: 0, w: 7, junk: 1 },
+  { id: "sardina", e: "🐟", n: "Sardina", pts: 1, w: 22, eat: 1 }, { id: "gamba", e: "🦐", n: "Gamba", pts: 1, w: 15, eat: 1 },
+  { id: "payaso", e: "🐠", n: "Pez payaso", pts: 2, w: 12 }, { id: "globo", e: "🐡", n: "Pez globo", pts: 2, w: 10 },
+  { id: "cangrejo", e: "🦀", n: "Cangrejo", pts: 2, w: 10, eat: 1 }, { id: "calamar", e: "🦑", n: "Calamar", pts: 3, w: 7, eat: 1 },
+  { id: "pulpo", e: "🐙", n: "Pulpo", pts: 3, w: 6, eat: 1 }, { id: "langosta", e: "🦞", n: "Langosta", pts: 4, w: 4, eat: 1 },
+  { id: "tortuga", e: "🐢", n: "Tortuga (la soltáis 💚)", pts: 5, w: 3 }, { id: "delfin", e: "🐬", n: "Delfín del lago", pts: 6, w: 2 },
+  { id: "tiburon", e: "🦈", n: "Tiburón bebé", pts: 8, w: 1.2 }, { id: "ballena", e: "🐋", n: "Ballenita mágica", pts: 10, w: .7 },
+  { id: "dorado", e: "🐠", n: "Pez dorado legendario", pts: 12, w: .45, gold: 1 }
+];
+const FISHM = Object.fromEntries(FISH.map(f => [f.id, f]));
+const FISH_TIME = 40, FISH_DAILY = 30, FISH_PANTRY = 8;
+EV_TXT.fish = n => (n > 1 ? `hemos ido ${n} veces a pescar al lago 🎣` : "hemos ido a pescar al lago 🎣");
+DUEL_G.pesca = { e: "🎣", n: "Pesca en el lago" };
+let fsh = null;
+function pickFish() { const tot = FISH.reduce((a, f) => a + f.w, 0); let r = Math.random() * tot; for (const f of FISH) { r -= f.w; if (r <= 0) return f; } return FISH[2]; }
+function renderLake() {
+  const v = nbEl(), p = state.pet || {}, col = p.fish || {}, got = FISH.filter(f => col[f.id]).length, pe = SPECIES[p.species || "pollito"].e;
+  v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>🎣 El lago</b><span></span></div>
+    <div class="lake ${barrioMood().night ? "night" : ""}" id="lake"><div class="lksky"></div><div class="lkwater"><i></i><i></i><i></i></div><div class="lkline" id="lkLine"></div><div class="lkbob" id="lkBob"></div><div class="lkfish" id="lkFish"></div>
+      <div class="lkpet">${chickSVG(Math.max(1, stageOf(p.xp || 0)), "happy", p.wear || {}, 0, p.color, { species: p.species })}<svg class="lkrod" viewBox="0 0 80 120"><path d="M6 108 Q38 52 72 6" stroke="#6b3f1d" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M6 108 Q38 52 72 6" stroke="#b07a44" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="17" cy="91" r="5.5" fill="#5a5f6a" stroke="#2c2f36" stroke-width="1.5"/><circle cx="17" cy="91" r="1.6" fill="#ddd"/><circle cx="72" cy="6" r="2.2" fill="#eee"/></svg></div>
+      <div class="lkhud"><span id="lkScore">⭐ 0</span><span id="lkTime">⏱ ${FISH_TIME}</span></div><div class="lkmsg" id="lkMsg"></div></div>
+    <div class="nbbox"><div id="lkCtl"><div class="sub" style="margin-bottom:8px">Cuando el corcho se hunda y salga <b>¡PICA!</b>, toca rápido. Si tocas antes, el pez se asusta. Tienes ${FISH_TIME} segundos.</div>
+      <button class="btn primary" id="lkGo" style="width:100%">🎣 ¡A pescar!</button>
+      <div class="sub" style="font-size:12px;text-align:center;margin-top:6px">🏆 Récords: ${esc(name("a"))} ${recOf(p, "pesca", "a")} · ${esc(name("b"))} ${recOf(p, "pesca", "b")}</div></div>
+      <div class="slotname">🐠 Vuestro acuario · <span id="aqN">${got}</span>/${FISH.length}</div>
+      <div class="aqua">${FISH.map(f => `<span class="${col[f.id] ? "on" : ""} ${f.gold ? "gold" : ""}" title="${esc(f.n)}">${col[f.id] ? f.e : "❔"}<small>${col[f.id] ? `${esc(f.n)} ×${col[f.id]}` : "???"}</small></span>`).join("")}</div>
+      <div class="sub" style="font-size:12px;margin-top:8px">Lo que se puede comer va a la despensa como 🐟 pescado (hasta ${FISH_PANTRY} al día), para cocinar o vender en el mercadillo.</div></div>`;
+  $("nbBack").onclick = () => { fishStop(); nbCur = null; renderBarrio(); };
+  $("lkGo").onclick = fishStart;
+  $("lake").onclick = fishTap;
+}
+function fishStop() { if (fsh) { clearTimeout(fsh.t); clearInterval(fsh.iv); } fsh = null; }
+function fishStart() {
+  fishStop(); fsh = { score: 0, caught: [], end: Date.now() + FISH_TIME * 1000, state: "idle", t: 0, iv: 0 };
+  $("lkCtl").innerHTML = `<button class="btn primary big" id="lkTap" style="width:100%;font-size:20px;padding:16px">🎣 ¡TIRAR!</button>`;
+  $("lkTap").onclick = e => { e.stopPropagation(); fishTap(); };
+  fsh.iv = setInterval(() => { if (!fsh) return; const left = Math.max(0, Math.ceil((fsh.end - Date.now()) / 1000)); const t = $("lkTime"); if (t) t.textContent = "⏱ " + left; if (left <= 0) fishEnd(); }, 250);
+  fishCast();
+}
+function fishMsg(t, cls = "") { const m = $("lkMsg"); if (!m) return; m.className = "lkmsg show " + cls; m.innerHTML = t; clearTimeout(fishMsg.t); fishMsg.t = setTimeout(() => { const n = $("lkMsg"); if (n) n.className = "lkmsg"; }, 1100); }
+function fishCast() {
+  if (!fsh) return; fsh.state = "wait"; const L = $("lake"); if (L) L.classList.add("on"); const b = $("lkBob"); if (b) { b.className = "lkbob"; void b.offsetWidth; b.className = "lkbob cast"; }
+  fsh.t = setTimeout(() => { if (!fsh || fsh.state !== "wait") return; fsh.state = "bite"; const bb = $("lkBob"); if (bb) bb.className = "lkbob bite"; fishMsg("¡PICA! ❗", "bite"); buzz([40, 30, 40]); SFX.pop && SFX.pop();
+    fsh.t = setTimeout(() => { if (!fsh || fsh.state !== "bite") return; fsh.state = "miss"; fishMsg("Se ha escapado… 💨"); fsh.t = setTimeout(fishCast, 700); }, 750 + Math.random() * 250); }, 1200 + Math.random() * 3000 + (fsh.scared ? 1200 : 0));
+  fsh.scared = false;
+}
+function fishTap() {
+  if (!fsh) return;
+  if (fsh.state === "bite") {
+    clearTimeout(fsh.t); fsh.state = "got"; const f = pickFish(); fsh.score += f.pts; fsh.caught.push(f.id);
+    const s = $("lkScore"); if (s) s.textContent = "⭐ " + fsh.score;
+    const fe = $("lkFish"); if (fe) { fe.textContent = f.e; fe.className = "lkfish"; void fe.offsetWidth; fe.className = "lkfish jump" + (f.gold ? " gold" : ""); }
+    fishMsg(f.junk ? `${f.e} ${f.n}… 😅` : `${f.e} ¡${f.n}! +${f.pts}`, f.pts >= 6 ? "rare" : ""); f.pts >= 6 ? (confetti(), SFX.ding()) : SFX.coin && SFX.coin(); buzz(f.pts >= 6 ? [60, 40, 60] : 20);
+    const b = $("lkBob"); if (b) b.className = "lkbob";
+    fsh.t = setTimeout(fishCast, 900);
+  } else if (fsh.state === "wait") { clearTimeout(fsh.t); fsh.scared = true; fishMsg("¡Demasiado pronto! 🐟💨"); fsh.state = "scared"; fsh.t = setTimeout(fishCast, 600); }
+}
+function fishEnd() {
+  if (!fsh) return; const R = fsh; fishStop(); let gain = 0, prevM = 0, toP = 0; const L = $("lake"); if (L) L.classList.remove("on"); const bb = $("lkBob"); if (bb) bb.className = "lkbob";
+  const cnt = {}; R.caught.forEach(id => { cnt[id] = (cnt[id] || 0) + 1; }); const eat = R.caught.filter(id => FISHM[id].eat).length;
+  petTx(q => {
+    q.fish = { ...(q.fish || {}) }; for (const [k, n] of Object.entries(cnt)) q.fish[k] = (q.fish[k] || 0) + n;
+    q.pantry = { ...(q.pantry || {}) }; const fp = q.day.fishp || 0; toP = Math.max(0, Math.min(eat, FISH_PANTRY - fp)); q.day.fishp = fp + toP; if (toP) q.pantry.pescado = (q.pantry.pescado || 0) + toP;
+    q.day.fishc = q.day.fishc || {}; const g0 = q.day.fishc[who] || 0; gain = Math.max(0, Math.min(R.score * 2, FISH_DAILY - g0)); q.day.fishc[who] = g0 + gain; q.coins = coinsOf(q) + gain;
+    q.rec = q.rec || {}; const RR = q.rec.pesca = { ...(q.rec.pesca || {}) }; prevM = RR[who] || 0; RR[who] = Math.max(prevM, R.score);
+    if (R.score > 0) gainExp(q, 5); bump(q, "fish"); return q;
+  }).then(res => {
+    const box = $("lkCtl"); if (!box) return;
+    box.innerHTML = `<div class="lkres"><b>${R.score > prevM ? "🏆 ¡Nuevo récord!" : "🎣 ¡Se acabó!"}</b><div class="lkcaught">${R.caught.map(id => FISHM[id].e).join(" ") || "Nada esta vez 😅"}</div>
+      <span>⭐ ${R.score} puntos${gain ? ` · +${gain} 🪙` : ""}${toP ? ` · +${toP} 🐟 a la despensa` : eat ? " · la despensa ya tiene todo el pescado de hoy" : ""}</span>
+      <div class="row" style="gap:8px;margin-top:8px"><button class="btn primary" id="lkAgain" style="flex:1">🔁 Otra vez</button><button class="btn" id="lkOut" style="flex:1">Salir</button></div></div>`;
+    $("lkAgain").onclick = () => { renderLake(); fishStart(); }; $("lkOut").onclick = () => { nbCur = null; renderBarrio(); };
+    duelAfter("pesca", R.score, $("lkCtl"));
+    const aq = document.querySelector(".aqua"); if (aq) { const col = (res && res.fish) || (state.pet || {}).fish || {}; const an = $("aqN"); if (an) an.textContent = FISH.filter(f => col[f.id]).length; aq.innerHTML = FISH.map(f => `<span class="${col[f.id] ? "on" : ""} ${f.gold ? "gold" : ""}">${col[f.id] ? f.e : "❔"}<small>${col[f.id] ? `${esc(f.n)} ×${col[f.id]}` : "???"}</small></span>`).join(""); }
+  }).catch(offline);
+}
+// ---- mercadillo ----
+function basePrice(id) {
+  if (CROPS[id]) return id === "pescado" ? 9 : Math.max(2, Math.round(CROPS[id].c * .7));
+  const it = CAT[id]; if (!it) return 1;
+  const R = RECIPES.find(r => r.out === id); if (R) return Math.round(Object.entries(R.ing).reduce((a, [k, n]) => a + basePrice(k) * n, 0) * 1.5 / (R.qty || 1));
+  return Math.max(2, Math.round((it.c || 10) * .4));
+}
+function sellables(p) {
+  const L = []; Object.entries(p.pantry || {}).forEach(([k, n]) => { if (n > 0 && CROPS[k]) L.push(["p", k, n]); });
+  Object.entries(p.inv || {}).forEach(([k, n]) => { if (n > 0 && CAT[k] && CAT[k].cat === "comida" && k !== "medicina" && k !== "jabon") L.push(["i", k, n]); });
+  return L;
+}
+function priceToday(id, star) { const h = hashStr(dayKey() + ":mk:" + id) % 51, it = !CROPS[id] && CAT[id]; let pr = Math.max(1, Math.round(basePrice(id) * (80 + h) / 100 * (id === star ? 2 : 1))); if (it && it.c > 0) pr = Math.min(pr, Math.max(1, Math.floor(it.c * .45))); return pr; }
+function marketStar() { const pool = [...Object.keys(CROPS), ...RECIPES.map(r => r.out).filter(o => CAT[o] && !(CAT[o].c > 0))]; return pool[hashStr(dayKey() + ":star") % pool.length]; }
+function marketHTML(p) {
+  const L = sellables(p), star = marketStar();
+  return `<div class="mkstar">⭐ Hoy se paga <b>el doble</b>: ${itemE(star)} ${esc(itemN(star))}</div>
+    ${L.length ? `<div class="mklist">${L.map(([t, k, n]) => { const pr = priceToday(k, star); return `<div class="mkrow ${k === star ? "star" : ""}"><i>${itemE(k)}</i><span><b>${esc(itemN(k))}</b><small>tienes ${n} · ${pr} 🪙 c/u</small></span><button class="btn" data-sell="${t}:${k}:1">Vender 1</button>${n > 1 ? `<button class="btn primary" data-sell="${t}:${k}:${n}">Todo · ${pr * n}🪙</button>` : ""}</div>`; }).join("")}</div>` : `<div class="sub">No tenéis nada que vender. Cosechad, pescad o cocinad y volved 🌱🎣🍳</div>`}`;
+}
+function marketSell(t, k, n) {
+  const star = marketStar(), pr = priceToday(k, star); let sold = 0;
+  petTx(q => { sold = 0; const bag = t === "p" ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); const m = Math.min(n, bag[k] || 0); if (!m) return null; bag[k] -= m; sold = m; q.coins = coinsOf(q) + pr * m; q.sold = (q.sold || 0) + m; return q; })
+    .then(() => { if (!sold) return; SFX.coin(); toast(`🛒 Vendido ${sold} ${itemE(k)} · +${pr * sold} 🪙`); renderPlaza(); }).catch(offline);
+}
+// ---- fiesta del domingo ----
+const isFiesta = () => new Date().getDay() === 0;
+function homeScore(p) {
+  let s = 0; const R = p.rooms || {};
+  for (const r of Object.keys(R)) { const rm = R[r] || {}; s += Object.values(rm.items || {}).filter(Boolean).length * 8; if (rm.wall && rm.wall !== "w_crema") s += 6; if (rm.floor && rm.floor !== "f_madera") s += 6; s += Object.keys(rm.tint || {}).length * 3; }
+  s += CATALOG.filter(it => it.cat === "casa" && isOwned(p, it)).length * 2;
+  return Math.min(260, s);
+}
+function renderPlaza() {
+  const v = nbEl(), p = state.pet || {}, wk = weekKey(), pt = (p.party && p.party.wk === wk) ? p.party : {}, today = dayKey(), fiesta = isFiesta();
+  const fig = N => `<div class="pzf">${chickSVG(4, fiesta ? "laugh" : "happy", N.wear, 0, N.c, { species: N.sp })}<small>${esc(N.n)}</small></div>`;
+  const me = `<div class="pzf me">${chickSVG(Math.max(1, stageOf(p.xp || 0)), "laugh", p.wear || {}, 0, p.color, { species: p.species })}<small>${esc(p.name || "Pollito")}</small></div>`;
+  const figs = `<div class="pzrow back">${NEIGH.slice(0, 3).map(fig).join("")}</div><div class="pzrow">${fig(NEIGH[3])}${fig(NEIGH[4])}${me}${fig(NEIGH[5])}</div>`;
+  const garl = `<svg class="pzgarl" viewBox="0 0 360 46" preserveAspectRatio="none"><path d="M0 4 Q90 40 180 12 Q270 40 360 4" stroke="#fff" stroke-width="1.6" fill="none"/>${Array.from({ length: 19 }, (_, i) => { const t = i / 18, u = (t * 2) % 1, y = (1 - u) * (1 - u) * (t < .5 ? 4 : 12) + 2 * u * (1 - u) * 40 + u * u * (t < .5 ? 12 : 4); return `<path d="M${t * 360 - 6} ${y} h12 l-6 12z" fill="${["#ff5c8a", "#ffd23f", "#4cc06a", "#4a7fe0", "#b06ad6"][i % 5]}"/>`; }).join("")}</svg>`;
+  let contest = "";
+  if (fiesta && pt.rank) {
+    contest = `<div class="pzrank">${pt.table.map((r, i) => `<div class="${r.me ? "me" : ""}"><b>${["🥇", "🥈", "🥉"][i] || i + 1 + "º"}</b><span>${esc(r.n)}</span><em>${r.s} pts</em></div>`).join("")}</div>`;
+  }
+  v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>${fiesta ? "🎉 Fiesta en la plaza" : "🛒 La plaza"}</b><span></span></div>
+    <div class="plaza ${fiesta ? "fiesta" : ""}"><div class="pzfont">⛲</div>${fiesta ? garl + `<i class="pzbal l">🎈</i><i class="pzbal r">🎈</i>` : ""}<div class="pzfigs">${fiesta ? figs : `<div class="pzstall"><span>🍅🧺🥕</span><b>Mercadillo</b><small>abierto todos los días</small></div>`}</div></div>
+    <div class="nbbox">${fiesta ? `<div class="slotname">🎉 ¡Es domingo de fiesta!</div>
+      <div class="nbacts"><button class="btn ${pt.dance === today ? "" : "primary"}" id="pzDance" ${pt.dance === today ? "disabled" : ""}>${pt.dance === today ? "💃 Bailado ✓" : "💃 Bailar con todos"}</button><button class="btn ${pt.rank ? "" : "primary"}" id="pzContest" ${pt.rank ? "disabled" : ""}>${pt.rank ? `🏆 Quedasteis ${pt.rank}º` : `🏆 Concurso · ${homeScore(p)} pts`}</button></div>
+      <div class="sub" style="font-size:12px;margin-top:6px">El concurso puntúa vuestros muebles, paredes, suelos y colores. ¡Decorad bien la casa antes de participar!</div>${contest}`
+    : `<div class="sub" style="margin-bottom:8px">🎉 Los domingos hay fiesta en la plaza con todos los vecinos y un concurso de casas.</div>`}
+    <div class="slotname">🛒 Mercadillo</div>${marketHTML(p)}</div>`;
+  $("nbBack").onclick = () => { nbCur = null; renderBarrio(); };
+  v.querySelectorAll("[data-sell]").forEach(b => b.onclick = () => { const [t, k, n] = b.dataset.sell.split(":"); marketSell(t, k, +n); });
+  const d = $("pzDance"); if (d) d.onclick = () => {
+    petTx(q => { const w = weekKey(); q.party = q.party && q.party.wk === w ? { ...q.party } : { wk: w }; if (q.party.dance === dayKey()) return null; q.party.dance = dayKey(); setNeed(q, "fun", 30); q.nb = { ...(q.nb || {}) }; NEIGH.forEach(N => { q.nb[N.id] = { f: 0, ...(q.nb[N.id] || {}) }; q.nb[N.id].f = Math.min(100, q.nb[N.id].f + 5); }); gainExp(q, 6); return q; })
+      .then(r => { if (!r) return; confetti(); SFX.fanfare && SFX.fanfare(); toast("💃 ¡Qué fiesta! +5 💛 con todos los vecinos"); renderPlaza(); }).catch(offline);
+  };
+  const c = $("pzContest"); if (c) c.onclick = () => {
+    const me = homeScore(p), w = weekKey(), table = [...NEIGH.map(N => ({ n: N.n, s: 70 + hashStr(w + N.id) % 130 })), { n: "Vuestra casa 🏡", s: me, me: 1 }].sort((a, b) => b.s - a.s), rank = table.findIndex(r => r.me) + 1, prize = [0, 120, 70, 40][rank] || 20;
+    petTx(q => { q.party = q.party && q.party.wk === w ? { ...q.party } : { wk: w }; if (q.party.rank) return null; q.party.rank = rank; q.party.table = table; q.coins = coinsOf(q) + prize; return q; })
+      .then(r => { if (!r) return; if (rank <= 3) confetti(); readView({ icon: ["", "🥇", "🥈", "🥉"][rank] || "🏅", title: `¡Habéis quedado ${rank}º!`, sub: "Concurso de la casa más bonita", text: `Vuestra casa: ${me} puntos. Premio: ${prize} 🪙. ${rank === 1 ? "¡La casa más bonita del barrio! 🏆" : "Decorad un poco más para el domingo que viene 😉"}` }); sendMsg(`🏆 Hemos quedado ${rank}º en el concurso de casas del barrio`, "pet"); renderPlaza(); }).catch(offline);
+  };
+}
+// ---- trabajos ----
+const NB_JOB = { lola: "Ayudante de panadería 🥐", nube: "Ayudante de jardinería 🌷", bruno: "Recogepelotas ⚽", pingo: "Músico callejero 🎶", canela: "Ayudante de pintora 🎨", tofu: "Ayudante de biblioteca 📚" };
+const JOBS = [[1, 20], [3, 55], [8, 130]];
+function jobStart(N, h, pay) {
+  const p = state.pet || {}, I = petInfo();
+  if (tripAway(p)) return toast("Está de excursión, ¡aún no ha vuelto! 🧳");
+  if (isNapping(p)) return toast("Está echándose la siesta 😴");
+  if (I.nv.energy < 30) return toast("Está muy cansado para trabajar 😴 Que descanse primero");
+  petTx(q => { q.visit = { nb: N.id, at: Date.now(), until: Date.now() + h * 36e5, by: who, job: h, pay, paid: false }; q.here = null; setNeed(q, "energy", -25); return q; })
+    .then(() => { nbSay = `¡Genial! Hoy ${p.name || "tu pollito"} será mi ${NB_JOB[N.id].toLowerCase()}`; SFX.ding(); toast(`💼 A trabajar ${h} h con ${N.n} · cobrará ${pay} 🪙 al volver`); sceneSig = ""; petSig = ""; renderPet(); renderNbHouse(); }).catch(offline);
+}
+function jobCheck(p) {
+  const v = p && p.visit; if (!v || !v.job || v.paid || v.until > Date.now()) return;
+  if (jobCheck.busy) return; jobCheck.busy = true;
+  let paid = 0, nbn = "";
+  petTx(q => { paid = 0; const x = q.visit; if (!x || !x.job || x.paid || x.until > Date.now()) return null; paid = x.pay; nbn = (NB[x.nb] || {}).n || ""; q.coins = coinsOf(q) + x.pay; q.visit = null; q.jobs = (q.jobs || 0) + 1; gainExp(q, 4 * x.job); q.nb = { ...(q.nb || {}) }; q.nb[x.nb] = { f: 0, ...(q.nb[x.nb] || {}) }; q.nb[x.nb].f = Math.min(100, q.nb[x.nb].f + 4 * x.job); return q; })
+    .then(() => { jobCheck.busy = false; if (!paid) return; sceneSig = ""; petSig = ""; renderPet(); setTimeout(() => { coinFx(paid); readView({ icon: "💼", title: "¡Ha vuelto de trabajar!", sub: `Con ${nbn}`, text: rnd([`Ha trabajado muchísimo y ${nbn} está encantado. Trae ${paid} 🪙 de sueldo 💪`, `Dice que se lo ha pasado genial y que ${nbn} le ha invitado a merendar. Ha ganado ${paid} 🪙 🥰`, `Viene cansadito pero orgulloso: ${paid} 🪙 para la hucha 🐷`]) }); }, 600); sendMsg(`💼 ${(state.pet || {}).name || "El pollito"} ha vuelto de trabajar con ${nbn}: +${paid} 🪙`, "pet"); })
+    .catch(() => { jobCheck.busy = false; });
+}
+function jobPanel(N, p) {
+  const st = nbOf(p, N.id), v = visitOf(p);
+  if (v && v.job && v.nb === N.id) return `<div class="nbvis"><div class="nbvhead"><b>💼 ${esc(p.name || "Pollito")} está trabajando</b><small>vuelve a las ${hhmm(v.until)} · ${v.pay} 🪙</small></div><div class="sub" style="font-size:12.5px">${esc(NB_JOB[N.id])}</div><button class="btn" id="jobCancel" style="width:100%;margin-top:8px">Que vuelva ya (sin cobrar)</button></div>`;
+  if (v) return "";
+  if ((st.f || 0) < 15) return `<div class="nbreq none">💼 Para trabajar con ${esc(N.n)} necesitáis ser conocidos (15 💛)</div>`;
+  return `<div class="jobs"><div class="slotname" style="margin-top:0">💼 Trabajar de ${esc(NB_JOB[N.id].toLowerCase())}</div><div class="nbvacts">${JOBS.map(([h, pay]) => `<button class="btn" data-job="${h}:${pay}"><span>⏱</span>${h} h · ${pay} 🪙</button>`).join("")}</div></div>`;
+}
+// ---- noche, lluvia y fiesta en el mapa ----
+function barrioMood() { const h = new Date().getHours(), night = h >= 21 || h < 7, dusk = !night && h >= 19, k = WX && wxOn() ? wxKindOf(WX.code) : ""; return { night, dusk, rain: k === "rain" || k === "storm", snow: k === "snow", fiesta: isFiesta() }; }
+function barrioWx() { const M = barrioMood(); return M.rain || M.snow ? `<div class="nbrain ${M.snow ? "snow" : ""}"></div>` : ""; }
+function barrioOverlay() {
+  const M = barrioMood(); let s = "";
+  if (M.fiesta) { s += `<path d="M140 262 Q180 276 220 262 M140 332 Q180 318 220 332" stroke="#fff" stroke-width="1.5" fill="none"/>${Array.from({ length: 9 }, (_, i) => `<path d="M${144 + i * 9} ${266 + Math.sin(i) * 2} l4 8 l4 -8z" fill="${["#ff5c8a", "#ffd23f", "#4cc06a", "#4a7fe0"][i % 4]}"/>`).join("")}<text x="132" y="258" font-size="16">🎈</text><text x="214" y="342" font-size="16">🎈</text><text x="214" y="262" font-size="14">🎉</text>`; }
+  if (M.night || M.dusk) {
+    s += `<rect width="360" height="600" fill="${M.night ? "#0b1640" : "#3a1d4a"}" opacity="${M.night ? .55 : .22}"/>`;
+    if (M.night) { [[150, 60], [210, 150], [150, 230], [210, 360], [150, 440], [210, 520], [60, 297], [300, 297]].forEach(([x, y]) => s += `<circle cx="${x}" cy="${y}" r="16" fill="#ffe08a" opacity=".22"/><circle cx="${x}" cy="${y}" r="3.5" fill="#fff4c2"/>`); for (let i = 0; i < 16; i++) { const h = hashStr("ff" + i); s += `<circle class="ffly" cx="${h % 360}" cy="${(h >> 8) % 600}" r="1.6" fill="#f6ff9e" style="animation-delay:${-(i % 5)}s"/>`; }
+      [...NEIGH.map(N => [N.x, N.y, 54, 1]), ...(mateOf(state.pet || {}) ? [[290, 368, 54, 0]] : []), [180, 560, 66, 0]].forEach(([x, y, h, z]) => s += `<ellipse cx="${x}" cy="${y + h / 2 + 6}" rx="17" ry="8" fill="#ffd76a" opacity=".5"/><circle cx="${x}" cy="${y + h / 2 + 5}" r="3" fill="#fff6c8"/>${z ? `<text class="nbzz" x="${x - 34}" y="${y - h / 2 + 2}" font-size="13">💤</text>` : ""}`);
+      s += `<text x="10" y="30" font-size="22">🌙</text>`; }
+  }
+  return s;
+}
+
 // si le das de comer, mimos, etc. y no está contigo, viene corriendo
 document.querySelector(".actions.six").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || !["petFeed", "petBag", "petHug", "petPlay", "petBath", "petSleep", "petTricks"].includes(b.id)) return;
