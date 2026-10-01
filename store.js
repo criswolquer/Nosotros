@@ -101,6 +101,8 @@ function localImpl() {
     if (c) (L[c] || []).forEach(f => f());
   };
   const on = (p, f) => { (L[p] = L[p] || []).push(f); setTimeout(f, 0); return () => { L[p] = L[p].filter(x => x !== f); }; };
+  // modo prueba con dos pestañas abiertas: lo que cambia en una se ve en la otra
+  try { window.addEventListener("storage", e => { if (e.key && e.key.startsWith("demo:") && !e.key.endsWith("/__ids")) fire(e.key.slice(5)); }); } catch (e) {}
   const ids = c => get(c + "/__ids") || [];
   const reg = p => { const parts = p.split("/"); if (parts.length % 2) return; const id = parts.pop(), c = parts.join("/"); if (!ids(c).includes(id)) set(c + "/__ids", [...ids(c), id]); };
   return {
