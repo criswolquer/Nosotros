@@ -4013,7 +4013,7 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "54";
+const APP_VERSION = "1.1";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -6423,6 +6423,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden && spO
 function renderSp() {
   const v = $("spBody"); if (!v) return;
   document.querySelectorAll("#spTabs button").forEach(b => b.classList.toggle("on", b.dataset.t === spTab));
+  { const cb = document.querySelector('#spTabs [data-t="cal"]'); if (cb) cb.classList.toggle("dot", !!wrNewKey()); }
   const o = esc(name(other())), me = esc(name(who));
   let h = "";
   if (spTab === "juego") {
@@ -6461,6 +6462,7 @@ function renderSp() {
   if (spTab === "cal") bindSpCal();
   v.querySelectorAll("[data-kf]").forEach(b => b.onclick = () => { ksFilter = b.dataset.kf; renderSp(); });
   v.querySelectorAll("[data-ks]").forEach(b => b.onclick = () => ksOpen(b.dataset.ks));
+  v.querySelectorAll("[data-wr]").forEach(b => b.onclick = () => { const [y, m] = b.dataset.wr.split("-").map(Number); wrOpen(y, m - 1); });
   if ($("ksSpin")) $("ksSpin").onclick = ksSpin;
   if (ksOpenId) renderKsSheet();
   // marcar como vistos
@@ -6826,6 +6828,7 @@ function renderSpCal() {
       <div class="icwd">${["L", "M", "X", "J", "V", "S", "D"].map((x, i) => `<span class="${i >= 5 ? "wk" : ""}">${x}</span>`).join("")}</div>
       <div class="icgrid${anim}" id="icGrid">${rows}</div></div>
     ${icAgenda(spCalSel)}
+    ${wrCardHTML()}
     <div class="spsec">Resumen</div>
     <div class="kpis"><div class="kpi"><b>${st.month}</b><small>este mes</small></div><div class="kpi"><b>${st.year}</b><small>este año</small></div><div class="kpi"><b>${st.streak}</b><small>racha</small></div><div class="kpi"><b>${st.avg ? st.avg.toFixed(1) : "—"}</b><small>★ media</small></div></div>
     <div class="spsec">Últimos 6 meses</div><div class="bars6">${st.bars.map(([l, v]) => `<div class="b6"><i style="height:${Math.round(v / max * 100)}%"></i><b>${v}</b><small>${l}</small></div>`).join("")}</div>
@@ -6892,6 +6895,103 @@ function renderCalSheet() {
     calCloseSheet(); SFX.ding(); toast(isNew ? "Apuntado 🔥" : "Cambios guardados ✓"); renderSp();
   };
   const dl = $("cfDel"); if (dl) dl.onclick = () => { if (!confirm("¿Eliminar el registro de este día?")) return; S.del("spcal/" + spCalSel); calCloseSheet(); renderSp(); };
+}
+
+
+// ---------- 🎬 v55 · Resumen mensual estilo "Wrapped" ----------
+const wrKey = (y, m) => { const d = new Date(y, m, 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; };
+const wrMonth = (y, m) => new Date(y, m, 1).toLocaleDateString("es-ES", { month: "long" });
+const WR_WD = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
+let wr = null;
+function wrStats(y, m) {
+  const pre = wrKey(y, m), all = spCal.filter(e => e.n > 0).sort((a, b) => a.id < b.id ? -1 : 1), E = all.filter(e => e.id.startsWith(pre));
+  const ppre = wrKey(y, m - 1), prev = all.filter(e => e.id.startsWith(ppre)).reduce((a, e) => a + e.n, 0);
+  const total = E.reduce((a, e) => a + e.n, 0), days = new Set(E.map(e => e.id));
+  let best = 0; E.forEach(e => { const d = new Date(e.id + "T12:00:00"); d.setDate(d.getDate() - 1); if (days.has(localKey(d))) return; let c = 0; const x = new Date(e.id + "T12:00:00"); while (days.has(localKey(x)) && localKey(x).startsWith(pre)) { c++; x.setDate(x.getDate() + 1); } best = Math.max(best, c); });
+  const top = E.slice().sort((a, b) => b.n - a.n || (b.rating || 0) - (a.rating || 0))[0];
+  const pc = {}; E.forEach(e => (e.pos || []).forEach(p => { if (KSM[p]) pc[p] = (pc[p] || 0) + 1; }));
+  const star = Object.entries(pc).sort((a, b) => b[1] - a[1])[0];
+  const first = {}; all.forEach(e => (e.pos || []).forEach(p => { if (!first[p]) first[p] = e.id; }));
+  const newPos = Object.keys(first).filter(p => KSM[p] && first[p].startsWith(pre));
+  const cnt = f => { const o = {}; let t = 0; E.forEach(e => f(e).forEach(k => { if (k) { o[k] = (o[k] || 0) + 1; t++; } })); return { L: Object.entries(o).sort((a, b) => b[1] - a[1]), t }; };
+  const times = cnt(e => e.times || []), places = cnt(e => [e.place]);
+  const wd = [0, 0, 0, 0, 0, 0, 0]; E.forEach(e => { wd[(new Date(e.id + "T12:00:00").getDay() + 6) % 7] += e.n; });
+  const rated = E.filter(e => e.rating), avg = rated.length ? rated.reduce((a, e) => a + e.rating, 0) / rated.length : 0;
+  const note = E.filter(e => e.note).sort((a, b) => (b.rating || 0) - (a.rating || 0) || (a.id < b.id ? 1 : -1))[0];
+  const title = total >= 12 ? ["Un mes de fuego", "🔥"] : newPos.length >= 3 ? ["Mes explorador", "🧭"] : avg >= 4.5 ? ["Calidad cinco estrellas", "⭐"] : best >= 3 ? ["Imparables", "⚡"] : total >= 6 ? ["Muy bien avenidos", "😏"] : ["Pocas, pero buenas", "💞"];
+  return { y, m, pre, E, total, days: days.size, prev, best, top, star, newPos, times, places, wd, avg, rated: rated.length, note, title };
+}
+function wrSlides(s) {
+  const mes = wrMonth(s.y, s.m), Mes = cap(mes), me = esc(name(who)), o = esc(name(other())), A = (d, h, c = "") => `<div class="wa ${c}" style="--d:${d}s">${h}</div>`, S = [];
+  S.push({ bg: "g1", html: `${A(.1, `<div class="wrk">${s.y} · solo para vosotros</div>`)}${A(.35, `<div class="wrbig">Vuestro<br>${mes}</div>`)}${A(.8, `<div class="wrsub">${me} <span>&</span> ${o}</div>`)}${A(1.6, `<div class="wrhint">Toca para empezar ›</div>`)}<div class="wrfloat">${["💗", "✨", "🔥", "💋", "✨", "💞"].map((e, i) => `<i style="--i:${i}">${e}</i>`).join("")}</div>`, dur: 5200 });
+  const diff = s.total - s.prev, prevName = wrMonth(s.y, s.m - 1);
+  S.push({ bg: "g2", html: `${A(.1, `<div class="wrk">En ${mes} lo hicisteis</div>`)}${A(.3, `<div class="wrnum" data-count="${s.total}">0</div>`)}${A(.5, `<div class="wrunit">${s.total === 1 ? "vez" : "veces"}</div>`)}${A(1.1, `<div class="wrpill">en <b>${s.days}</b> ${s.days === 1 ? "día distinto" : "días distintos"}</div>`)}${s.prev || s.total ? A(1.6, `<div class="wrcmp ${diff > 0 ? "up" : diff < 0 ? "down" : ""}">${s.prev ? (diff > 0 ? `▲ ${diff} más que en ${prevName}` : diff < 0 ? `▼ ${-diff} menos que en ${prevName}` : `Igual que en ${prevName}`) : `${cap(prevName)} no tuvo registros`}</div>`) : ""}` });
+  const first = new Date(s.y, s.m, 1), off = (first.getDay() + 6) % 7, nd = new Date(s.y, s.m + 1, 0).getDate(), M = {}; s.E.forEach(e => { M[e.id] = e.n; });
+  let cells = "", k = 0; for (let i = 0; i < off; i++) cells += "<span></span>";
+  for (let d = 1; d <= nd; d++) { const key = `${s.pre}-${String(d).padStart(2, "0")}`, n = M[key] || 0; cells += `<span class="${n ? "l" + Math.min(3, n) : ""}" style="--d:${n ? (.5 + (k++) * .09).toFixed(2) : 0}s">${d}</span>`; }
+  const topD = s.top ? new Date(s.top.id + "T12:00:00") : null;
+  S.push({ bg: "g3", html: `${A(.1, `<div class="wrk">Vuestros días de ${mes}</div>`)}${A(.25, `<div class="wrcal"><div class="wrcwd">${"LMXJVSD".split("").map(x => `<b>${x}</b>`).join("")}</div><div class="wrcg">${cells}</div></div>`)}
+    <div class="wrrow">${A(1.2 + k * .09, `<div class="wrmini"><b>${s.best}</b><small>${s.best === 1 ? "día, vuestra<br>mejor racha" : "días seguidos,<br>vuestra mejor racha"}</small></div>`)}${topD ? A(1.4 + k * .09, `<div class="wrmini"><b>${topD.getDate()}</b><small>de ${mes}, el día más<br>intenso (${s.top.n} ${s.top.n === 1 ? "vez" : "veces"})</small></div>`) : ""}</div>`, dur: 7000 + k * 90 });
+  if (s.star) {
+    const st = KSM[s.star[0]];
+    S.push({ bg: "g4", html: `${A(.1, `<div class="wrk">Vuestra postura estrella</div>`)}${A(.35, `<div class="wrart">${ksSVG(st.id)}</div>`, "pop")}${A(.9, `<div class="wrtitle">${esc(st.n)}</div>`)}${A(1.2, `<div class="wrpill"><b>${s.star[1]}</b> ${s.star[1] === 1 ? "vez" : "veces"} este mes</div>`)}
+      ${s.newPos.length ? A(1.8, `<div class="wrnew"><small>✨ Y estrenasteis ${s.newPos.length} ${s.newPos.length === 1 ? "postura nueva" : "posturas nuevas"}</small><div>${s.newPos.slice(0, 4).map(p => `<span>${ksSVG(p)}<em>${esc(KSM[p].n)}</em></span>`).join("")}</div></div>`) : ""}`, dur: 7500 });
+  }
+  const tm = s.times.L[0], pl = s.places.L[0];
+  if (tm || pl) {
+    const tName = tm ? (SP_TIMES.find(x => x[0] === tm[0]) || ["", tm[0]])[1] : "", pName = pl ? (SP_PLACES.find(x => x[0] === pl[0]) || ["", pl[0]])[1] : "";
+    const big = t => { const [e, ...r] = t.split(" "); return `<span class="wre">${e}</span><b>${r.join(" ")}</b>`; };
+    S.push({ bg: "g5", html: `${A(.1, `<div class="wrk">Lo vuestro es…</div>`)}${tm ? A(.35, `<div class="wrcardx">${big(tName)}<small>vuestro momento del día · ${Math.round(tm[1] / s.times.t * 100)}%</small></div>`) : ""}${pl ? A(.9, `<div class="wrcardx">${big(pName)}<small>vuestro sitio favorito · ${Math.round(pl[1] / s.places.t * 100)}%</small></div>`) : ""}` });
+  }
+  const wmax = Math.max(...s.wd), wi = s.wd.indexOf(wmax);
+  if (wmax > 0) S.push({ bg: "g6", html: `${A(.1, `<div class="wrk">Vuestro día favorito</div>`)}${A(.3, `<div class="wrbig sm">Los ${WR_WD[wi]}${wi < 5 ? "" : ""}</div>`)}${A(.6, `<div class="wrbars7">${s.wd.map((v, i) => `<div class="${i === wi ? "top" : ""}"><i style="--h:${Math.round(v / wmax * 100)}%;--d:${(.8 + i * .1).toFixed(1)}s"></i><b>${v || ""}</b><span>${"LMXJVSD"[i]}</span></div>`).join("")}</div>`)}` });
+  if (s.rated) S.push({ bg: "g7", html: `${A(.1, `<div class="wrk">Nota media del mes</div>`)}${A(.3, `<div class="wrnum sm" data-count="${s.avg.toFixed(1)}" data-dec="1">0</div>`)}${A(.5, `<div class="wrstars">${[1, 2, 3, 4, 5].map(i => `<i class="${s.avg >= i - .25 ? "on" : ""}" style="--d:${(.7 + i * .15).toFixed(2)}s">★</i>`).join("")}</div>`)}
+    ${s.note ? A(1.7, `<div class="wrquote">“${esc(s.note.note)}”<small>— ${fmtDate(new Date(s.note.id + "T12:00:00"), { day: "numeric", month: "long" })}</small></div>`) : ""}` });
+  S.push({ bg: "g8", html: `${A(.1, `<div class="wrk">Vuestro ${mes} en una frase</div>`)}${A(.3, `<div class="wremoji">${s.title[1]}</div>`, "pop")}${A(.7, `<div class="wrbig sm">${s.title[0]}</div>`)}
+    ${A(1.1, `<div class="wrchips"><span><b>${s.total}</b>veces</span><span><b>${s.days}</b>días</span><span><b>${s.best}</b>racha</span><span><b>${s.newPos.length}</b>nuevas</span></div>`)}
+    ${A(1.5, `<div class="wrsub">Hasta el mes que viene, ${me} y ${o} 💞</div>`)}${A(1.8, `<div class="wrbtns"><button class="spb" id="wrAgain">↺ Ver otra vez</button><button class="spb hot" id="wrDone">Cerrar</button></div>`)}`, fx: () => setTimeout(() => confetti(), 500) });
+  return S;
+}
+function wrOpen(y, m) {
+  const st = wrStats(y, m); if (!st.total) return toast("Ese mes no tiene registros todavía");
+  ls.set("spWr:" + wrKey(y, m), "1");
+  wr = { st, i: 0, slides: wrSlides(st), t: null };
+  const v = ksSheetEl("wrView", "wrview"); v.classList.remove("hidden"); wrShow(0);
+}
+function wrClose() { if (wr) clearTimeout(wr.t); wr = null; const v = $("wrView"); if (v) { v.classList.add("hidden"); v.innerHTML = ""; } if (spOpen) renderSp(); }
+function wrShow(i) {
+  const v = $("wrView"); if (!wr || !v) return;
+  i = Math.max(0, Math.min(wr.slides.length - 1, i)); wr.i = i; clearTimeout(wr.t);
+  const s = wr.slides[i], dur = s.dur || 6500, last = i === wr.slides.length - 1;
+  v.innerHTML = `<div class="wrslide ${s.bg}" style="--dur:${dur}ms"><div class="wrblob"></div><div class="wrbars">${wr.slides.map((_, k) => `<i class="${k < i ? "done" : k === i && !last ? "on" : k === i ? "done" : ""}"><b></b></i>`).join("")}</div>
+    <div class="wrtop"><span>🌶️ Resumen de ${wrMonth(wr.st.y, wr.st.m)}</span><button class="wrx" aria-label="Cerrar">✕</button></div>
+    <div class="wrtap l"></div><div class="wrtap r"></div><div class="wrin">${s.html}</div></div>`;
+  v.querySelector(".wrx").onclick = wrClose;
+  v.querySelector(".wrtap.l").onclick = () => { if (wr.i > 0) wrShow(wr.i - 1); };
+  v.querySelector(".wrtap.r").onclick = () => { if (!last) wrShow(wr.i + 1); };
+  const ag = $("wrAgain"); if (ag) ag.onclick = () => wrShow(0); const dn = $("wrDone"); if (dn) dn.onclick = wrClose;
+  v.querySelectorAll("[data-count]").forEach(el => {
+    const to = +el.dataset.count, dec = +(el.dataset.dec || 0), t0 = performance.now(), delay = 450, len = 1300;
+    const step = t => { if (!wr || !el.isConnected) return; const p = Math.max(0, Math.min(1, (t - t0 - delay) / len)), e = 1 - Math.pow(1 - p, 3); el.textContent = (to * e).toFixed(dec); if (p < 1) requestAnimationFrame(step); else if (!dec) SFX.coin(); };
+    requestAnimationFrame(step);
+  });
+  SFX.whoosh(); buzz(8); if (s.fx) s.fx(v);
+  // mantener pulsado = pausa
+  wr.left = dur; wr.start = performance.now();
+  const sl = v.querySelector(".wrslide");
+  const next = () => { if (wr && wr.i === i) wrShow(i + 1); };
+  if (!last) wr.t = setTimeout(next, dur);
+  sl.onpointerdown = () => { if (last || !wr) return; clearTimeout(wr.t); wr.left -= performance.now() - wr.start; sl.classList.add("paused"); };
+  sl.onpointerup = sl.onpointercancel = () => { if (last || !wr || !sl.classList.contains("paused")) return; sl.classList.remove("paused"); wr.start = performance.now(); wr.t = setTimeout(next, Math.max(300, wr.left)); };
+}
+function wrMonths() { return [...new Set(spCal.filter(e => e.n > 0).map(e => e.id.slice(0, 7)))].sort().reverse().slice(0, 12); }
+function wrNewKey() { const n = new Date(), pk = wrKey(n.getFullYear(), n.getMonth() - 1); return wrMonths().includes(pk) && !ls.get("spWr:" + pk) ? pk : null; }
+function wrCardHTML() {
+  const L = wrMonths(); if (!L.length) return "";
+  const n = new Date(), cur = wrKey(n.getFullYear(), n.getMonth()), pk = wrKey(n.getFullYear(), n.getMonth() - 1);
+  const main = L.includes(pk) ? pk : L[0], [y, mm] = main.split("-").map(Number), st = wrStats(y, mm - 1), isNew = !ls.get("spWr:" + main) && main !== cur;
+  return `<button class="wrcard ${isNew ? "new" : ""}" data-wr="${main}"><div class="wrcv"><span>🎬</span></div><div class="wrct"><small>${isNew ? "<em>NUEVO</em> " : ""}Resumen del mes</small><b>Vuestro ${wrMonth(y, mm - 1)}${main === cur ? " (hasta hoy)" : ""}</b><span>${st.total} ${st.total === 1 ? "vez" : "veces"} · ${st.title[0]} ${st.title[1]}</span></div><i>▶</i></button>
+    ${L.length > 1 ? `<div class="wrmonths">${L.filter(k => k !== main).map(k => { const [a, b] = k.split("-").map(Number); return `<button class="chip" data-wr="${k}">🎬 ${cap(new Date(a, b - 1, 1).toLocaleDateString("es-ES", { month: "short" }).replace(".", ""))} ${String(a).slice(2)}</button>`; }).join("")}</div>` : ""}`;
 }
 
 // si le das de comer, mimos, etc. y no está contigo, viene corriendo
