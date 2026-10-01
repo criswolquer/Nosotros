@@ -56,7 +56,7 @@ function tick() {
     $("together").textContent = days; $("togetherSub").textContent = days === 1 ? "día juntos" : "días juntos";
   } else { $("together").textContent = "—"; $("togetherSub").textContent = "días"; }
 
-  const next = state.main.next;
+  const next = state.main.next && !(state.main.nextSet && state.main.next - state.main.nextSet < 30 * 6e4) && state.main.next > Date.now() - DAY ? state.main.next : null;
   if (next) {
     const ms = next - Date.now();
     if (ms <= 0) { $("countdown").textContent = "¡Ya!"; $("countdownSub").textContent = "🥹"; }
@@ -133,6 +133,7 @@ function renderChat(list) {
     const fresh = list.filter(m => m.from === other() && m.at > seen);
     if (fresh.length) {
       toast(name(other()) + ": " + fresh[0].text, 3500); buzz([60, 80, 60]);
+      { const th = fresh.find(m => m.kind === "think"), mine = (((state.main || {}).think || {})["last_" + who]) || 0; if (th && Math.abs(th.at - mine) < THINK_SYNC && typeof thinkSync === "function") setTimeout(thinkSync, 600); }
       if ($("tab-home").classList.contains("hidden")) $("dotHome").classList.remove("hidden");
     }
   }
@@ -1302,7 +1303,7 @@ function adoptEgg(sp) {
   const nm = ((prompt(`¿Cómo se va a llamar?`, s.n) || s.n).trim() || s.n).slice(0, 24);
   petTx(q => {
     if (stageOf(q.xp) !== 6) return null;
-    q.family = [...(q.family || []), { name: q.name || "Pollito", species: q.species || "pollito", color: q.color || "amarillo", wear: q.wear || {}, stage: 6, xp: q.xp, hatchedAt: q.hatchedAt || null, at: Date.now() }];
+    q.family = [...(q.family || []), { sex: q.sex || null, name: q.name || "Pollito", species: q.species || "pollito", color: q.color || "amarillo", wear: q.wear || {}, stage: 6, xp: q.xp, hatchedAt: q.hatchedAt || null, at: Date.now() }];
     Object.assign(q, { name: nm, species: sp, xp: 0, streak: 0, lastBoth: null, care: {}, born: Date.now(), album: { 0: Date.now() }, trait: null, hatchedAt: null, sick: false, curedAt: 0, nap: 0, napStart: 0, wear: {}, color: s.color, bday: {}, trip: null });
     q.owned["color:" + s.color] = true;
     const now = Date.now(); q.n = {}; for (const [k] of NEEDS) q.n[k] = { v: 80, t: now };
@@ -2199,7 +2200,7 @@ function renderPet() {
   $("petPost").classList.toggle("hidden", !(forMe || replyForMe) || !!away);
   renderGiftBtn(p);
 
-  $("petName").textContent = p.name;
+  $("petName").innerHTML = esc(p.name || "Pollito") + (p.sex ? " " + sxTag(p.sex) : "");
   const tt = TITLES[p.title]; $("petTitle").textContent = tt ? "« " + tt[1] + " »" : ""; $("petTitle").classList.toggle("hidden", !tt || si === 0);
   $("petFrame").className = "pframe fr-" + (p.frame || "ninguno");
   $("petMood").textContent = stageName(si, p.species) + " · " + (away ? `Está de excursión en ${away.n} ${away.e}` : moodText(I)) + (si && !away && here ? ` · 📍 ${LOCE[petLoc(p, I)]} ${LOCN[petLoc(p, I)]}` : "");
@@ -3978,7 +3979,11 @@ $("btnSettings").onclick = () => {
 $("sCancel").onclick = () => $("settings").close();
 $("sSave").onclick = () => {
   const v = $("sNext").value;
-  const nv = v ? new Date(v).getTime() : null; if (nv !== (state.main.next || null)) S.merge("state/main", nv ? { next: nv, nextSet: Date.now() } : { next: null });
+  const nv = v ? new Date(v).getTime() : null;
+  if (nv !== (state.main.next || null)) {
+    if (nv && nv < Date.now() + 10 * 6e4) { toast("Esa fecha ya ha pasado: elige cuándo os veis ✈️"); $("sNext").focus(); return; }
+    S.merge("state/main", nv ? { next: nv, nextSet: Date.now() } : { next: null, nextSet: null });
+  }
   const sv = $("sServer").value.trim().replace(/\/+$/, "");
   if (!CONFIG.pushUrl && sv !== ((state.main || {}).server || "")) {
     if (sv && !/^https:\/\/[^\s]+$/.test(sv)) { toast("La dirección del servidor tiene que empezar por https://"); return; }
@@ -4007,13 +4012,21 @@ function loginUI(err) {
       const email = $("lgEmail").value.trim().toLowerCase(), pass = $("lgPass").value;
       if (!email || pass.length < 6) { $("lgErr").textContent = "Pon tu email y una contraseña de al menos 6 caracteres"; return; }
       if (!allowed.includes(email)) { $("lgErr").textContent = "Este email no está invitado 🙈"; return; }
-      $("lgErr").textContent = "Un momento…"; res({ email, pass, mode });
+      $("lgErr").style.color = ""; $("lgErr").textContent = "Un momento…"; res({ email, pass, mode });
     };
     $("lgIn").onclick = () => go("in"); $("lgNew").onclick = () => go("new");
+    $("lgForgot").onclick = async () => {
+      const email = $("lgEmail").value.trim().toLowerCase(), e = $("lgErr");
+      if (!email) { e.textContent = "Escribe arriba tu email y vuelve a pulsar aquí"; $("lgEmail").focus(); return; }
+      if (!allowed.includes(email)) { e.textContent = "Este email no está invitado 🙈"; return; }
+      e.textContent = "Enviando…";
+      try { await S.resetPassword(email); e.style.color = "#b8f5c8"; e.textContent = `📩 Te hemos mandado un email a ${email} para elegir una contraseña nueva. Si no lo ves, mira en spam.`; }
+      catch (er) { e.style.color = ""; e.textContent = er && er.code === "auth/user-not-found" ? "Ese email aún no tiene cuenta: pulsa «crear cuenta»" : er && er.code === "auth/network-request-failed" ? "Sin conexión a internet 📶" : er && er.code === "auth/too-many-requests" ? "Demasiados intentos, espera un poco" : "No se pudo enviar el email, prueba otra vez"; }
+    };
   });
 }
 
-const APP_VERSION = "1.2";
+const APP_VERSION = "1.8";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -5419,9 +5432,10 @@ let meetT = 0;
 function renderMeet() {
   const el = $("meetCard"); if (!el) return;
   const nx = state.main.next, now = Date.now(), o = name(other()), m = state.main;
-  if (!nx || nx < now - DAY) {
+  const bogus = nx && m.nextSet && nx - m.nextSet < 30 * 6e4;
+  if (!nx || nx < now - DAY || bogus) {
     el.innerHTML = `<div class="label">¿Cuándo os veis? ✈️</div><div class="sub">Poned la fecha y empezará la cuenta atrás para los dos.</div><div class="row mt"><input type="datetime-local" id="meetIn"><button class="btn primary" id="meetSet">Guardar</button></div>`;
-    $("meetSet").onclick = () => { const v = $("meetIn").value; if (!v) return toast("Elige fecha y hora"); S.merge("state/main", { next: new Date(v).getTime(), nextSet: Date.now(), meetPlan: [], meetNote: {} }); sendMsg(`✈️ ¡Ya tenemos fecha! Nos vemos el ${fmtD(new Date(v).getTime(), { weekday: "long", day: "numeric", month: "long" })} 🥹`, "text"); };
+    $("meetSet").onclick = () => { const v = $("meetIn").value; if (!v) return toast("Elige fecha y hora"); if (new Date(v).getTime() < Date.now() + 10 * 6e4) return toast("Esa fecha ya ha pasado: elige una futura ✈️"); S.merge("state/main", { next: new Date(v).getTime(), nextSet: Date.now(), meetPlan: [], meetNote: {} }); sendMsg(`✈️ ¡Ya tenemos fecha! Nos vemos el ${fmtD(new Date(v).getTime(), { weekday: "long", day: "numeric", month: "long" })} 🥹`, "text"); };
     return;
   }
   const here = nx <= now, ms = Math.max(0, nx - now), set = m.nextSet && m.nextSet < nx ? m.nextSet : nx - 30 * DAY, pct = Math.min(100, Math.max(2, (now - set) / (nx - set) * 100));
@@ -5430,13 +5444,18 @@ function renderMeet() {
     <div class="cdown" id="cdown"></div>
     <div class="cdbar"><i style="width:${pct.toFixed(1)}%"></i><span style="left:${pct.toFixed(1)}%">✈️</span></div>
     <div class="sub" style="text-align:center;margin-top:6px">${esc(fmtD(nx, { weekday: "long", day: "numeric", month: "long" }))} · ${esc(fmt(myTz, { hour: "2-digit", minute: "2-digit" }))} ahora</div>
+    ${meetPetHTML(nx)}
     <div class="slotname">📝 Lo que haremos ese día</div>
     ${plan.length ? plan.map((x, i) => `<div class="lrow"><span>${esc(x.t)} <small>· ${esc(name(x.by))}</small></span>${x.by === who ? `<button class="x" data-mp="${i}">✕</button>` : ""}</div>`).join("") : `<div class="empty" style="font-size:13.5px">Apuntad todo lo que queréis hacer cuando os veáis 💞</div>`}
     <div class="sendrow"><input id="mpIn" placeholder="Cenar juntos, un abrazo…" maxlength="80"><button class="btn primary" id="mpAdd">+</button></div>
     <div class="slotname">💌 Sobres para ese día</div>
     <div class="mnotes"><div class="mnote2 ${theirN ? "has" : ""}">${theirN ? (here ? `<b>De ${esc(o)}:</b> ${esc(theirN.t)}` : `🔒 ${esc(o)} te ha dejado un sobre. Se abre cuando os veáis`) : `${esc(o)} aún no ha dejado sobre`}</div>
     <div class="mnote2 mine">${mineN ? `✅ Tu sobre está guardado${here ? `: ${esc(mineN.t)}` : " 🤫"}` : `<textarea id="mnIn" rows="2" maxlength="300" placeholder="Escribe algo para que ${esc(o)} lo lea ese día…"></textarea><button class="btn" id="mnSave">Guardar sobre 💌</button>`}</div></div>
-    <button class="linkbtn" id="meetEdit" style="margin-top:8px">Cambiar la fecha</button>`;
+    ${spOn() ? `<button class="meetsp" id="meetSp">🌶️ <span><b>Vuestro plan privado</b><small>Las posturas que queréis probar los dos</small></span><i>›</i></button>` : ""}
+    <div style="display:flex;justify-content:center;gap:18px;margin-top:8px"><button class="linkbtn" id="meetEdit">Cambiar la fecha</button><button class="linkbtn" id="meetDel">Quitar la fecha</button></div>`;
+  $("meetDel").onclick = () => { if (!confirm("¿Quitar la fecha en la que os veis?")) return; S.merge("state/main", { next: null, nextSet: null }); toast("Fecha quitada"); };
+  const msp = $("meetSp"); if (msp) msp.onclick = () => { spTab = "ks"; ksFilter = "lista"; spEnter(); };
+  if (here && !ls.get("meetParty:" + nx)) { ls.set("meetParty:" + nx, "1"); setTimeout(() => { confetti(); toast(`¡Hoy os veis! 🥹💞 Disfrutadlo mucho`, 4000); }, 700); }
   el.querySelectorAll("[data-mp]").forEach(b => b.onclick = () => S.tx("state/main", d => { d = d || {}; d.meetPlan = (d.meetPlan || []).filter((_, i) => i !== +b.dataset.mp); return d; }).catch(offline));
   $("mpAdd").onclick = () => { const t = $("mpIn").value.trim(); if (!t) return; S.tx("state/main", d => { d = d || {}; d.meetPlan = [...(d.meetPlan || []), { t: t.slice(0, 80), by: who }].slice(-20); return d; }).then(() => { const i = $("mpIn"); if (i) i.value = ""; }).catch(offline); };
   const ns = $("mnSave"); if (ns) ns.onclick = () => { const t = $("mnIn").value.trim(); if (!t) return; S.merge("state/main", { meetNote: { [who]: { t: t.slice(0, 300), at: Date.now() } } }); toast("Sobre guardado 💌🤫"); notifyOther(`💌 ${name(who)} te ha dejado un sobre para el día que os veáis`); };
@@ -5525,6 +5544,8 @@ const M_NAMES = ["Coco", "Bruno", "Maíz", "Churro", "Tofu", "Rayo", "Simba", "L
 const F_NAMES = ["Luna", "Nube", "Canela", "Bombón", "Galleta", "Pipa", "Chispa", "Lola", "Trufa", "Menta", "Perla", "Mora", "Nala", "Frida", "Olivia", "Brisa", "Gominola"];
 const sexOf = x => (x && x.sex) || (hashStr((x && x.name) || "") % 2 ? "m" : "f");
 const SEXW = { m: ["chico", "♂"], f: ["chica", "♀"] };
+const sxTag = s => s === "m" || s === "f" ? `<i class="sx ${s}">${SEXW[s][1]}</i>` : "";
+const sameSex = (a, b) => !!(a && b && a.sex && sexOf(a) === sexOf(b));
 const CHEM = [null, ["💗", "Baja", "Se llevan bien, pero no hay chispa"], ["💗💗", "Media", "Puede surgir algo"], ["💗💗💗", "Alta", "¡Están hechos el uno para el otro!"]];
 const MATE_NAMES = ["Luna", "Kiwi", "Coco", "Nube", "Canela", "Bombón", "Galleta", "Pipa", "Mango", "Chispa", "Lola", "Bruno", "Maíz", "Trufa", "Menta", "Pompón", "Churro", "Perla", "Tofu", "Rayo", "Mora", "Nala", "Simba", "Frida", "Leo", "Olivia", "Nacho", "Brisa", "Pistacho", "Gominola"];
 const KID_NAMES = ["Pipo", "Mimi", "Bolita", "Peque", "Pío", "Chiqui", "Nugget", "Gusi", "Tití", "Bubu", "Kiki", "Lulú", "Nino", "Fifi", "Momo", "Bebé", "Piñón", "Semillita", "Burbuja", "Botón"];
@@ -5609,13 +5630,13 @@ function famScene(p, I) {
     const snug = !far && sleep && m.status !== "conocidos";
     const inBed = snug && petView === "in" && (roomOf(p, curRoom).items || {}).cama;
     if (wed && !wear.head) wear.head = sexOf(m) === "m" ? "chistera" : "tiara";
-    if (!inBed) h += `<button class="matefig${far ? " far" : ""}${snug ? " snug" : ""}" id="mateFig" aria-label="${esc(m.name)}">${chickSVG(Math.max(2, Math.min(5, I.si || 4)), snug || (sleep && !far) ? "sleep" : "idle", wear, 0, geneColor(m), { species: m.species })}<b>${relStatus(relOf(m))[0]} ${esc(m.name)}</b></button>`;
+    if (!inBed) h += `<button class="matefig${far ? " far" : ""}${snug ? " snug" : ""}" id="mateFig" aria-label="${esc(m.name)}">${chickSVG(Math.max(2, Math.min(5, I.si || 4)), snug || (sleep && !far) ? "sleep" : "idle", wear, 0, geneColor(m), { species: m.species })}<b>${relStatus(relOf(m))[0]} ${esc(m.name)} ${sxTag(sexOf(m))}</b></button>`;
   }
   let ki = 0;
   kidsOf(p).slice(0, MAX_KIDS).forEach((k, i) => {
     if (kidLoc(p, I, k) !== vl) return;
     const alone = pl !== vl;
-    h += `<button class="kidfig kst${kidStage(k)}${alone ? " alone" : ""}" data-kid="${k.id}" style="--ki:${ki++};animation-delay:${-i * .7}s">${chickSVG(kidStage(k), pl === "dorm" && vl === "dorm" && hourIn(myTz) >= 21 ? "sleep" : "happy", geneWear(k), 0, geneColor(k), { species: k.species })}</button>`;
+    h += `<button class="kidfig kst${kidStage(k)}${alone ? " alone" : ""}" data-kid="${k.id}" style="--ki:${ki++};animation-delay:${-i * .7}s">${chickSVG(kidStage(k), pl === "dorm" && vl === "dorm" && hourIn(myTz) >= 21 ? "sleep" : "happy", geneWear(k), 0, geneColor(k), { species: k.species })}<em class="kidsx">${sxTag(sexOf(k))}</em></button>`;
   });
   if (p.nest && !p.nest.hatched && (vl === "dorm" || vl === "jardin" || vl === "out")) h += `<button class="nestfig" id="nestFig" aria-label="Huevo">${nestSVG(p)}</button>`;
   return h;
@@ -5819,7 +5840,7 @@ function renderLove(p, I) {
       <div class="sub" style="text-align:center;font-size:12px;margin-top:8px">${SEXW[p.sex][1]} ${pn} es ${SEXW[p.sex][0]} · le gustan ${({ m: "los chicos", f: "las chicas", all: "chicos y chicas" })[p.likes]} · <button class="linkbtn" id="loveSexEdit" style="font-size:12px">cambiar</button></div>`;
   } else {
     const [se, sn] = relStatus(m), left = actsLeft(m), prop = m.prop, st = m.status, novD = daysSince(m.noviosAt), kids = kidsOf(p);
-    h = `<div class="couple"><div class="cfig">${chickSVG(Math.max(2, I.si), "happy", p.wear || {}, 0, p.color, { species: p.species })}<b>${pn}</b></div><div class="cheart">${se}<small>${esc(sn)}</small></div><div class="cfig">${chickSVG(Math.max(2, I.si), "happy", geneWear(m), 0, geneColor(m), { species: m.species })}<b>${esc(m.name)}</b></div></div>
+    h = `<div class="couple"><div class="cfig">${chickSVG(Math.max(2, I.si), "happy", p.wear || {}, 0, p.color, { species: p.species })}<b>${pn} ${sxTag(p.sex)}</b></div><div class="cheart">${se}<small>${esc(sn)}</small></div><div class="cfig">${chickSVG(Math.max(2, I.si), "happy", geneWear(m), 0, geneColor(m), { species: m.species })}<b>${esc(m.name)} ${sxTag(sexOf(m))}</b></div></div>
       ${relBars(m)}
       <div class="chem">${m.f >= 35 || st !== "conocidos" ? `Química: <b>${CHEM[m.chem][0]} ${CHEM[m.chem][1]}</b> · ${CHEM[m.chem][2]}` : "Química: ❓ se descubre cuando sean amigos"}</div>
       <div class="sub" style="text-align:center;margin:6px 0 8px;font-size:12.5px">${SEXW[sexOf(m)][1]} ${esc(m.name)} es ${SEXW[sexOf(m)][0]} · se conocen desde el ${fmtDate(m.metAt, { day: "numeric", month: "long" })}${m.like ? ` · a ${esc(m.name)} le encantan ${esc(m.like)}` : ""}</div>`;
@@ -5843,6 +5864,7 @@ function renderLove(p, I) {
         : (p.nextNest || 0) > Date.now() ? `<button class="btn" disabled>🥚 Podrán tener otra cría en ${Math.ceil((p.nextNest - Date.now()) / DAY)} días</button>`
         : casD < FAMILY_DAYS ? `<button class="btn" disabled>🥚 Familia: ${casD}/${FAMILY_DAYS} días de casados</button>`
         : m.r < 80 ? `<button class="btn" disabled>🥚 Necesitan más romance (${Math.round(m.r)}/80)</button>`
+        : sameSex(p, m) ? `<button class="btn primary" id="loveEgg">🏡 Adoptar un huevito</button><div class="sub" style="text-align:center;font-size:12px;margin-top:6px">${esc(p.name)} y ${esc(m.name)} son ${sexOf(p) === "m" ? "dos chicos" : "dos chicas"}: no pueden poner huevos, pero pueden adoptar uno 💛</div>`
         : `<button class="btn primary" id="loveEgg">🥚 Formar una familia</button>`;
     }
     const lk = INTER.map(it => [it, interLock(m, it)]).filter(([it, l]) => !it.rom || !l || it.needF <= (m.f || 0) + 15);
@@ -5914,8 +5936,8 @@ function weddingShow() {
   confetti(); setTimeout(confetti, 900);
 }
 function layEgg() {
-  petTx(q => { const m = relOf(mateOf(q)); if (!m || m.status !== "casados" || daysSince(m.weddingAt) < FAMILY_DAYS || m.r < 80 || (q.nest && !q.nest.hatched) || kidsOf(q).length >= MAX_KIDS || (q.nextNest || 0) > Date.now()) return null; q.nest = { at: Date.now(), n: 0, warm: {}, by: who }; return q; })
-    .then(r => { if (!r) return; sceneSig = ""; renderPet(); confetti(); say("¡Un huevito! 🥚 Dadle calor los dos cada día 🔥", 4500); notifyOther(`🥚 ¡${(state.pet || {}).name} y ${(mateOf(state.pet) || {}).name} han puesto un huevo! Entra a darle calor 🔥`); }).catch(offline);
+  petTx(q => { const m = relOf(mateOf(q)); if (!m || m.status !== "casados" || daysSince(m.weddingAt) < FAMILY_DAYS || m.r < 80 || (q.nest && !q.nest.hatched) || kidsOf(q).length >= MAX_KIDS || (q.nextNest || 0) > Date.now()) return null; q.nest = { at: Date.now(), n: 0, warm: {}, by: who, adopted: sameSex(q, m) || null }; return q; })
+    .then(r => { if (!r) return; sceneSig = ""; renderPet(); confetti(); const ad = r.nest && r.nest.adopted; say(ad ? "¡Hemos adoptado un huevito! 🥚💛 Dadle calor los dos cada día 🔥" : "¡Un huevito! 🥚 Dadle calor los dos cada día 🔥", 4500); notifyOther(`🥚 ¡${(state.pet || {}).name} y ${(mateOf(state.pet) || {}).name} ${ad ? "han adoptado" : "han puesto"} un huevo! Entra a darle calor 🔥`); }).catch(offline);
 }
 function warmEgg() {
   const today = dayKey(); let st = "";
@@ -5941,12 +5963,12 @@ function hatchKid() {
     const g = mixGenes(petGene(q), m), used = new Set(kidsOf(q).map(k => k.name));
     const nm = KID_NAMES.filter(n => !used.has(n))[Math.floor(Math.random() * 10)] || "Peque";
     const ksx = Math.random() < .5 ? "m" : "f";
-    kid = { id: Date.now().toString(36), sex: ksx, name: nm, species: Math.random() < .5 ? q.species || "pollito" : m.species || q.species || "pollito", ...g, born: Date.now(), by: who };
+    kid = { id: Date.now().toString(36), sex: ksx, adopted: N.adopted || null, name: nm, species: Math.random() < .5 ? q.species || "pollito" : m.species || q.species || "pollito", ...g, born: Date.now(), by: who };
     q.kids = [...kidsOf(q), kid]; q.nest = null; q.nextNest = Date.now() + NEST_GAP; firstMark(q, "baby", nm); q.coins = coinsOf(q) + 40;
     return q;
   }).then(() => {
     if (!kid) return; sceneSig = ""; petSig = ""; renderPet(); confetti();
-    readView({ icon: "🐣", title: `¡Ha nacido ${kid.name}!`, sub: `${sexOf(kid) === "m" ? "Hijo" : "Hija"} de ${(state.pet || {}).name} y ${(mateOf(state.pet) || {}).name}`, text: `Color: ${colorName(kid)}${kid.mut ? " (¡una mutación rara! ✨)" : ""}. Marcas: ${markName(kid.mark)}. Podéis cambiarle el nombre tocándole en la escena 💛` });
+    readView({ icon: "🐣", title: `¡Ha nacido ${kid.name}!`, sub: `${SEXW[sexOf(kid)][1]} ${sexOf(kid) === "m" ? "Hijo" : "Hija"}${kid.adopted ? " adoptiv" + (sexOf(kid) === "m" ? "o" : "a") : ""} de ${(state.pet || {}).name} y ${(mateOf(state.pet) || {}).name}`, text: `Color: ${colorName(kid)}${kid.mut ? " (¡una mutación rara! ✨)" : ""}. Marcas: ${markName(kid.mark)}. Podéis cambiarle el nombre tocándole en la escena 💛` });
     const box = document.querySelector("#rvIcon"); if (box) box.innerHTML = `<span class="wedpair">${chickSVG(1, "happy", geneWear(kid), 0, geneColor(kid), { species: kid.species })}</span>`;
     sendMsg(`🐣 ¡Ha nacido ${kid.name}, la cría de ${(state.pet || {}).name}! Ven a conocerle 💛`, "pet");
   }).catch(offline);
@@ -5956,7 +5978,7 @@ function openKid(id) {
   const days = Math.max(0, -calDays(k.born)), st = kidStage(k), m = mateOf(p) || {};
   const own = CATALOG.filter(it => it.cat === "ropa" && ["head", "face", "neck"].includes(it.slot) && isOwned(p, it));
   openSheet(`🐣 ${k.name}`, `<div class="kidbig">${chickSVG(st, "happy", geneWear(k), 0, geneColor(k), { species: k.species })}</div>
-    <div class="sub" style="text-align:center">${esc(stageName(st, k.species))} · ${days ? days + " día" + (days === 1 ? "" : "s") : "nació hoy"} · ${sexOf(k) === "m" ? "hijo" : "hija"} de ${esc(p.name)} y ${esc(m.name || "?")}<br>🎨 ${esc(colorName(k))}${k.mut ? " ✨" : ""} · 🐾 ${esc(markName(k.mark))}</div>
+    <div class="sub" style="text-align:center">${esc(stageName(st, k.species))} · ${days ? days + " día" + (days === 1 ? "" : "s") : "nació hoy"} · ${sxTag(sexOf(k))} ${sexOf(k) === "m" ? "hijo" : "hija"}${k.adopted ? " adoptiv" + (sexOf(k) === "m" ? "o" : "a") : ""} de ${esc(p.name)} y ${esc(m.name || "?")}<br>🎨 ${esc(colorName(k))}${k.mut ? " ✨" : ""} · 🐾 ${esc(markName(k.mark))}</div>
     <div class="lovebtns mt"><button class="btn primary" id="kidHug">💗 Mimito</button><button class="btn" id="kidName">✏️ Nombre</button></div>
     ${own.length ? `<div class="slotname">🎀 Prestarle ropa</div><div class="shopgrid">${own.map(it => `<button class="shopit ${(k.wear || {})[it.slot] === it.id ? "on" : ""}" data-kw="${it.id}">${shopIcon(it)}<b>${esc(it.n)}</b></button>`).join("")}</div>` : ""}`);
   fitIcons($("sheetBody"));
@@ -5969,11 +5991,11 @@ function openKid(id) {
 function renderTree(p) {
   const el = $("petTree"); if (!el) return;
   const m = mateOf(p), kids = kidsOf(p), fam = p.family || [], si = Math.max(1, stageOf(p.xp || 0));
-  const fig = (svg, nm, sub, cls = "") => `<div class="tnode ${cls}"><div class="tav">${svg}</div><b>${esc(nm)}</b>${sub ? `<small>${sub}</small>` : ""}</div>`;
+  const fig = (svg, nm, sub, cls = "", sx) => `<div class="tnode ${cls}"><div class="tav">${svg}</div><b>${sx ? sxTag(sx) + " " : ""}${esc(nm)}</b>${sub ? `<small>${sub}</small>` : ""}</div>`;
   let h = `<div class="tree">`;
-  if (fam.length) h += `<div class="tgen"><div class="tlabel">Antepasados</div><div class="trow">${fam.map(f => fig(chickSVG(6, "happy", f.wear || {}, 0, f.color, { species: f.species }), f.name, `✨ ${f.hatchedAt ? fmtDate(f.hatchedAt, { month: "short", year: "numeric" }) : "legendario"}`)).join("")}</div><div class="tline"></div></div>`;
-  h += `<div class="tgen"><div class="tlabel">${m ? relStatus(relOf(m)).reverse().join(" ") : "Ahora"}</div><div class="trow couple2">${fig(chickSVG(si, "happy", p.wear || {}, 0, p.color, { species: p.species }), p.name || "Pollito", p.hatchedAt ? "🐣 " + fmtDate(p.hatchedAt, { day: "numeric", month: "short" }) : "")}${m ? `<div class="tknot">${relStatus(m)[0]}<small>${fmtDate(m.weddingAt || m.noviosAt || m.metAt, { day: "numeric", month: "short" })}</small></div>` + fig(chickSVG(si, "happy", geneWear(m), 0, geneColor(m), { species: m.species }), m.name, `👋 ${fmtDate(m.metAt, { day: "numeric", month: "short" })}`) : `<div class="tknot ghost">＋<small>pareja</small></div>`}</div>`;
-  if (kids.length || (p.nest && !p.nest.hatched)) h += `<div class="tline"></div><div class="tlabel">Crías</div><div class="trow kids">${kids.map(k => fig(chickSVG(kidStage(k), "happy", geneWear(k), 0, geneColor(k), { species: k.species }), k.name, `🐣 ${fmtDate(k.born, { day: "numeric", month: "short" })}`)).join("")}${p.nest && !p.nest.hatched ? fig(nestSVG(p), "Huevo", `🔥 ${p.nest.n || 0}/${WARM_DAYS}`, "egg") : ""}</div>`;
+  if (fam.length) h += `<div class="tgen"><div class="tlabel">Antepasados</div><div class="trow">${fam.map(f => fig(chickSVG(6, "happy", f.wear || {}, 0, f.color, { species: f.species }), f.name, `✨ ${f.hatchedAt ? fmtDate(f.hatchedAt, { month: "short", year: "numeric" }) : "legendario"}`, "", f.sex)).join("")}</div><div class="tline"></div></div>`;
+  h += `<div class="tgen"><div class="tlabel">${m ? relStatus(relOf(m)).reverse().join(" ") : "Ahora"}</div><div class="trow couple2">${fig(chickSVG(si, "happy", p.wear || {}, 0, p.color, { species: p.species }), p.name || "Pollito", p.hatchedAt ? "🐣 " + fmtDate(p.hatchedAt, { day: "numeric", month: "short" }) : "", "", p.sex)}${m ? `<div class="tknot">${relStatus(m)[0]}<small>${fmtDate(m.weddingAt || m.noviosAt || m.metAt, { day: "numeric", month: "short" })}</small></div>` + fig(chickSVG(si, "happy", geneWear(m), 0, geneColor(m), { species: m.species }), m.name, `👋 ${fmtDate(m.metAt, { day: "numeric", month: "short" })}`, "", sexOf(m)) : `<div class="tknot ghost">＋<small>pareja</small></div>`}</div>`;
+  if (kids.length || (p.nest && !p.nest.hatched)) h += `<div class="tline"></div><div class="tlabel">Crías</div><div class="trow kids">${kids.map(k => fig(chickSVG(kidStage(k), "happy", geneWear(k), 0, geneColor(k), { species: k.species }), k.name, `🐣 ${fmtDate(k.born, { day: "numeric", month: "short" })}`, "", sexOf(k))).join("")}${p.nest && !p.nest.hatched ? fig(nestSVG(p), "Huevo", `🔥 ${p.nest.n || 0}/${WARM_DAYS}`, "egg") : ""}</div>`;
   h += `</div></div>`;
   // cronología
   const ev = [];
@@ -6380,7 +6402,6 @@ function renderSpSettings() {
   el.innerHTML = `<label class="sndrow"><span>🌶️ Zona privada para los dos</span><input type="checkbox" id="spOpt" ${me ? "checked" : ""}></label>
     <div class="sub" style="font-size:12px;margin-top:4px">${me && ot ? "Activada por los dos ✅ La encontrarás en la pestaña Nosotros, con PIN." : me ? `Tú la has activado. Falta que ${o} la active en su móvil.` : ot ? `${o} la ha activado. Actívala tú también si te apetece 😏` : "Juegos y mensajes íntimos solo para vosotros. Solo aparece si la activáis los dos."}${me ? ` · <button class="linkbtn" id="spPinReset" style="font-size:12px">cambiar PIN</button>` : ""}</div>`;
   $("spOpt").onchange = e => { S.merge("state/spicy", { opt: { [who]: e.target.checked } }); if (e.target.checked && !ot) notifyOther("🌶️ Te he propuesto algo… mira en ⚙️ Ajustes"); };
-  if (me && ot) { const ce = document.createElement("div"); ce.className = "sub"; ce.style.cssText = "font-size:12px;margin-top:6px"; ce.textContent = SPK.key ? "🔐 Cifrado de extremo a extremo activo en este móvil" : spState.kchk ? "🔐 Zona cifrada: te pedirá la frase secreta al entrar" : "🔐 Al entrar elegiréis una frase secreta para cifrarla"; el.appendChild(ce); }
   const pr = $("spPinReset"); if (pr) pr.onclick = () => { ls.set("spPinH", ""); toast("PIN borrado. Pondrás uno nuevo al entrar 🔒"); };
 }
 function renderSpEntry() {
@@ -6418,8 +6439,7 @@ function spClose() { spOpen = false; $("spView").classList.add("hidden"); docume
 document.addEventListener("visibilitychange", () => { if (document.hidden && spOpen) { spClose(); spUnlockedAt = 0; } });
 function renderSp() {
   const v = $("spBody"); if (!v) return;
-  $("spTabs").classList.toggle("hidden", !SPK.key);
-  if (!SPK.key) { v.innerHTML = spKeyHTML(); spKeyBind(); return; }
+  $("spTabs").classList.remove("hidden");
   document.querySelectorAll("#spTabs button").forEach(b => b.classList.toggle("on", b.dataset.t === spTab));
   { const cb = document.querySelector('#spTabs [data-t="cal"]'); if (cb) cb.classList.toggle("dot", !!wrNewKey()); }
   const o = esc(name(other())), me = esc(name(who));
@@ -6996,7 +7016,7 @@ function wrCardHTML() {
 // Todo lo íntimo se cifra en el móvil con AES-256 (clave sacada de una frase que solo sabéis vosotros).
 // En Firebase solo se guarda texto ilegible.
 const SPK = { key: null, raw: null };
-const spRaw = { spicy: null, cal: [], coupons: [], letters: [] }, spSeq = { spicy: 0, cal: 0, coupons: 0, letters: 0 };
+const spRaw = { spicy: null, cal: [], coupons: [], letters: [], got: {} }, spSeq = { spicy: 0, cal: 0, coupons: 0, letters: 0 };
 let spMigrating = false;
 const b64e = u8 => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
 const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
@@ -7023,8 +7043,8 @@ async function spDecodeSpicy() {
   const my = ++spSeq.spicy, d = spRaw.spicy || {}, st = { ...d, dare: {}, ksw: {} };
   for (const u of ["a", "b"]) {
     const x = d["x" + u] ? await spDec(d["x" + u]) : null;
-    st.dare[u] = (x && x.dare) || (!d["x" + u] && d.dare && d.dare[u]) || {};
-    st.ksw[u] = (x && x.ksw) || (!d["x" + u] && d.ksw && d.ksw[u]) || {};
+    st.dare[u] = { ...((d.dare && d.dare[u]) || {}), ...((x && x.dare) || {}) };
+    st.ksw[u] = { ...((d.ksw && d.ksw[u]) || {}), ...((x && x.ksw) || {}) };
   }
   if (my !== spSeq.spicy) return; spState = st; renderSpSettings(); spRender(); spMigrate();
 }
@@ -7044,40 +7064,39 @@ async function spDecodeTexts(kind) {
 }
 function spDecodeAll() { spDecodeSpicy(); spDecodeCal(); spDecodeTexts("coupons"); spDecodeTexts("letters"); }
 function watchSpicy() {
-  S.watchDoc("state/spicy", d => { spRaw.spicy = d || {}; spState = { ...spState, opt: (d || {}).opt, kchk: (d || {}).kchk, kby: (d || {}).kby }; renderSpEntry(); renderSpSettings(); spDecodeSpicy(); });
-  S.watchCol("spcoupons", l => { spRaw.coupons = l; spDecodeTexts("coupons"); }, 60);
-  S.watchCol("spletters", l => { spRaw.letters = l; spDecodeTexts("letters"); }, 40);
+  S.watchDoc("state/spicy", d => { spRaw.spicy = d || {}; spRaw.got.spicy = 1; spState = { ...spState, opt: (d || {}).opt, kchk: (d || {}).kchk, kby: (d || {}).kby }; renderSpEntry(); renderSpSettings(); spDecodeSpicy(); });
+  S.watchCol("spcoupons", l => { spRaw.coupons = l; spRaw.got.coupons = 1; spDecodeTexts("coupons"); }, 60);
+  S.watchCol("spletters", l => { spRaw.letters = l; spRaw.got.letters = 1; spDecodeTexts("letters"); }, 40);
 }
-function watchSpCal() { S.watchCol("spcal", l => { spRaw.cal = l; spDecodeCal(); }, 500); }
+function watchSpCal() { S.watchCol("spcal", l => { spRaw.cal = l; spRaw.got.cal = 1; spDecodeCal(); }, 500); }
 // ---- guardar cifrado ----
 async function spSaveMine(patch) {
-  if (!SPK.key) return toast("Primero desbloquea el cifrado 🔐");
   const mine = { dare: { ...((spState.dare || {})[who] || {}), ...(patch.dare || {}) }, ksw: { ...((spState.ksw || {})[who] || {}), ...(patch.ksw || {}) } };
   spState = { ...spState, dare: { ...(spState.dare || {}), [who]: mine.dare }, ksw: { ...(spState.ksw || {}), [who]: mine.ksw } }; spRender();
-  await S.merge("state/spicy", { ["x" + who]: await spEnc(mine) });
+  await S.merge("state/spicy", { dare: { [who]: mine.dare }, ksw: { [who]: mine.ksw } });
 }
 async function spCalSave(day, data) {
-  const id = await spDocId(day), old = calEntry(day);
-  await S.merge("spcal/" + id, { x: await spEnc({ d: day, ...data }), at: Date.now() });
+  const id = day, old = calEntry(day);
+  await S.merge("spcal/" + id, { ...data, at: Date.parse(day + "T12:00:00") });
   if (old && old._doc && old._doc !== id) S.del("spcal/" + old._doc);
 }
 function spCalDel(day) { const e = calEntry(day); if (e && e._doc) S.del("spcal/" + e._doc); }
-async function spAddText(col, data) { return S.add(col, { ...data, text: await spEnc({ t: data.text }) }); }
+async function spAddText(col, data) { return S.add(col, data); }
 // ---- pasar a cifrado lo que había antes ----
 async function spMigrate() {
-  if (!SPK.key || spMigrating) return;
-  const d = spRaw.spicy || {}, plainCal = spRaw.cal.filter(e => !e.x && e.n != null), pc = spRaw.coupons.filter(e => e.text && !isEnc(e.text)), pl = spRaw.letters.filter(e => e.text && !isEnc(e.text));
-  const plainSp = ["a", "b"].filter(u => !d["x" + u] && ((d.dare && d.dare[u] && Object.keys(d.dare[u]).length) || (d.ksw && d.ksw[u] && Object.keys(d.ksw[u]).length)));
-  const leftovers = (d.dare && Object.keys(d.dare).length) || (d.ksw && Object.keys(d.ksw).length);
-  if (!plainCal.length && !pc.length && !pl.length && !plainSp.length && !leftovers) return;
-  spMigrating = true;
+  // 1.8: quitamos la frase secreta. El móvil que aún la tenga guardada descifra lo que había y lo deja normal.
+  const g = spRaw.got; if (!SPK.key || spMigrating || !(g.spicy && g.cal && g.coupons && g.letters)) return;
+  spMigrating = true; let fails = 0;
   try {
-    for (const e of plainCal) { const { id, at, x, ...rest } = e; const nid = await spDocId(id); await S.merge("spcal/" + nid, { x: await spEnc({ d: id, ...rest }), at: Date.now() }); await S.del("spcal/" + id); }
-    for (const e of pc) await S.merge("spcoupons/" + e.id, { text: await spEnc({ t: e.text }) });
-    for (const e of pl) await S.merge("spletters/" + e.id, { text: await spEnc({ t: e.text }) });
-    const up = {}; for (const u of plainSp) up["x" + u] = await spEnc({ dare: (d.dare || {})[u] || {}, ksw: (d.ksw || {})[u] || {} });
-    if (plainSp.length || leftovers) await S.merge("state/spicy", { ...up, dare: null, ksw: null });
-  } catch (e) { console.error("migrar", e); }
+    const d = spRaw.spicy || {}, up = { kchk: null, kby: null };
+    for (const e of spRaw.cal.filter(e => e.x)) { const o = await spDec(e.x); if (!o || !o.d) { fails++; continue; } const { d: day, ...rest } = o; await S.merge("spcal/" + day, { ...rest, at: Date.parse(day + "T12:00:00") }); await S.del("spcal/" + e.id); }
+    for (const e of spRaw.coupons.filter(e => isEnc(e.text))) { const o = await spDec(e.text); if (o) await S.merge("spcoupons/" + e.id, { text: o.t }); else fails++; }
+    for (const e of spRaw.letters.filter(e => isEnc(e.text))) { const o = await spDec(e.text); if (o) await S.merge("spletters/" + e.id, { text: o.t }); else fails++; }
+    for (const u of ["a", "b"]) { if (!d["x" + u]) continue; const o = await spDec(d["x" + u]); if (o) { up.dare = { ...(up.dare || {}), [u]: o.dare || {} }; up.ksw = { ...(up.ksw || {}), [u]: o.ksw || {} }; up["x" + u] = null; } else fails++; }
+    if (fails) { console.warn("no se pudo descifrar", fails); spMigrating = false; return; }
+    await S.merge("state/spicy", up);
+    ls.set("spK", ""); SPK.key = null; SPK.raw = null;
+  } catch (e) { console.error("descifrar", e); }
   spMigrating = false;
 }
 // ---- pantalla de la frase secreta ----
@@ -7124,6 +7143,36 @@ function spKeyBind() {
   window.addEventListener("focus", uncover); window.addEventListener("pageshow", uncover);
 })();
 
+
+// ---------- 💭 1.4 · "Pienso en ti" con contador semanal y "a la vez" ----------
+const weekKey = (d = new Date()) => { const x = new Date(d); x.setHours(12, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return localKey(x); };
+const THINK_SYNC = 10 * 6e4;
+function thinkSync() { confetti(); buzz([60, 60, 60, 60, 120]); toast(`💞 ¡${name(other())} y tú estabais pensando el uno en el otro a la vez!`, 4500); }
+function renderThink() {
+  const el = $("thinkStats"); if (!el) return;
+  const t = (state.main || {}).think || {}, cur = t.wk === weekKey() ? t : {}, me = cur[who] || 0, ot = cur[other()] || 0, sync = (t.sync && t.sync.wk === weekKey()) ? t.sync.n : 0;
+  el.innerHTML = me || ot ? `💭 Esta semana: <b>tú ${me}</b> · <b>${esc(name(other()))} ${ot}</b>${sync ? ` · 💞 ${sync} ${sync === 1 ? "vez" : "veces"} a la vez` : ""}` : `💭 Pulsa cuando pienses en ${esc(name(other()))}: aquí veréis cuántas veces esta semana`;
+}
+$("btnThink").addEventListener("click", () => {
+  const wk = weekKey(), now = Date.now(), t0 = (state.main || {}).think || {}, theirs = t0["last_" + other()] || 0, isSync = now - theirs < THINK_SYNC && !(t0["lastSync"] > theirs);
+  S.tx("state/main", d => {
+    d = d || {}; const t = { ...(d.think || {}) };
+    if (t.wk !== wk) { t.wk = wk; t.a = 0; t.b = 0; }
+    t[who] = (t[who] || 0) + 1; t["last_" + who] = now;
+    if (isSync) { const s = t.sync && t.sync.wk === wk ? t.sync : { wk, n: 0 }; t.sync = { wk, n: s.n + 1 }; t.lastSync = now; }
+    d.think = t; return d;
+  }).catch(e => console.warn(e));
+  if (isSync) setTimeout(thinkSync, 400);
+});
+// ---------- ✈️ 1.4 · cuenta atrás: la mascota también lo espera ----------
+function meetPetHTML(nx) {
+  const p = state.pet || {}, ms = nx - Date.now(), d = calDays(nx), pn = esc(p.name || "Tu mascota");
+  if (!p.xp && p.xp !== 0) return "";
+  const [txt, cls] = ms <= 0 ? [`¡${pn} no puede más de la emoción! 🥹`, "party"] : d <= 0 ? [`¡Es hoy! ${pn} no se despega de la puerta 🚪`, "nerv"] : d === 1 ? [`¡Mañana! ${pn} no va a poder dormir 😳`, "nerv"] : d <= 7 ? [`${pn} está nerviosísimo: ¡solo ${d} días! 🤭`, "nerv"] : d <= 30 ? [`${pn} ya está preparando la maleta 🧳`, "calm"] : [`${pn} va tachando los días en el calendario 🗓️`, "calm"];
+  let svg = ""; try { svg = chickSVG(Math.max(1, stageOf(p.xp || 0)), ms <= DAY * 7 ? "love" : "happy", p.wear || {}, 0, p.color, { species: p.species }); } catch (e) { }
+  return `<div class="meetpet ${cls}"><div class="mpsvg">${svg}</div><span>${txt}</span></div>`;
+}
+
 // si le das de comer, mimos, etc. y no está contigo, viene corriendo
 document.querySelector(".actions.six").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || !["petFeed", "petBag", "petHug", "petPlay", "petBath", "petSleep", "petTricks"].includes(b.id)) return;
@@ -7142,9 +7191,20 @@ async function start() {
   tick(); renderQuestion(); renderPet(); renderQuiz(); renderTTT(); renderMoods([]); drawWheel(); fgInfo(); renderLetters([]); renderCaps([]); renderDates([]); renderGameMenu();
   if (!S.needsLogin) { try { await S.init(); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); showRetry(); return; } }
   S.merge("state/main", { tz: { [who]: myTz } });
-  S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); renderPush(); renderMeet(); });
+  S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); renderPush(); renderMeet(); renderThink(); });
   S.watchDoc("state/pet", d => { state.pet = d; checkFirsts(d); renderPet(); fgInfo(); });
   watchDiary(); watchOTD(); watchPresence(); watchPetPics(); watchAiMem(); watchWeekly(); watchLive(); spLoadKey(); watchSpicy(); watchSpCal();
+  // 🎁 Una sola vez para la pareja: el pollito empieza ya en el día 7 (fase «Pequeñín»)
+  setTimeout(() => {
+    const q = state.pet || {}; if (q.boost7 || (q.xp || 0) >= 7) return;
+    petTx(p => {
+      if (p.boost7 || (p.xp || 0) >= 7) { p.boost7 = true; return p; }
+      const now = Date.now(); p.album = p.album || {};
+      if (!p.album[1]) p.album[1] = now - 5 * DAY; if (!p.album[2]) p.album[2] = now;
+      if (!p.hatchedAt) p.hatchedAt = now - 5 * DAY; p.trait = p.trait || rnd(Object.keys(TRAITS));
+      p.xp = 7; p.boost7 = 1; return p;
+    }).then(r => { if (r && r.xp === 7 && r.boost7 === 1) { confetti(); toast(`🎁 ¡${r.name || "Tu pollito"} ya va por el día 7: ahora es un Pequeñín! 🐥`, 4000); } }).catch(e => console.warn(e));
+  }, 3500);
   loadWeather(true);
   S.watchDoc("quiz/main", d => { state.quiz = d; renderQuiz(); });
   S.watchDoc("state/ttt", d => { state.ttt = d; renderTTT(); renderQuiz(); renderGameMenu(); });

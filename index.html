@@ -1615,6 +1615,21 @@ input[type=checkbox],input[type=radio]{accent-color:#ff5c8a}
 .spkshow{display:flex !important;align-items:center;justify-content:center;gap:8px;font-size:13px;opacity:.85;margin-top:12px;width:auto}.spkshow input{width:18px !important;height:18px;margin:0 !important;flex:none;padding:0}.spkerr{color:#ff8fa3;font-weight:700;min-height:20px;margin-top:8px;font-size:14px}
 #spTabs.hidden{display:none}
 body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:2147483647;background:radial-gradient(120% 70% at 50% 30%,#5a1430,#14040b);color:#ffb3c8;display:flex;align-items:center;justify-content:center;font:800 28px system-ui;letter-spacing:.02em}
+
+/* ===== 1.4 · pienso en ti + cuenta atrás ===== */
+.thinkst{text-align:center;font-size:12.5px;color:var(--muted);margin:-4px 0 14px;line-height:1.4}.thinkst b{color:var(--text)}
+.meetpet{display:flex;align-items:center;gap:10px;margin:12px 0 4px;padding:8px 12px 8px 6px;border-radius:16px;background:linear-gradient(135deg,rgba(255,92,138,.12),rgba(255,180,90,.12));border:1px solid rgba(255,140,120,.25);font-size:13.5px;font-weight:600}
+.mpsvg{width:56px;height:56px;flex:none}.mpsvg svg{width:100%;height:100%;overflow:visible}
+.meetpet.nerv .mpsvg{animation:mpnerv .5s ease-in-out infinite alternate}.meetpet.party .mpsvg{animation:mpparty .6s ease-in-out infinite}.meetpet.calm .mpsvg{animation:mpcalm 2.6s ease-in-out infinite}
+@keyframes mpnerv{from{transform:rotate(-6deg) translateY(0)}to{transform:rotate(6deg) translateY(-3px)}}@keyframes mpparty{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-10px) scale(1.06)}}@keyframes mpcalm{50%{transform:translateY(-3px)}}
+.meetsp{width:100%;display:flex;align-items:center;gap:10px;text-align:left;margin-top:12px;border:0;border-radius:16px;padding:11px 14px;color:#fff;background:linear-gradient(135deg,#5a1430,#a0285a);font-size:20px}
+.meetsp span{flex:1}.meetsp b{display:block;font-size:14.5px}.meetsp small{font-size:12px;opacity:.8}.meetsp i{font-style:normal;opacity:.7}
+
+/* ===== 1.6 · sexo visible ===== */
+.sx{font-style:normal;font-weight:900;display:inline-grid;place-items:center;width:1.25em;height:1.25em;border-radius:50%;font-size:.85em;line-height:1;vertical-align:.08em;color:#fff}
+.sx.f{background:#ff5c8a}.sx.m{background:#4a90e2}
+.kidsx{position:absolute;top:-2px;right:-4px;font-style:normal;font-size:11px;pointer-events:none}
+.pet-name .sx{font-size:.7em;margin-left:2px}
 </style>
 </head>
 <body>
@@ -1681,6 +1696,7 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
     <button class="love" id="btnThink" style="flex:2">Pienso en ti ❤️</button>
     <button class="love night" id="btnNight" style="flex:1">🌙<small>Buenas noches</small></button>
   </div>
+  <div class="thinkst" id="thinkStats"></div>
 
   <section class="card">
     <div class="label">¿Cómo estás hoy?</div>
@@ -2293,6 +2309,7 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
     <input id="lgPass" type="password" placeholder="Contraseña (mín. 6)" autocomplete="current-password" style="margin-bottom:10px">
     <button class="love" id="lgIn" style="margin-bottom:8px">Entrar</button>
     <button class="btn" id="lgNew" style="width:100%">Es mi primera vez: crear cuenta</button>
+    <button class="linkbtn" id="lgForgot" style="width:100%;margin-top:12px;background:none;border:0;color:inherit;opacity:.8;text-decoration:underline;font-size:14px">¿Olvidaste tu contraseña?</button>
     <div class="sub" id="lgErr" style="color:#ffb0b0;min-height:22px;margin-top:10px"></div>
   </div>
 </div>

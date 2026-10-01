@@ -28,6 +28,9 @@ export const add = (p, d) => impl.add(p, d).catch(fail("enviar"));
 export const del = (p) => impl.del(p).catch(fail("borrar"));
 export async function logout() { if (impl && impl.logout) await impl.logout(); }
 export const tx = (p, fn) => impl.tx(p, fn);
+// Recuperar contraseña: Firebase manda un email para elegir una nueva
+let resetFn = null;
+export async function resetPassword(email) { if (!resetFn) throw { code: "no-firebase" }; return resetFn(email); }
 
 async function firebaseImpl(loginUI) {
   const base = "https://www.gstatic.com/firebasejs/10.12.2/";
@@ -43,6 +46,8 @@ async function firebaseImpl(loginUI) {
     db = fs.initializeFirestore(app, { localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() }) }, dbId);
   } catch (e) { db = fs.getFirestore(app, dbId); }
   const auth = au.getAuth(app);
+  auth.languageCode = "es";
+  resetFn = email => au.sendPasswordResetEmail(auth, email);
   if (needsLogin) {
     const allowed = [CONFIG.emails.a, CONFIG.emails.b].filter(Boolean).map(e => e.toLowerCase());
     let user = await new Promise(res => { const un = au.onAuthStateChanged(auth, u => { un(); res(u); }); });
