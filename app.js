@@ -2104,7 +2104,7 @@ const L_ = {
   ground: (c, top, y = 246, d = 22) => `<path d="M0 ${y} Q200 ${y - d} 400 ${y} V300 H0Z" fill="${c}"/><path d="M0 ${y} Q200 ${y - d} 400 ${y}" stroke="${top}" stroke-width="5" fill="none"/>`,
   snowman: (x, y, k) => `<g transform="translate(${x} ${y}) scale(${k})"><ellipse cx="0" cy="0" rx="22" ry="4" fill="rgba(0,0,0,.12)"/><circle cy="-18" r="19" fill="#fff" stroke="#dbe8f4" stroke-width="2"/><circle cy="-46" r="14" fill="#fff" stroke="#dbe8f4" stroke-width="2"/><circle cy="-67" r="10" fill="#fff" stroke="#dbe8f4" stroke-width="2"/><path d="M-10 -56 Q0 -50 10 -56 L12 -50 Q0 -44 -12 -50Z" fill="#e63946"/><circle cx="-3.5" cy="-69" r="1.6" fill="#222"/><circle cx="3.5" cy="-69" r="1.6" fill="#222"/><path d="M0 -66 L10 -64 L0 -63Z" fill="#ff8c1a"/><rect x="-9" y="-80" width="18" height="4" fill="#222"/><rect x="-6" y="-92" width="12" height="13" fill="#222"/><circle cy="-40" r="1.8" fill="#222"/><circle cy="-30" r="1.8" fill="#222"/></g>`
 };
-function starsSVG(n, seed, maxY = 200) { let s = ""; for (let i = 0; i < n; i++) { const h = hashStr(seed + i); s += `<circle class="tw" style="animation-delay:${(h % 24) / 10}s" cx="${h % 400}" cy="${(h >> 9) % maxY}" r="${(h >> 5) % 3 ? 1 : 1.7}" fill="#fff"/>`; } return s; }
+function starsSVG(n, seed, maxY = 200) { let s = ""; for (let i = 0; i < n; i++) { const h = hashStr(seed + i); s += `<circle class="tw" style="animation-delay:${(h % 24) / 10}s" cx="${h % 400}" cy="${(h >>> 9) % maxY}" r="${(h >>> 5) % 3 ? 1 : 1.7}" fill="#fff"/>`; } return s; }
 const SCN = {
   jardin: () => `<ellipse cx="70" cy="252" rx="170" ry="58" fill="#9ad97a"/><ellipse cx="340" cy="256" rx="180" ry="62" fill="#8ccf6c"/>${L_.tree(42, 240, 1)}<g fill="#58ad3f"><circle cx="362" cy="238" r="16"/><circle cx="384" cy="236" r="19"/><circle cx="346" cy="244" r="12"/></g>` +
     L_.ground("#6fbf4f", "#8ad86a") + [[110, 264, "#ff8fb8"], [128, 272, "#fff"], [72, 278, "#ffd93b"], [290, 266, "#ff6b6b"], [318, 274, "#cdb4ff"], [352, 264, "#ffd93b"], [376, 280, "#ff8fb8"]].map(f => L_.flower(...f)).join(""),
@@ -2315,7 +2315,7 @@ function renderPet() {
   $("stages").innerHTML = STAGES.map((s, k) => `<span class="${k <= si ? "on" : ""}" title="${esc(stageName(k, p.species))}">${k <= si ? stageEmoji(k, p.species) : "?"}<small>${s.xp}</small></span>`).join("");
   renderAlbum(p, color, wear);
   renderShop(p, I);
-  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderEvent(p); renderDuelBadge(); jobCheck(p); renderKnock(p); nbBdayNotice(p); renderFamily(p, I); renderLove(p, I); renderTree(p);
+  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderEvent(p); renderDuelBadge(); jobCheck(p); renderKnock(p); renderMail(p); nbBdayNotice(p); renderBack(p); renderFamily(p, I); renderLove(p, I); renderTree(p);
   $("dotPet").classList.toggle("hidden", I.meT && !I.sick && I.nv.food >= 30 && !(forMe || replyForMe) && !missionsClaimable(p) && !(p.trip && tripBack(p)));
 
   if (si > 0 && !p.sick && !setOn(p, "lluvia") && I.low >= 2 && sickChecked !== I.today && Date.now() - (p.curedAt || 0) > 12 * 36e5) { sickChecked = I.today; petTx(q => { if (q.sick) return null; q.sick = true; q.sickAt = Date.now(); firstMark(q, "sick"); return q; }).then(r => { if (r) sendMsg(`🤒 ${r.name || "El pollito"} se ha puesto malito. Necesita medicina 💊`, "pet"); }).catch(() => {}); }
@@ -3103,7 +3103,7 @@ async function pushTo(sub, title, body) {
   if (!srvUrl() || !sub || !sub.endpoint) return null;
   try {
     const r = await fetch(srvUrl(), { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ secret: CONFIG.pushSecret, sub, title, body, url: location.href.split("#")[0], tag: "nosotros-" + Date.now() }) });
+      body: JSON.stringify({ secret: CONFIG.pushSecret, token: await S.idToken(), sub, title, body, url: location.href.split("#")[0], tag: "nosotros-" + Date.now() }) });
     return await r.json();
   } catch (e) { console.warn("push", e); return null; }
 }
@@ -3144,8 +3144,9 @@ $("rvClose").onclick = () => $("readView").classList.add("hidden");
 // ================= Estado de ánimo =================
 const MOODS = ["😄", "🥰", "🙂", "😐", "😴", "😔", "😢", "😤"];
 const MOOD_TXT = { "😄": "genial", "🥰": "con mucho amor", "🙂": "bien", "😐": "normal", "😴": "con sueño", "😔": "de bajón", "😢": "triste", "😤": "de mal humor" };
-// Christian (a) en masculino, Celia (b) en femenino: "enfadado/a" → "enfadado" / "enfadada"
-const gz = (t, w) => String(t).replace(/(\w+)o\/a\b/g, (_, r) => r + (w === "b" ? "a" : "o"));
+// cada uno con su género (lo elegís al crear la pareja): "enfadado/a" → "enfadado" / "enfadada"
+const genderOf = w => ((CONFIG.gender || {})[w]) || (w === "b" ? "f" : "m");
+const gz = (t, w) => String(t).replace(/(\w+)o\/a\b/g, (_, r) => r + (genderOf(w) === "f" ? "a" : "o"));
 let moods = {};
 function renderMoods(list) {
   renderHome();
@@ -3886,6 +3887,7 @@ function renderLetters(list) {
   }).join("") : "";
   $("owMine").querySelectorAll("[data-dl]").forEach(b => b.onclick = () => { if (confirm("¿Borrar esta carta?")) S.del("letters/" + b.dataset.dl); });
   $("dotLetters").classList.toggle("hidden", !toMe.some(l => !l.opened) && !capsReady().length);
+  if (typeof renderMail === "function" && state.pet) renderMail(state.pet);
 }
 function openOW(id, idx) {
   const o = OW.find(x => x[0] === id), list = letters.filter(l => l.to === who && l.when === id).sort((a, b) => a.at - b.at);
@@ -4042,10 +4044,11 @@ setInterval(renderAch, 5000);
 
 // ================= Carta y ajustes =================
 function openIntro() {
-  $("introLetter").textContent = CONFIG.letter; $("introSign").textContent = CONFIG.sign;
-  if (CONFIG.start) { const d = Math.floor((Date.now() - new Date(CONFIG.start + "T00:00:00")) / DAY); $("introDays").textContent = d + " días juntos"; }
-  else $("introDays").textContent = "Un año juntos";
-  $("introTitle").textContent = "Feliz aniversario, " + name("b");
+  $("introLetter").textContent = CONFIG.letter || ""; $("introSign").textContent = CONFIG.sign || "";
+  const d = CONFIG.start ? Math.floor((Date.now() - new Date(CONFIG.start + "T00:00:00")) / DAY) : -1;
+  $("introDays").textContent = d >= 0 ? d + " días juntos" : "";
+  // la pareja original conserva su carta de aniversario; las nuevas, «Para ti»
+  $("introTitle").textContent = S.isLegacy || S.demo ? "Feliz aniversario, " + name("b") : `Para ti, ${name("b")} 💌`;
   $("intro").classList.remove("hidden");
 }
 $("introClose").onclick = () => { $("intro").classList.add("hidden"); ls.set("introSeen", "1"); };
@@ -4056,6 +4059,7 @@ $("btnSettings").onclick = () => {
   $("sServer").value = srvUrl(); $("sServer").disabled = !!CONFIG.pushUrl;
   $("sWho").closest(".field").classList.toggle("hidden", S.needsLogin);
   renderPush();
+  renderSetCouple();
   $("sAccount").innerHTML = S.needsLogin ? `<label>Cuenta</label><div class="row" style="align-items:center"><span style="flex:1;font-size:14px">${esc(S.userEmail || "")}</span><button class="btn" id="sLogout">Cerrar sesión</button></div>` : "";
   const lo = $("sLogout"); if (lo) lo.onclick = async () => { await S.logout(); ls.set("who", ""); location.reload(); };
   $("sWho").innerHTML = ["a", "b"].map(w => `<option value="${w}" ${w === who ? "selected" : ""}>${esc(name(w))}</option>`).join("");
@@ -4075,6 +4079,7 @@ $("sSave").onclick = () => {
     S.merge("state/main", { server: sv }); state.main.server = sv; renderPush();
     if (sv) fetch(sv).then(r => r.text()).then(t => toast(/IA conectada/.test(t) ? "✅ Servidor conectado · avisos e IA listos 🐤" : /funcionando/.test(t) ? "✅ Servidor conectado · falta enlazar la IA en Cloudflare" : "⚠️ Esa dirección no parece el servidor", 4500)).catch(() => toast("⚠️ No he podido conectar con esa dirección", 4500));
   }
+  saveSetCouple();
   const w = $("sWho").value; $("settings").close();
   if (w !== who) { ls.set("who", w); ls.set("seenMsg", "0"); location.reload(); } else toast("Guardado");
 };
@@ -4092,18 +4097,17 @@ function pickWho() {
 function loginUI(err) {
   return new Promise(res => {
     $("loginView").classList.remove("hidden"); $("lgErr").textContent = err || "";
-    const allowed = [CONFIG.emails?.a, CONFIG.emails?.b].filter(Boolean).map(x => x.toLowerCase());
+    const inv = $("lgInvite"); if (inv) inv.classList.toggle("hidden", !S.validCode(S.cleanCode(ls.get("joinCode") || "")));
+    const okMail = m => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m);
     const go = mode => {
       const email = $("lgEmail").value.trim().toLowerCase(), pass = $("lgPass").value;
-      if (!email || pass.length < 6) { $("lgErr").textContent = "Pon tu email y una contraseña de al menos 6 caracteres"; return; }
-      if (!allowed.includes(email)) { $("lgErr").textContent = "Este email no está invitado 🙈"; return; }
+      if (!okMail(email) || pass.length < 6) { $("lgErr").textContent = "Pon tu email y una contraseña de al menos 6 caracteres"; return; }
       $("lgErr").style.color = ""; $("lgErr").textContent = "Un momento…"; res({ email, pass, mode });
     };
     $("lgIn").onclick = () => go("in"); $("lgNew").onclick = () => go("new");
     $("lgForgot").onclick = async () => {
       const email = $("lgEmail").value.trim().toLowerCase(), e = $("lgErr");
-      if (!email) { e.textContent = "Escribe arriba tu email y vuelve a pulsar aquí"; $("lgEmail").focus(); return; }
-      if (!allowed.includes(email)) { e.textContent = "Este email no está invitado 🙈"; return; }
+      if (!okMail(email)) { e.textContent = "Escribe arriba tu email y vuelve a pulsar aquí"; $("lgEmail").focus(); return; }
       e.textContent = "Enviando…";
       try { await S.resetPassword(email); e.style.color = "#b8f5c8"; e.textContent = `📩 Te hemos mandado un email a ${email} para elegir una contraseña nueva. Si no lo ves, mira en spam.`; }
       catch (er) { e.style.color = ""; e.textContent = er && er.code === "auth/user-not-found" ? "Ese email aún no tiene cuenta: pulsa «crear cuenta»" : er && er.code === "auth/network-request-failed" ? "Sin conexión a internet 📶" : er && er.code === "auth/too-many-requests" ? "Demasiados intentos, espera un poco" : "No se pudo enviar el email, prueba otra vez"; }
@@ -4111,7 +4115,158 @@ function loginUI(err) {
   });
 }
 
-const APP_VERSION = "2.7";
+// ================= Parejas: crear vuestro espacio o uniros con un código =================
+const fmtCode = c => c ? c.slice(0, 4) + "-" + c.slice(4) : "";
+const inviteLink = c => location.origin + location.pathname.replace(/index\.html$/, "") + "?unir=" + c;
+(() => {   // enlace de invitación: …/Nosotros/?unir=CÓDIGO
+  try {
+    const q = new URLSearchParams(location.search).get("unir");
+    if (q) { const c = S.cleanCode(q); if (S.validCode(c)) ls.set("joinCode", c); history.replaceState(null, "", location.pathname + location.hash); }
+  } catch (e) {}
+})();
+async function shareInvite(code, my, ot) {
+  const url = inviteLink(code), text = `💞 ${my || "Tu pareja"} te invita a Nosotros, vuestro rincón para dos.\n\nAbre el enlace, crea tu cuenta y listo. Si te pide un código, es este: ${fmtCode(code)}`;
+  try { if (navigator.share) { await navigator.share({ title: "Nosotros 💞", text, url }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+  try { await navigator.clipboard.writeText(text + "\n\n" + url); toast("📋 Invitación copiada: pégasela por WhatsApp", 3200); } catch (e) { toast("Vuestro código: " + fmtCode(code), 6000); }
+}
+const cpErrTxt = e => {
+  const c = String((e && e.code) || "").replace(/^firestore\//, "");
+  return c === "no-code" ? "Ese código no existe o ya está completo 🙈 Revísalo con tu pareja"
+    : c === "own-code" ? "Ese es tu propio código: pásaselo a tu pareja 😉"
+      : c === "bad-code" ? "El código tiene 8 letras y números, como K7QM-4XRP"
+        : c === "unavailable" || c === "auth/network-request-failed" ? "Sin conexión a internet 📶"
+          : c === "permission-denied" ? "No se ha podido (sin permiso). Prueba otra vez en un momento"
+            : "No se ha podido: " + (c || "error desconocido");
+};
+function coupleUI(api) {
+  return new Promise(resolve => {
+    const v = $("coupleView"), body = $("cpBody"); $("loginView").classList.add("hidden"); v.classList.remove("hidden");
+    const st = { myG: "m", otG: "f" }; let unwatch = null;
+    const err = t => { const e = $("cpErr"); if (e) e.textContent = t || ""; };
+    const stop = () => { if (unwatch) { try { unwatch(); } catch (e) {} unwatch = null; } };
+    const seg = (k, opts) => `<div class="cpseg" data-k="${k}">${opts.map(([val, t]) => `<button type="button" data-v="${val}" class="${st[k] === val ? "on" : ""}">${t}</button>`).join("")}</div>`;
+    const bindSeg = () => body.querySelectorAll(".cpseg").forEach(g => g.onclick = e => { const b = e.target.closest("button"); if (!b) return; st[g.dataset.k] = b.dataset.v; g.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); });
+    const busy = (b, on, t) => { if (!b) return; b.disabled = on; if (t) b.textContent = t; };
+    const done = () => { stop(); v.classList.add("hidden"); resolve(); };
+    const show = h => { body.innerHTML = h; v.scrollTop = 0; body.querySelectorAll("input,textarea").forEach(i => i.addEventListener("input", () => err(""))); };
+    function choose() {
+      show(`<div class="heart">💞</div><h2>¡Hola!</h2><div class="days">Nosotros es un rincón solo para dos</div>
+        <button class="cpopt" id="cpNew"><i>🏡</i><span><b>Crear nuestro espacio</b><small>Te daremos un código para que tu pareja se una</small></span></button>
+        <button class="cpopt" id="cpHave"><i>🔑</i><span><b>Tengo un código</b><small>Tu pareja ya ha creado vuestro espacio</small></span></button>
+        <div class="cpme">Has entrado como ${esc(api.email || "")} · <button class="cplink" id="cpOut">cambiar de cuenta</button></div>`);
+      $("cpNew").onclick = create; $("cpHave").onclick = () => join("");
+      $("cpOut").onclick = async () => { await api.logout(); location.reload(); };
+    }
+    function create() {
+      show(`<div class="heart">🏡</div><h2>Vuestro espacio</h2><div class="days">Solo os lleva un minuto</div>
+        <div class="cpform">
+          <label for="cpMy">Tu nombre</label><input id="cpMy" maxlength="30" autocomplete="given-name" placeholder="¿Cómo te llamas?">${seg("myG", [["m", "Soy chico"], ["f", "Soy chica"]])}
+          <label for="cpOt">Tu pareja</label><input id="cpOt" maxlength="30" autocomplete="off" placeholder="¿Cómo se llama?">${seg("otG", [["m", "Es chico"], ["f", "Es chica"]])}
+          <label for="cpStart">¿Desde cuándo estáis juntos? <small>(opcional)</small></label><input id="cpStart" type="date" max="${localKey()}">
+          <label for="cpLetter">Una carta de bienvenida para tu pareja <small>(opcional)</small></label><textarea id="cpLetter" maxlength="4000" placeholder="La leerá nada más entrar por primera vez 💌"></textarea>
+        </div>
+        <button class="love" id="cpGo">Crear nuestro espacio</button><div class="cperr" id="cpErr"></div>
+        <button class="cplink" id="cpBack">‹ Volver</button>`);
+      bindSeg(); $("cpBack").onclick = choose;
+      $("cpGo").onclick = async () => {
+        const my = $("cpMy").value.trim(), ot = $("cpOt").value.trim();
+        if (!my) { err("Escribe tu nombre ✍️"); $("cpMy").focus(); return; }
+        if (!ot) { err("Escribe el nombre de tu pareja ✍️"); $("cpOt").focus(); return; }
+        const b = $("cpGo"); busy(b, true, "Creando…"); err("");
+        try { await api.create({ myName: my, myGender: st.myG, partnerName: ot, partnerGender: st.otG, start: $("cpStart").value || null, letter: $("cpLetter").value.trim() }); waiting(); }
+        catch (e) { console.error(e); busy(b, false, "Crear nuestro espacio"); err(cpErrTxt(e)); }
+      };
+    }
+    function waiting() {
+      const m = api.meta || {}, my = (m.names || {}).a || "", ot = (m.names || {}).b || "tu pareja", code = api.code;
+      show(`<div class="heart">🔑</div><h2>¡Listo${my ? ", " + esc(my) : ""}!</h2><div class="days">Ahora invita a ${esc(ot)}</div>
+        <div class="cpcode" id="cpCodeBig">${fmtCode(code)}</div>
+        <button class="love" id="cpShare">📤 Enviar invitación</button>
+        <div class="cpwait"><i></i>Esperando a que ${esc(ot)} se una…</div>
+        <button class="btn cpwide" id="cpEnter">Entrar ya y esperar dentro</button>
+        <button class="cplink" id="cpCancel">Me he equivocado: borrarlo y usar un código</button>`);
+      $("cpShare").onclick = () => shareInvite(code, my, ot);
+      $("cpEnter").onclick = done;
+      $("cpCancel").onclick = async () => { if (!confirm("¿Borrar este espacio? Todavía no hay nada dentro.")) return; stop(); await api.cancel(); choose(); };
+      stop(); unwatch = api.watch(m2 => {
+        if ((m2.members || []).length < 2) return; stop();
+        show(`<div class="heart">💞</div><h2>¡${esc((m2.names || {}).b || ot)} se ha unido!</h2><div class="days">Ya estáis juntos en Nosotros</div>`);
+        confetti(); buzz([30, 60, 30]); setTimeout(done, 1800);
+      });
+    }
+    function join(pre) {
+      show(`<div class="heart">🔑</div><h2>Unirme a mi pareja</h2><div class="days">Escribe el código que te ha pasado</div>
+        <input id="cpCode" class="cpcodein" maxlength="9" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="XXXX-XXXX" value="${esc(fmtCode(pre))}">
+        <button class="love" id="cpJoin">Unirme 💞</button><div class="cperr" id="cpErr"></div>
+        <button class="cplink" id="cpBack">‹ Volver</button>`);
+      const inp = $("cpCode");
+      inp.oninput = () => { const c = S.cleanCode(inp.value).slice(0, 8); inp.value = c.length > 4 ? c.slice(0, 4) + "-" + c.slice(4) : c; };
+      $("cpBack").onclick = choose;
+      $("cpJoin").onclick = async () => {
+        const c = S.cleanCode(inp.value); if (!S.validCode(c)) { err("El código tiene 8 letras y números, como K7QM-4XRP"); return; }
+        const b = $("cpJoin"); busy(b, true, "Uniendo…"); err("");
+        try { await api.join(c); ls.set("joinCode", ""); joined(); }
+        catch (e) { console.error(e); busy(b, false, "Unirme 💞"); err(cpErrTxt(e)); }
+      };
+    }
+    function joined() {
+      const m = api.meta || {}, me = (m.names || {}).b || "", ot = (m.names || {}).a || "tu pareja"; st.myG = (m.gender || {}).b || "f";
+      show(`<div class="heart">💞</div><h2>¡Ya estáis juntos!</h2><div class="days">${esc(ot)} te estaba esperando</div>
+        <div class="cpform"><label for="cpMy">¿Cómo quieres que te llamemos?</label><input id="cpMy" maxlength="30" value="${esc(me)}">${seg("myG", [["m", "Soy chico"], ["f", "Soy chica"]])}</div>
+        <button class="love" id="cpGo">Entrar 💞</button><div class="cperr" id="cpErr"></div>`);
+      bindSeg(); confetti();
+      $("cpGo").onclick = async () => {
+        const my = $("cpMy").value.trim(); if (!my) { err("Escribe tu nombre ✍️"); return; }
+        busy($("cpGo"), true, "Un momento…");
+        try { await api.update({ names: { b: my }, gender: { b: st.myG } }); } catch (e) { console.warn(e); }
+        done();
+      };
+    }
+    const pending = S.cleanCode(ls.get("joinCode") || "");
+    if (S.validCode(pending)) join(pending); else choose();
+  });
+}
+// los datos de la pareja (nombres, géneros, fecha, carta) mandan sobre config.js
+function applyMeta(m) {
+  if (!m) return;
+  if (m.names) CONFIG.names = { ...(CONFIG.names || {}), ...m.names };
+  if (m.gender) CONFIG.gender = { ...(CONFIG.gender || {}), ...m.gender };
+  if ("start" in m) CONFIG.start = m.start || "";
+  if ("letter" in m) { CONFIG.letter = m.letter || ""; CONFIG.sign = m.sign || ""; }
+  if (m.petName) CONFIG.petName = m.petName;
+  const bl = $("btnLetter"); if (bl) bl.classList.toggle("hidden", !CONFIG.letter);
+}
+const partnerPending = () => { const m = S.meta || {}; return !S.demo && !S.isLegacy && !!S.coupleCode && (m.members || []).length < 2; };
+function renderInvite() {
+  const el = $("inviteBanner"); if (!el) return;
+  const on = partnerPending(); el.classList.toggle("hidden", !on); if (!on) return;
+  el.innerHTML = `<span>💌 <b>${esc(name(other()))}</b> aún no se ha unido · código <b class="invc">${fmtCode(S.coupleCode)}</b></span><button class="btn" id="invBtn" type="button">Invitar</button>`;
+  $("invBtn").onclick = () => shareInvite(S.coupleCode, name(who), name(other()));
+}
+function renderSetCouple() {
+  const el = $("sCouple"); if (!el) return;
+  const g = x => `<option value="m" ${x === "m" ? "selected" : ""}>chico</option><option value="f" ${x === "f" ? "selected" : ""}>chica</option>`;
+  el.innerHTML = `<label>Vosotros</label>
+    <div class="scrow"><input id="scMe" maxlength="30" value="${esc(name(who))}" placeholder="Tu nombre" aria-label="Tu nombre"><select id="scMeG" aria-label="Tú eres">${g(genderOf(who))}</select></div>
+    <div class="scrow"><input id="scOt" maxlength="30" value="${esc(name(other()))}" placeholder="Tu pareja" aria-label="Nombre de tu pareja"><select id="scOtG" aria-label="Tu pareja es">${g(genderOf(other()))}</select></div>
+    <label for="scStart" style="margin-top:8px">Empezasteis el</label><input id="scStart" type="date" value="${esc(CONFIG.start || "")}" max="${localKey()}">
+    ${partnerPending() ? `<div class="scinv">🔑 Código para ${esc(name(other()))}: <b>${fmtCode(S.coupleCode)}</b><button class="btn" id="scInv" type="button">Invitar</button></div>` : ""}`;
+  const b = $("scInv"); if (b) b.onclick = () => shareInvite(S.coupleCode, name(who), name(other()));
+}
+function saveSetCouple() {
+  if (!$("scMe")) return;
+  const names = {}, gender = {}, up = {};
+  const nm = $("scMe").value.trim(), no = $("scOt").value.trim();
+  if (nm && nm !== name(who)) names[who] = nm; if (no && no !== name(other())) names[other()] = no;
+  if ($("scMeG").value !== genderOf(who)) gender[who] = $("scMeG").value; if ($("scOtG").value !== genderOf(other())) gender[other()] = $("scOtG").value;
+  const sd = $("scStart").value || ""; if (sd !== (CONFIG.start || "")) up.start = sd || null;
+  if (Object.keys(names).length) up.names = names; if (Object.keys(gender).length) up.gender = gender;
+  if (!Object.keys(up).length) return;
+  applyMeta({ ...up, names: { ...CONFIG.names, ...names }, gender: { ...(CONFIG.gender || {}), ...gender } }); renderHome(); tick();
+  Promise.resolve(S.updateMeta(up)).catch(e => { console.warn(e); toast("⚠️ No se han podido guardar vuestros datos"); });
+}
+
+const APP_VERSION = "3.1";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -4501,8 +4656,9 @@ function petWander(I, ex) {
 
 // ---------- Los dos a la vez: presencia y abrazo doble ----------
 let pres = {}, presOn = false, dhShown = 0;
-const partnerOnline = () => Date.now() - ((pres || {})[other()] || 0) < 75000;
-function beat() { if (!document.hidden) S.merge("state/presence", { [who]: Date.now() }); }
+// «estoy aquí» cada ~90 s como mucho (y nada si ya lo dijimos al movernos por la app): menos escrituras en Firebase
+const partnerOnline = () => Date.now() - ((pres || {})[other()] || 0) < 150000;
+function beat(force) { if (document.hidden) return; const mine = (pres || {})[who] || 0; if (!force && Date.now() - mine < 80000) return; pres[who] = Date.now(); S.merge("state/presence", { [who]: pres[who] }); }
 function watchPresence() {
   liveOK = true;
   S.watchDoc("state/presence", d => {
@@ -4512,8 +4668,8 @@ function watchPresence() {
     if (h && mine && Math.abs(h - mine) < 15000 && Date.now() - Math.max(h, mine) < 20000) doubleHug();
     renderPresence(); renderHome(); liveOnPres();
   });
-  beat(); setInterval(beat, 30000);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(); });
+  beat(true); setInterval(() => beat(), 30000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(true); });
   setInterval(() => { const now = partnerOnline(); if (now !== presOn) { presOn = now; renderPresence(); renderHome(); } }, 15000);
 }
 function renderPresence() {
@@ -4851,7 +5007,7 @@ async function aiSend() {
     if (S.demo) { aiContext.last = aiContext(); await new Promise(r => setTimeout(r, 700)); reply = demoReply(t); }
     else if (!srvUrl()) reply = "Pío… 🥺 Aún no tengo voz: falta poner la dirección del servidor en ⚙️ Ajustes.";
     else {
-      const body = JSON.stringify({ secret: CONFIG.pushSecret, type: "chat", system: aiContext(), messages: aiHist.filter(m => !m.fail).slice(-12).map(m => ({ role: m.role, content: m.content })) });
+      const body = JSON.stringify({ secret: CONFIG.pushSecret, token: await S.idToken(), type: "chat", purpose: "chat", system: aiContext(), messages: aiHist.filter(m => !m.fail).slice(-12).map(m => ({ role: m.role, content: m.content })) });
       for (let i = 0; i < 2 && !reply; i++) {
         try { const r = await fetch(srvUrl(), { method: "POST", headers: { "Content-Type": "application/json" }, body }); const j = await r.json(); if (!j.ok || !j.reply) throw new Error(j.error || "sin respuesta"); reply = j.reply; }
         catch (e) { if (i) throw e; await new Promise(r => setTimeout(r, 800)); }
@@ -5231,7 +5387,7 @@ async function aiAsk(system, prompt, max = 400) {
   if (S.demo || !srvUrl()) return null;
   for (let i = 0; i < 2; i++) {
     try {
-      const r = await fetch(srvUrl(), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ secret: CONFIG.pushSecret, type: "chat", system, messages: [{ role: "user", content: prompt }], max }) });
+      const r = await fetch(srvUrl(), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ secret: CONFIG.pushSecret, token: await S.idToken(), type: "chat", purpose: "gen", system, messages: [{ role: "user", content: prompt }], max }) });
       const j = await r.json(); if (j.ok && j.reply) return String(j.reply).trim(); throw new Error(j.error || "sin respuesta");
     } catch (e) { if (i) { console.warn(e); return null; } await new Promise(r => setTimeout(r, 900)); }
   }
@@ -5417,7 +5573,7 @@ async function openWrapped() {
   const first = yrs === 1 ? "Vuestro primer año" : yrs > 1 ? `Vuestros ${yrs} años` : "Vuestra historia";
   const petS = state.pet ? chickSVG(Math.max(1, stageOf(state.pet.xp || 0)), "love", state.pet.wear || {}, 0, state.pet.color, { species: state.pet.species }) : "";
   const S1 = [
-    { bg: "g1", html: `<small>Nosotros · ${esc(A)} y ${esc(B)}</small><h1>${first} 💞</h1><p>${esc(fmtD(new Date(CONFIG.start + "T12:00:00"), { day: "numeric", month: "long", year: "numeric" }))} → hoy</p><div class="wrpet">${petS}</div>` },
+    { bg: "g1", html: `<small>Nosotros · ${esc(A)} y ${esc(B)}</small><h1>${first} 💞</h1>${CONFIG.start ? `<p>${esc(fmtD(new Date(CONFIG.start + "T12:00:00"), { day: "numeric", month: "long", year: "numeric" }))} → hoy</p>` : ""}<div class="wrpet">${petS}</div>` },
     { bg: "g2", html: `<small>Lleváis juntos</small><div class="big" data-n="${s.days}">0</div><h2>días</h2><p>Son ${(s.days * 24).toLocaleString("es-ES")} horas queriéndoos, aunque sea a distancia ✈️</p>` },
     { bg: "g3", html: `<small>En el buzón os habéis dejado</small><div class="big" data-n="${s.msgs}">0</div><h2>mensajes 💌</h2><div class="wrbar"><span style="width:${pct}%">${esc(A)} ${pct}%</span><span>${esc(B)} ${100 - pct}%</span></div>${s.busy && s.busy[1] > 1 ? `<p>El día que más hablasteis fue el ${esc(fmtD(new Date(s.busy[0] + "T12:00:00")))}: ${s.busy[1]} mensajes 🔥</p>` : ""}` },
     { bg: "g4", html: `<small>Vuestras palabras</small>${s.emoji.length ? `<div class="wremo">${s.emoji.join(" ")}</div><p>Vuestros emojis favoritos</p>` : ""}${s.word ? `<h2>«${esc(s.word)}»</h2><p>es la palabra que más os escribís 🥹</p>` : `<p>Aún os estáis conociendo por escrito ✍️</p>`}` },
@@ -5585,7 +5741,7 @@ async function openBook() {
   const petS = p.xp ? chickSVG(Math.max(1, stageOf(p.xp || 0)), "love", p.wear || {}, 0, p.color, { species: p.species }) : "";
   const done = (plans || []).filter(x => x.done).sort((a, b) => (a.doneAt || 0) - (b.doneAt || 0));
   let h = `<div class="bktools"><button class="btn primary" id="bkPrint">🖨️ Guardar como PDF</button><button class="btn" id="bkJson">💾 Copia</button><button class="btn" id="bkX">✕</button></div><div class="book">
-    <section class="bkcover"><div class="bkpet">${petS}</div><h1>Nosotros</h1><h2>${esc(A)} & ${esc(B)}</h2><p>Desde el ${esc(fmtD(new Date(CONFIG.start + "T12:00:00"), { day: "numeric", month: "long", year: "numeric" }))} · ${days} días juntos</p></section>
+    <section class="bkcover"><div class="bkpet">${petS}</div><h1>Nosotros</h1><h2>${esc(A)} & ${esc(B)}</h2>${CONFIG.start ? `<p>Desde el ${esc(fmtD(new Date(CONFIG.start + "T12:00:00"), { day: "numeric", month: "long", year: "numeric" }))} · ${days} días juntos</p>` : ""}</section>
     <section><h3>Nuestros números</h3><ul class="bknum"><li><b>${days}</b> días juntos</li><li><b>${dys.length}</b> días de diario</li><li><b>${mems.length}</b> recuerdos</li><li><b>${done.length}</b> planes cumplidos</li><li><b>${p.xp || 0}</b> días cuidando a ${esc(p.name || "Pollito")}</li><li><b>${p.hugs || 0}</b> mimos</li></ul></section>`;
   if (mems.length) h += `<section><h3>Nuestros recuerdos 📸</h3>${mems.slice().sort((a, b) => (a.taken || a.at) - (b.taken || b.at)).map(m => { const i = mems.indexOf(m); return `<div class="bkmem">${fullPh[i] ? `<img src="${fullPh[i]}" alt="">` : ""}<div><small>${esc(fmtD(m.taken || m.at, { day: "numeric", month: "long", year: "numeric" }))}${m.place ? " · 📍 " + esc(m.place) : ""} · ${esc(name(m.from))}</small>${m.text ? `<p>${esc(m.text)}</p>` : ""}</div></div>`; }).join("")}</section>`;
   if (dys.length) h += `<section><h3>Nuestro diario 📖</h3>${dys.slice().sort(byDate).map(d => `<div class="bkday"><h4>${esc(fmtD(new Date((d.date || d.id) + "T12:00:00"), { weekday: "long", day: "numeric", month: "long", year: "numeric" }))}</h4>${["a", "b"].filter(w => d[w] && (d[w].text || d[w].photo)).map(w => `<p><b>${esc(name(w))} ${esc(d[w].mood || "")}</b> ${esc(d[w].text || "")}</p>${d[w].photo ? `<img src="${d[w].photo}" alt="">` : ""}`).join("")}${d.pet && d.pet.text ? `<p class="bkpetl">🐤 ${esc(d.pet.text)}</p>` : ""}</div>`).join("")}</section>`;
@@ -6174,6 +6330,7 @@ function petLoc(p, I) {
   p = p || state.pet || {}; I = I || petInfo();
   if (!I.si || tripAway(p)) return viewLoc();
   if (visitOf(p)) return "visita";
+  if (autoOut(p)) return "barrio";
   const now = Date.now();
   if (p.here && p.here.until > now && LOCN[p.here.loc]) return p.here.loc;
   const hh = hourIn(myTz); if (isNapping(p) || hh >= 23 || hh < 7) return "dorm";
@@ -6205,7 +6362,7 @@ function summonPet(silent) {
   const vj = visitOf(state.pet); if (vj && vj.job) { if (!silent) toast(`💼 ${pn} está trabajando con ${NB[vj.nb].n} hasta las ${hhmm(vj.until)}`, 2600); return Promise.resolve(); }
   locNav = true; locCalled = true;
   if (!silent) toast(`📣 ¡${pn}! Ya viene corriendo… 🐾`, 2200);
-  return petTx(q => { if (q.visit && q.visit.job && !q.visit.paid && q.visit.until > Date.now()) return null; q.here = { loc, until: Date.now() + 15 * 6e4, by: who }; if (!(q.visit && q.visit.job && !q.visit.paid)) q.visit = null; return q; }).then(r => { if (!r) return; sceneSig = ""; petSig = ""; renderPet(); walkIn(); }).catch(offline);
+  return petTx(q => { if (q.visit && q.visit.job && !q.visit.paid && q.visit.until > Date.now()) return null; q.here = { loc, until: Date.now() + 15 * 6e4, by: who }; q.outStop = Math.floor(Date.now() / OUT_SLOT); if (!(q.visit && q.visit.job && !q.visit.paid)) q.visit = null; return q; }).then(r => { if (!r) return; sceneSig = ""; petSig = ""; renderPet(); walkIn(); }).catch(offline);
 }
 function renderLocate(p, I) {
   const box = $("petBox"), look = $("petLook"); if (!box || !look) return true;
@@ -6221,8 +6378,8 @@ function renderLocate(p, I) {
   } else box.classList.toggle("gone", !here);
   look.classList.toggle("hidden", here);
   if (!here) {
-    const vis = visitOf(p), lk = vl + "|" + (vis ? vis.nb : "");
-    if (look.dataset.loc !== lk) { look.dataset.loc = lk; look.innerHTML = vis ? `<b>${pn} está ${vis.job ? "trabajando" : "de visita"} en casa de ${esc(NB[vis.nb].n)} ${NB[vis.nb].e}${vis.job ? `<br><small>vuelve a las ${hhmm(vis.until)} con ${vis.pay} 🪙</small>` : ""}</b><div class="row" style="gap:8px;justify-content:center"><button class="btn" id="lookGo">🏘️ Ir a verle</button><button class="btn" id="lookCall">📣 Llamarle</button></div>` : `<b>${pn} no está aquí</b><button class="btn" id="lookCall">📣 Llamarle</button>`; $("lookCall").onclick = e => { e.stopPropagation(); summonPet(); }; const lg = $("lookGo"); if (lg) lg.onclick = e => { e.stopPropagation(); openBarrio(); nbCur = vis.nb; nbSay = ""; renderBarrio(); }; }
+    const vis = visitOf(p), ao = !vis && pl === "barrio" ? autoOut(p) : null, lk = vl + "|" + (vis ? vis.nb + (vis.auto ? "a" : "") : "") + (ao ? "|ao" + ao.slot + ao.kind : "");
+    if (look.dataset.loc !== lk) { look.dataset.loc = lk; look.innerHTML = ao ? `<b>${pn} ${petOutText(ao, p)} 🐾<br><small>ha salido solo · vuelve sobre las ${hhmm(ao.until)}</small></b><div class="row" style="gap:8px;justify-content:center"><button class="btn" id="lookGo">🏘️ Ir a verle</button><button class="btn" id="lookCall">📣 Llamarle</button></div>` : vis ? `<b>${pn} está ${vis.job ? "trabajando" : vis.auto ? "de visita (ha ido solo)" : "de visita"} en casa de ${esc(NB[vis.nb].n)} ${NB[vis.nb].e}${vis.job ? `<br><small>vuelve a las ${hhmm(vis.until)} con ${vis.pay} 🪙</small>` : ""}</b><div class="row" style="gap:8px;justify-content:center"><button class="btn" id="lookGo">🏘️ Ir a verle</button><button class="btn" id="lookCall">📣 Llamarle</button></div>` : `<b>${pn} no está aquí</b><button class="btn" id="lookCall">📣 Llamarle</button>`; $("lookCall").onclick = e => { e.stopPropagation(); summonPet(); }; const lg = $("lookGo"); if (lg) lg.onclick = e => { e.stopPropagation(); openBarrio(); nbCur = vis ? vis.nb : ao && ao.kind === "plaza" ? "plaza" : ao && ao.kind === "lago" ? "lake" : null; nbSay = ""; renderBarrio(); if (ao && ao.kind === "paseo") setTimeout(petMeet, 400); }; }
     locMiss = true;
   } else if (locMiss && !locCalled && I.si) {
     locMiss = false;
@@ -7157,7 +7314,7 @@ const isEnc = s => typeof s === "string" && s.startsWith("e1:");
 const spNorm = p => (p || "").normalize("NFC").trim().replace(/\s+/g, " ").toLowerCase();
 async function spDeriveRaw(phrase) {
   const enc = new TextEncoder(), base = await crypto.subtle.importKey("raw", enc.encode(spNorm(phrase)), "PBKDF2", false, ["deriveBits"]);
-  return new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt: enc.encode("nosotros-zona-privada|" + CONFIG.couple), iterations: 250000, hash: "SHA-256" }, base, 256));
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt: enc.encode("nosotros-zona-privada|" + (S.coupleCode || CONFIG.couple)), iterations: 250000, hash: "SHA-256" }, base, 256));
 }
 async function spUseRaw(raw) { SPK.key = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]); SPK.raw = b64e(raw); }
 async function spEnc(obj) {
@@ -7618,23 +7775,23 @@ const NB_LV = f => f >= 80 ? ["💛", "Mejores amigos"] : f >= 40 ? ["😊", "Am
 function nbReq(id, p) {
   const k = dayKey(), h = hashStr(k + ":req:" + id); if (h % 100 >= 55) return null;
   const crops = Object.keys(CROPS), foods = ["manzana", "galleta", "fresas", "cafe", "palomitas", "croissant", "chocolate", "te", "zumo", "x_limonada", "donut"];
-  const isCrop = h % 2 === 0, item = isCrop ? crops[(h >> 3) % 5] : foods[(h >> 4) % foods.length], n = isCrop ? 2 + ((h >> 6) % 2) : 1 + ((h >> 7) % 2);
-  return { item, n, crop: isCrop, coins: 20 + ((h >> 8) % 5) * 10, done: nbOf(p, id).reqDay === k };
+  const isCrop = h % 2 === 0, item = isCrop ? crops[(h >>> 3) % 5] : foods[(h >>> 4) % foods.length], n = isCrop ? 2 + ((h >>> 6) % 2) : 1 + ((h >>> 7) % 2);
+  return { item, n, crop: isCrop, coins: 20 + ((h >>> 8) % 5) * 10, done: nbOf(p, id).reqDay === k };
 }
 const haveOf = (p, r) => r.crop ? ((p.pantry || {})[r.item] || 0) : ((p.inv || {})[r.item] || 0);
 const itemE = (id) => CROPS[id] ? CROPS[id].e : (CAT[id] || {}).e || "❔";
 const itemN = (id) => CROPS[id] ? CROPS[id].n : (CAT[id] || {}).n || id;
 let nbCur = null, nbSay = "", nbArrive = false;
 function nbEl() { let v = $("nbView"); if (!v) { v = document.createElement("div"); v.id = "nbView"; v.className = "nbview hidden"; document.body.appendChild(v); } return v; }
-function openBarrio() { if (!hatched()) return toast("Primero tiene que nacer 🥚"); nbCur = null; const v = nbEl(); v.classList.remove("hidden"); document.body.style.overflow = "hidden"; renderBarrio(); nbMoveCheck(); SFX.whoosh && SFX.whoosh(); }
-function closeBarrio() { const v = $("nbView"); if (v) { v.classList.add("hidden"); v.innerHTML = ""; } document.body.style.overflow = ""; nbCur = null; }
+function openBarrio() { if (!hatched()) return toast("Primero tiene que nacer 🥚"); nbCur = null; const v = nbEl(); v.classList.remove("hidden"); document.body.style.overflow = "hidden"; renderBarrio(); nbMoveCheck(); barrioSocialTick(); SFX.whoosh && SFX.whoosh(); }
+function closeBarrio() { ambStop(); const v = $("nbView"); if (v) { v.classList.add("hidden"); v.innerHTML = ""; } document.body.style.overflow = ""; nbCur = null; }
 function renderBarrio() {
   if (nbCur) return renderNbHouse();
   const v = nbEl(), p = state.pet || {}, m = mateOf(p), life = barrioLife(p);
-  const hits = [...NEIGH.map(N => [nbIn(N, p) ? N.id : "lot:" + N.id, N.x, N.y, N.n]), ...(m ? [["mate", 290, 368, m.name]] : []), ["home", 180, 560, "Vuestra casa"], ["lake", 292, 112, "El lago"], ["plaza", 168, 286, "La plaza y el mercadillo"]];
+  const hits = [...NEIGH.map(N => [nbIn(N, p) ? N.id : "lot:" + N.id, N.x, N.y, N.n]), ...(m ? [["mate", 290, 368, m.name]] : []), ["home", 180, 560, "Vuestra casa"], ["lake", 292, 112, "El lago"], ["plaza", 168, 286, "La plaza y el mercadillo"], ["news", 140, 198, "El Cotilleo", "sm"]];
   const WT = { paseo: "paseando", lago: "en el lago 🎣", puerta: "en vuestra puerta 🔔", fiesta: "de fiesta 🎉", plaza: "en la plaza" };
-  v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbX">‹ Volver</button><b>🏘️ Vuestro barrio</b><span></span></div><div class="nbmap">${barrioSVG(life.s)}${barrioWx()}${hits.map(([id, x, y, n]) => `<button class="nbhit" data-nb="${id}" aria-label="${esc(n)}" style="left:${(x / 360 * 100).toFixed(1)}%;top:${(y / NB_H * 100).toFixed(1)}%"></button>`).join("")}</div>
-    ${life.out.length ? `<div class="nbouts"><b>Ahora por el barrio</b><div>${life.out.map(([N, W]) => `<button class="nbout" data-meet="${N.id}">${SPECIES[N.sp].e} ${esc(N.n)} <small>${WT[W.k] || ""}</small></button>`).join("")}</div></div>` : ""}
+  v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbX">‹ Volver</button><b>🏘️ Vuestro barrio</b><span></span></div><div class="nbmap">${barrioSVG(life.s)}${barrioWx()}${ambFx()}${ambBtn()}${hits.map(([id, x, y, n, cls]) => `<button class="nbhit ${cls || ""}" data-nb="${id}" aria-label="${esc(n)}" style="left:${(x / 360 * 100).toFixed(1)}%;top:${(y / NB_H * 100).toFixed(1)}%"></button>`).join("")}</div>
+    ${life.out.length || (life.pet && life.pet.kind !== "visita") ? `<div class="nbouts"><b>Ahora por el barrio</b><div>${life.pet && life.pet.kind !== "visita" ? `<button class="nbout me" data-petmeet="1">${SPECIES[p.species || "pollito"].e} ${esc(p.name || "Pollito")} <small>${life.pet.kind === "paseo" ? "paseando solo" : life.pet.kind === "lago" ? "en el lago" : "en la plaza"}</small></button>` : ""}${life.out.map(([N, W]) => `<button class="nbout" data-meet="${N.id}">${SPECIES[N.sp].e} ${esc(N.n)} <small>${W.k === "visita" ? "en casa de " + esc(NB[W.host].n) : W.act ? esc(W.act) : WT[W.k] || ""}</small></button>`).join("")}</div></div>` : ""}
     <div class="nbhint">${isFiesta() ? "🎉 <b>¡Hoy es domingo de fiesta en la plaza!</b><br>" : ""}Toca una casa, el lago 🎣, la plaza 🛒 o a un vecino por la calle · ❗ = encargo</div>`;
   $("nbX").onclick = closeBarrio;
   v.querySelectorAll(".nbhit[data-nb]").forEach(g => g.onclick = () => {
@@ -7643,29 +7800,30 @@ function renderBarrio() {
     if (id.startsWith("lot:")) { const N = NB[id.slice(4)], at = nbArriveAt(N, p); return toast(at - Date.now() < DAY ? `🚚 ¡Alguien se muda aquí ${new Date(at).toDateString() === new Date().toDateString() ? "hoy" : "mañana"}! 📦` : "🏗️ Solar en venta… dicen que pronto vendrá alguien nuevo 👀", 3200); }
     nbCur = id; nbSay = ""; SFX.pop(); renderBarrio();
   });
-  v.querySelector(".nbmap").addEventListener("click", e => { const w = e.target.closest("[data-nbw]"); if (w) { e.stopPropagation(); nbMeet(w.dataset.nbw); } });
+  v.querySelector(".nbmap").addEventListener("click", e => { const w = e.target.closest("[data-nbw]"); if (w) { e.stopPropagation(); const id = w.dataset.nbw; if (id === "pet") petMeet(); else if (id === "cat") catPet(); else nbMeet(id); } });
   v.querySelectorAll("[data-meet]").forEach(b => b.onclick = () => nbMeet(b.dataset.meet));
-  nbDecorate();
+  const pm = v.querySelector("[data-petmeet]"); if (pm) pm.onclick = petMeet;
+  nbDecorate(); ambBind();
   if (nbFocus) { const f = nbFocus; nbFocus = null; setTimeout(() => nbMeet(f), 350); }
 }
 function barrioSVG(life = "") {
   const p = state.pet || {}, m = mateOf(p), I = petInfo(), pn = esc(p.name || "Pollito");
-  const tree = (x, y, r) => `<g><circle cx="${x + 2}" cy="${y + 3}" r="${r}" fill="rgba(0,0,0,.15)"/><circle cx="${x}" cy="${y}" r="${r}" fill="#3f9a4a"/><circle cx="${x - r * .3}" cy="${y - r * .3}" r="${r * .55}" fill="#5cb85c"/></g>`;
+  const tree = treeSVG, GD = grassDots();
   const house = (o) => {
     const { x, y, roof, label, emoji, id, big, badge, visitor } = o, w = big ? 92 : 74, h = big ? 66 : 54, dark = hexMix(roof, "#000000", .25), lite = hexMix(roof, "#ffffff", .18);
     return `<g class="nbh" data-nb="${id}" style="cursor:pointer"><rect x="${x - w / 2 - 8}" y="${y - h / 2 - 6}" width="${w + 16}" height="${h + 26}" rx="10" fill="#9fdc7a" opacity=".55"/>
       <rect x="${x - w / 2 + 3}" y="${y - h / 2 + 4}" width="${w}" height="${h}" rx="6" fill="rgba(0,0,0,.18)"/>
       <rect x="${x - w / 2}" y="${y - h / 2}" width="${w}" height="${h / 2}" rx="5" fill="${lite}"/><rect x="${x - w / 2}" y="${y}" width="${w}" height="${h / 2}" rx="5" fill="${dark}"/>
       <path d="M${x - w / 2 + 4} ${y} H${x + w / 2 - 4}" stroke="${hexMix(roof, "#000000", .4)}" stroke-width="2.5"/>${Array.from({ length: 5 }, (_, i) => `<path d="M${x - w / 2 + 6} ${y - h / 2 + 6 + i * (h / 10)} H${x + w / 2 - 6}" stroke="rgba(0,0,0,.08)" stroke-width="1"/>`).join("")}
-      <rect x="${x + w / 4}" y="${y - h / 2 - 6}" width="10" height="14" rx="2" fill="#8a6a5a"/>
+      ${houseDeco(x, y, w, h)}<rect x="${x + w / 4}" y="${y - h / 2 - 6}" width="10" height="14" rx="2" fill="#8a6a5a"/>
       <rect x="${x - 7}" y="${y + h / 2}" width="14" height="10" rx="2" fill="#e8dcc6"/>
       <text x="${x}" y="${y + 4}" text-anchor="middle" font-size="${big ? 22 : 18}">${emoji}</text>
       <g transform="translate(${x} ${y + h / 2 + 22})"><rect x="${-label.length * 3.6 - 10}" y="-10" width="${label.length * 7.2 + 20}" height="19" rx="9.5" fill="rgba(255,255,255,.92)"/><text text-anchor="middle" y="4" font-size="11" font-weight="800" fill="#3a2330" font-family="system-ui">${esc(label)}</text></g>
       ${visitor ? `<g><circle cx="${x - w / 2 + 4}" cy="${y + h / 2 - 2}" r="13" fill="#fff" stroke="#ffb800" stroke-width="3"/><text x="${x - w / 2 + 4}" y="${y + h / 2 + 3}" text-anchor="middle" font-size="14">${visitor}</text></g>` : ""}
       ${badge ? `<g class="nbbadge"><circle cx="${x + w / 2 - 2}" cy="${y - h / 2 + 2}" r="11" fill="${badge === "❗" ? "#ff3d6e" : "#fff"}" stroke="#fff" stroke-width="2"/><text x="${x + w / 2 - 2}" y="${y - h / 2 + 7}" text-anchor="middle" font-size="12">${badge}</text></g>` : ""}</g>`;
   };
-  let s = `<svg viewBox="0 0 360 ${NB_H}" class="nbsvg"><rect width="360" height="${NB_H}" fill="#8fd16a"/>`;
-  for (let i = 0; i < 82; i++) { const h = hashStr("g" + i); s += `<circle cx="${h % 360}" cy="${(h >> 9) % NB_H}" r="${1 + (h >> 18) % 2}" fill="${["#7cc35a", "#a3dc82", "#ffe680", "#ffb3c8"][(h >> 4) % 4]}" opacity=".8"/>`; }
+  let s = `<svg viewBox="0 0 360 ${NB_H}" class="nbsvg"><rect width="360" height="${NB_H}" fill="${grassOf()}"/>`;
+  for (let i = 0; i < 82; i++) { const h = hashStr("g" + i); s += `<circle cx="${h % 360}" cy="${(h >>> 9) % NB_H}" r="${1 + (h >>> 18) % 2}" fill="${GD[(h >>> 4) % 4]}" opacity=".8"/>`; }
   s += `<ellipse cx="292" cy="112" rx="58" ry="42" fill="#6cc3f0"/><ellipse cx="292" cy="112" rx="50" ry="35" fill="#8fd6f7"/><path d="M262 104 q8 -6 16 0 M298 124 q8 -6 16 0" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/><text x="306" y="104" font-size="14">🦆</text><text x="270" y="130" font-size="11">🪷</text>`;
   s += `<rect x="226" y="113" width="34" height="9" rx="2" fill="#a0703f"/><path d="M232 113 v9 M240 113 v9 M248 113 v9" stroke="#7a5230" stroke-width="1.2"/><text x="244" y="110" font-size="15">🎣</text><g transform="translate(292 168)"><rect x="-34" y="-10" width="68" height="19" rx="9.5" fill="rgba(255,255,255,.92)"/><text text-anchor="middle" y="4" font-size="11" font-weight="800" fill="#3a2330" font-family="system-ui">El lago 🎣</text></g>`;
   s += `<rect x="163" y="0" width="34" height="548" fill="#e3d2ad"/><rect x="0" y="282" width="360" height="30" fill="#e3d2ad"/><path d="M180 6 V270 M180 324 V540" stroke="#fff" stroke-width="2.5" stroke-dasharray="10 9"/><path d="M6 297 H140 M220 297 H354" stroke="#fff" stroke-width="2.5" stroke-dasharray="10 9"/>`;
@@ -7674,24 +7832,28 @@ function barrioSVG(life = "") {
   [[30, 30, 14], [130, 40, 12], [126, 160, 11], [28, 300, 13], [130, 360, 12], [236, 30, 12], [340, 190, 12], [236, 400, 11], [340, 300, 12], [128, 470, 12], [236, 560, 13], [20, 572, 11], [128, 580, 10], [342, 572, 11], [236, 180, 10], [180, 670, 11], [132, 666, 9], [230, 666, 9], [14, 690, 10], [348, 690, 10]].forEach(([x, y, r]) => s += tree(x, y, r));
   const today = dayKey();
   const vis = visitOf(p), pe = SPECIES[p.species || "pollito"].e;
+  const fg = nbFight(p), spend = storyPending(p).length;
+  s += `<g><rect x="126" y="186" width="28" height="26" rx="4" fill="#fff8e6" stroke="#c9a46a"/><path d="M122 188 h36 l-3 -9 h-30z" fill="#3d6fd6"/>${[0, 1, 2].map(i => `<path d="M${126 + i * 10} 179 h5 l-1 9 h-5z" fill="#fff"/>`).join("")}<text x="140" y="205" text-anchor="middle" font-size="14">📰</text>${plazaDeco()}${spend ? `<g class="nbbadge"><circle cx="156" cy="182" r="8" fill="#ff3d6e" stroke="#fff" stroke-width="2"/><text x="156" y="186" text-anchor="middle" font-size="9" fill="#fff" font-weight="900">${spend}</text></g>` : ""}</g>`;
   NEIGH.forEach(N => {
     if (!nbIn(N, p)) { s += lotSVG(N, p); return; }
     const r = nbReq(N.id, p), st = nbOf(p, N.id), W = nbWhere(N.id, p), bd = isBday(N.id);
-    s += house({ x: N.x, y: N.y, roof: N.roof, label: `${N.n} ${SPECIES[N.sp].e}`, emoji: N.e, id: N.id, badge: bd ? "🎂" : r && !r.done ? "❗" : nbOutOf(W) ? "🚶" : st.talk !== today ? "💬" : "", visitor: vis && vis.nb === N.id ? pe : "" });
+    s += house({ x: N.x, y: N.y, roof: N.roof, label: `${N.n} ${SPECIES[N.sp].e}`, emoji: N.e, id: N.id, badge: bd ? "🎂" : r && !r.done ? "❗" : nbOutOf(W) ? "🚶" : st.talk !== today ? "💬" : "", visitor: (vis && vis.nb === N.id ? pe : "") || (W.guests ? SPECIES[NB[W.guests[0]].sp].e : "") });
+    if (fg && (fg.a === N.id || fg.b === N.id)) s += `<text x="${N.x - 46}" y="${N.y - 16}" font-size="15" class="nbbal">😤</text>`;
     if (bd) s += `<text x="${N.x - 46}" y="${N.y - 14}" font-size="18" class="nbbal">🎈</text><text x="${N.x + 30}" y="${N.y - 30}" font-size="15" class="nbbal">🎈</text>`;
   });
   if (m) s += house({ x: 290, y: 368, roof: sexOf(m) === "m" ? "#5a8fd6" : "#e86a9a", label: `${m.name} ${SPECIES[m.species || "pollito"].e}`, emoji: p.mateOut ? "💕" : "💤", id: "mate", badge: p.mateOut ? "" : "" });
   const gq = guestOf(p);
   s += house({ x: 180, y: 560, roof: "#ff5c8a", label: `Vuestra casa · ${pn}`, emoji: "🏡", id: "home", big: 1, visitor: gq && NB[gq.nb] ? SPECIES[NB[gq.nb].sp].e : "" });
-  return s + life + partnerPinSVG() + barrioOverlay() + `</svg>`;
+  return s + catSVG() + life + partnerPinSVG() + barrioOverlay() + `</svg>`;
 }
 function nbScene(N, fig, bubble, fig2, arrive, sig, opt = {}) {
+  N = opt.items && opt.items.length ? { ...N, room: { ...N.room, items: N.room.items.concat(opt.items) } } : N;
   const room = { wall: N.room.wall, floor: N.room.floor, items: Object.fromEntries(N.room.items.map(i => [i, true])), pos: {} }, W = CAT[room.wall] || CAT.w_crema, F = CAT[room.floor] || CAT.f_madera;
   const md = barrioMood().night ? "night" : "day"; let sky = roomSVG(room, md); N.room.items.filter(i => FA[i]).sort((a, b) => (FA[a].flat ? 0 : FA[a].t === "floor" ? 2 : 1) - (FA[b].flat ? 0 : FA[b].t === "floor" ? 2 : 1)).forEach(i => sky += furnHTML(i, room, md));
-  return `<div class="scene room nbscene ${md === "night" ? "nbnight" : ""} ${room.wall} ${room.floor}" ${sig ? `data-sig="${esc(sig)}"` : ""} style="--wall:${W.sw};--floor:${F.sw}"><div class="sky">${sky}${opt.extra || ""}<div class="nbfig ${fig2 ? "l" : ""} ${opt.arriveMain ? "arrive2" : ""}">${fig}</div>${fig2 ? `<div class="nbfig r ${arrive ? "arrive" : ""}">${fig2}</div>` : ""}${bubble ? `<div class="nbbub">${bubble}</div>` : ""}</div></div>`;
+  return `<div class="scene room nbscene ${md === "night" ? "nbnight" : ""} ${room.wall} ${room.floor}" ${sig ? `data-sig="${esc(sig)}"` : ""} style="--wall:${W.sw};--floor:${F.sw}"><div class="sky">${sky}${opt.extra || ""}<div class="nbfig ${fig2 || opt.fig3 ? "l" : ""} ${opt.arriveMain ? "arrive2" : ""}">${fig}</div>${opt.fig3 ? `<div class="nbfig ${fig2 ? "g" : "r"}">${opt.fig3}</div>` : ""}${fig2 ? `<div class="nbfig r ${arrive ? "arrive" : ""}">${fig2}</div>` : ""}${bubble ? `<div class="nbbub">${bubble}</div>` : ""}</div></div>`;
 }
 function renderNbHouse() {
-  if (nbCur === "lake") return renderLake(); if (nbCur === "plaza") return renderPlaza();
+  if (nbCur === "lake") return renderLake(); if (nbCur === "plaza") return renderPlaza(); if (nbCur === "news") return renderNews();
   const v = nbEl(), p = state.pet || {};
   if (nbCur === "mate") {
     const m = mateOf(p); if (!m) { nbCur = null; return renderBarrio(); }
@@ -7710,19 +7872,20 @@ function renderNbHouse() {
   }
   const N = NB[nbCur]; if (!N) { nbCur = null; return renderBarrio(); }
   const st = nbOf(p, N.id), today = dayKey(), lv = NB_LV(st.f || 0), r = nbReq(N.id, p);
-  const vis = visitOf(p), withMe = vis && vis.nb === N.id, W = nbWhere(N.id, p), away = nbOutOf(W), bday = !!W.bday && !away, night = barrioMood().night;
-  if (!nbSay) nbSay = night && !withMe && !W.called ? rnd(["Zzz… 💤", "Zzz… mmm… ¿quién es a estas horas? 🥱"]) : bday ? rnd(["¡Hoy es mi cumple! 🎂🥳", "¡Pasad, pasad, que hoy cumplo años! 🎉"]) : rnd(N.hi);
-  const fig = away ? "" : chickSVG(4, nbSay.startsWith("Zzz") ? "sleep" : bday ? "laugh" : "happy", N.wear, 0, N.c, { species: N.sp });
+  const vis = visitOf(p), withMe = vis && vis.nb === N.id, W = nbWhere(N.id, p), away = nbOutOf(W), bday = !!W.bday && !away, night = barrioMood().night, guests = (!away && W.guests) || [], G0 = guests[0] ? NB[guests[0]] : null;
+  const MO = nbMood(N.id, p), SE = seasonOf();
+  if (!nbSay) nbSay = W.k === "dormir" && !withMe ? (W.nap ? rnd(["Zzz… se está echando la siesta 😴", "Zzz… 💤 (siesta sagrada)"]) : rnd(["Zzz… 💤", "Zzz… mmm… ¿quién es a estas horas? 🥱"])) : bday ? rnd(["¡Hoy es mi cumple! 🎂🥳", "¡Pasad, pasad, que hoy cumplo años! 🎉"]) : G0 ? nbSocLine(N.id, G0.id, p) : nbGreet(N, p, W);
+  const fig = away ? "" : chickSVG(4, nbSay.startsWith("Zzz") ? "sleep" : bday ? "laugh" : MO.k === "malito" ? "sick" : MO.k === "triste" ? "sad" : MO.k === "cansado" ? "tired" : "happy", nbWearOf(N), 0, N.c, { species: N.sp });
   const fig2 = withMe ? chickSVG(Math.max(1, stageOf(p.xp || 0)), "laugh", p.wear || {}, 0, p.color, { species: p.species }) : "";
   const arrive = nbArrive && withMe; nbArrive = false;
   const arriveMain = nbArriveNb && !away; nbArriveNb = false;
-  const awayB = { paseo: `🚶 ${esc(N.n)} ha salido a dar un paseo`, plaza: `🛒 ${esc(N.n)} está en la plaza`, lago: `🎣 ${esc(N.n)} se ha ido a pescar`, fiesta: `🎉 ${esc(N.n)} está en la fiesta`, puerta: `🔔 ${esc(N.n)} está llamando a vuestra puerta`, tuya: `🏡 ${esc(N.n)} está en vuestra casa` }[W.k] || "";
-  const sig = [N.id, away ? "a" + W.k : nbSay.startsWith("Zzz") ? 1 : 0, bday ? "b" : "", withMe ? 1 : 0, barrioMood().night ? 1 : 0, JSON.stringify(p.wear || {}), p.color, p.species, stageOf(p.xp || 0)].join("|");
-  const box = `<div class="nbbox"><div class="nbwho"><b>${esc(N.n)} ${sxTag(N.sex)}</b><small>${SPECIES[N.sp].e} ${esc(N.job)} · le encanta ${esc(N.likeT)}${bday ? "" : ` · 🎂 ${bdayText(N.id)}`}</small></div>
+  const awayB = { paseo: `🚶 ${esc(N.n)} ha salido a dar un paseo`, plaza: `🛒 ${esc(N.n)} está en la plaza`, lago: `🎣 ${esc(N.n)} se ha ido a pescar`, fiesta: `🎉 ${esc(N.n)} está en la fiesta`, puerta: `🔔 ${esc(N.n)} está llamando a vuestra puerta`, tuya: `🏡 ${esc(N.n)} está en vuestra casa`, visita: `🏠 ${esc(N.n)} ha ido a casa de ${esc((NB[W.host] || {}).n || "")}` }[W.k] || "";
+  const sig = [N.id, away ? "a" + W.k : nbSay.startsWith("Zzz") ? 1 : 0, bday ? "b" : "", guests.join("+"), storyDone("amor", p) ? 1 : 0, MO.k, SE.k + (SE.hallo ? "h" : SE.navidad ? "n" : ""), withMe ? 1 : 0, barrioMood().night ? 1 : 0, JSON.stringify(p.wear || {}), p.color, p.species, stageOf(p.xp || 0)].join("|");
+  const box = `<div class="nbbox"><div class="nbwho"><b>${esc(N.n)} ${sxTag(N.sex)}</b><small>${SPECIES[N.sp].e} ${esc(N.job)} · le encanta ${esc(N.likeT)}${bday ? "" : ` · 🎂 ${bdayText(N.id)}`}</small><small class="nbmood">${away ? "" : `${MO.e} ${esc(MO.n)}`}${!away && W.act ? ` · ${W.ic || ""} ${esc(W.act)}` : ""}${!away && W.k === "dormir" ? " · 😴 durmiendo" : ""}</small></div>
       <div class="nbfr"><span>${lv[0]} ${lv[1]}</span><div class="gbar"><i style="width:${Math.min(100, st.f || 0)}%"></i></div><span>${Math.round(st.f || 0)}/100</span></div>
-      ${away ? awayPanel(N, W) : welcomeCard(N, st) + (bday ? bdayCard(N, st) : "")}
+      ${away ? awayPanel(N, W) + (storyPending(p).some(x => x.c.C.at === N.id) ? `<div class="nbreq none">📖 ${esc(N.n)} os necesita para una historia: llamadle para que vuelva</div>` : "") : welcomeCard(N, st) + (bday ? bdayCard(N, st) : "") + sickCard(N, p) + nbHouseExtras(N, W, p)}
       ${r ? `<div class="nbreq ${r.done ? "done" : ""}"><b>📦 Encargo de hoy</b><span>${r.done ? "¡Hecho! Gracias 💛" : `Necesita ${r.n} ${itemE(r.item)} ${esc(itemN(r.item))} · tienes ${haveOf(p, r)}`}</span>${r.done ? "" : `<button class="btn primary" id="nbGive" ${!away && haveOf(p, r) >= r.n ? "" : "disabled"}>${away ? "Entregar cuando vuelva a casa" : `Entregar · +${r.coins} 🪙`}</button>`}</div>` : `<div class="nbreq none">Hoy no necesita nada 😊</div>`}
-      ${away ? "" : nbVisitPanel(N, p) + jobPanel(N, p)}
+      ${away ? "" : nbVisitPanel(N, p) + (MO.k === "malito" ? "" : jobPanel(N, p))}
       <div class="nbacts ${away ? "hidden" : ""}"><button class="btn ${st.talk === today ? "" : "primary"}" id="nbTalk">${st.talk === today ? "💬 Charlar" : "💬 Charlar · +5 💛"}</button><button class="btn ${st.gift === today ? "" : "primary"}" id="nbGift" ${st.gift === today ? "disabled" : ""}>${st.gift === today ? "🎁 Regalado hoy" : "🎁 Hacerle un regalo"}</button></div>
       <div class="nbgifts hidden" id="nbGifts"></div></div>`;
   // si la escena ya está pintada, solo cambiamos el bocadillo y el panel (así no se repite la animación de llegada)
@@ -7730,7 +7893,7 @@ function renderNbHouse() {
   if (!arrive && !arriveMain && oldS && oldB && oldS.dataset.sig === sig) {
     const bb = oldS.querySelector(".nbbub"); if (bb && !away && !arriveMain && bb.textContent !== nbSay) { bb.textContent = nbSay; bb.style.animation = "none"; void bb.offsetWidth; bb.style.animation = ""; }
     const sc = v.scrollTop; oldB.outerHTML = box; v.scrollTop = sc;
-  } else v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>${N.e} Casa de ${esc(N.n)}</b><span></span></div>${nbScene(N, fig, away ? awayB : esc(nbSay), fig2, arrive, sig, { arriveMain, extra: bday ? `<div class="nbbday"><i>🎈</i><i>🎉</i><i>🎈</i></div><i class="nbcake">🎂</i>` : "" })}${box}`;
+  } else v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>${N.e} Casa de ${esc(N.n)}</b><span></span></div>${nbScene(N, fig, away ? awayB : esc(nbSay), fig2, arrive, sig, { arriveMain, fig3: G0 ? chickSVG(4, "laugh", nbWearOf(G0), 0, G0.c, { species: G0.sp }) : "", items: [...(storyDone("amor", p) && (N.id === "canela" || N.id === "bruno") ? ["cuadro"] : []), ...(SE.navidad ? ["arbolnav"] : [])], extra: (bday ? `<div class="nbbday"><i>🎈</i><i>🎉</i><i>🎈</i></div><i class="nbcake">🎂</i>` : "") + (SE.hallo ? `<div class="nbsdeco"><i>🎃</i><i>🕸️</i></div>` : "") })}${box}`;
   $("nbBack").onclick = () => { nbCur = null; renderBarrio(); };
   $("nbTalk").onclick = () => nbTalk(N);
   $("nbGift").onclick = () => nbGiftPick(N);
@@ -7738,12 +7901,13 @@ function renderNbHouse() {
   const bd = $("nbBday"); if (bd) bd.onclick = () => { bd.disabled = true; nbCongrats(N); };
   const wl = $("nbWelcome"); if (wl) wl.onclick = () => { wl.disabled = true; nbWelcome(N); };
   if (away) awayBind(N, W);
-  nbVisitBind(N); nbDecorate();
+  nbHouseBind(N, W); nbVisitBind(N); nbDecorate();
+  v.querySelectorAll("[data-care]").forEach(b => b.onclick = () => { v.querySelectorAll("[data-care]").forEach(x => x.disabled = true); nbCare(N, b.dataset.care); });
   v.querySelectorAll("[data-job]").forEach(b => b.onclick = () => { const [h, pay] = b.dataset.job.split(":").map(Number); jobStart(N, h, pay); });
   const jc = $("jobCancel"); if (jc) jc.onclick = () => { if (confirm("¿Que vuelva ya? No cobrará el sueldo.")) nbVisitEnd(); };
 }
 let nbMsg = null;
-function nbTx(id, fn) { nbMsg = null; return petTx(q => { nbMsg = null; q.nb = { ...(q.nb || {}) }; const s = { f: 0, ...(q.nb[id] || {}) }; const before = s.f; const r = fn(q, s); if (r === null) return null; s.f = Math.min(100, s.f); q.nb[id] = s; nbMsg = nbMilestone(id, before, s.f, q); return q; }); }
+function nbTx(id, fn) { nbMsg = null; return petTx(q => { nbMsg = null; q.nb = { ...(q.nb || {}) }; const s = { f: 0, ...(q.nb[id] || {}) }; const before = s.f; const r = fn(q, s); if (r === null) return null; s.f = Math.min(100, s.f); s.last = Date.now(); q.nb[id] = s; nbMsg = nbMilestone(id, before, s.f, q); return q; }); }
 function nbMilestone(id, a, b, q) {
   const N = NB[id]; if (!N) return null;
   if (a < 40 && b >= 40) { q.coins = coinsOf(q) + 50; return `¡${N.n} y vosotros ya sois amigos! Os regala 50 🪙`; }
@@ -7752,9 +7916,9 @@ function nbMilestone(id, a, b, q) {
 }
 function nbAfter() { const m = nbMsg; nbMsg = null; if (m) setTimeout(() => { confetti(); readView({ icon: "🏘️", title: "¡Amistad en el barrio!", sub: "", text: m }); }, 500); }
 function nbTalk(N) {
-  const today = dayKey(); let first = false;
-  nbSay = rnd(N.talk);
-  nbTx(N.id, (q, s) => { first = false; if (s.talk === today) return null; s.talk = today; s.f += 5; first = true; gainExp(q, 2); }).then(r => { if (first) { SFX.pop(); toast(`💛 +5 amistad con ${N.n}`); nbAfter(r); } renderNbHouse(); nbActFx("💬"); }).catch(() => renderNbHouse());
+  const today = dayKey(), M0 = nbMood(N.id, state.pet || {}), sad = M0.k === "triste"; let first = false, cheer = false;
+  nbSay = sad ? rnd(["Gracias por escucharme… ya me siento mejor 🥹", "Me habéis alegrado el día, de verdad 💛", "¿Sabéis? Hablar con vosotros me ha venido genial 😊"]) : M0.k === "malito" ? rnd(["Gracias por venir a verme… achís 🤧", "Qué bien me hace tener visita 🤒💛"]) : nbGossip(N, state.pet || {}) || rnd(N.talk);
+  nbTx(N.id, (q, s) => { first = false; cheer = false; const c = sad && s.cheer !== today; if (s.talk === today && !c) return null; if (c) { s.cheer = today; s.f += 3; cheer = true; } if (s.talk !== today) { s.talk = today; s.f += 5; first = true; } gainExp(q, 2); }).then(r => { if (first || cheer) { SFX.pop(); toast(cheer ? `😊 ${N.n} ya está más animad${N.sex === "f" ? "a" : "o"} · +${first ? 8 : 3} 💛` : `💛 +5 amistad con ${N.n}`); nbAfter(r); } renderNbHouse(); nbActFx(cheer ? "😊" : "💬"); }).catch(() => renderNbHouse());
 }
 function nbGiftPick(N) {
   const p = state.pet || {}, inv = Object.entries(p.inv || {}).filter(([k, n]) => n > 0 && CAT[k] && CAT[k].cat === "comida" && k !== "medicina" && k !== "jabon"), pan = Object.entries(p.pantry || {}).filter(([, n]) => n > 0);
@@ -7765,7 +7929,7 @@ function nbGiftPick(N) {
 }
 function nbGive(N, t, k) {
   const today = dayKey(), fav = N.likes.includes(k), bx = isBday(N.id) ? 2 : 1; let ok = false;
-  nbTx(N.id, (q, s) => { ok = false; if (s.gift === today) return null; const bag = t === "p" ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); if (!(bag[k] > 0)) return null; bag[k]--; s.gift = today; s.f += (fav ? 12 : 6) * bx; ok = true; gainExp(q, 3); })
+  nbTx(N.id, (q, s) => { ok = false; if (s.gift === today) return null; const bag = t === "p" ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); if (!(bag[k] > 0)) return null; bag[k]--; s.gift = today; s.lg = { k, at: Date.now() }; s.f += (fav ? 12 : 6) * bx; ok = true; gainExp(q, 3); })
     .then(r => { if (!ok) return renderNbHouse(); nbSay = bx > 1 ? `¡Mi regalo de cumple! ${itemE(k)} ¡Gracias, gracias! 🥹🎁` : fav ? `¡${itemE(k)}! ¡Me encanta, me encanta! 😍` : `Oh, ${itemE(k)}… ¡qué detalle, gracias! 😊`; SFX.ding(); toast(`💛 +${(fav ? 12 : 6) * bx} amistad con ${N.n}${bx > 1 ? " · ¡doble por su cumple! 🎂" : ""}`); nbAfter(r); renderNbHouse(); nbActFx(itemE(k)); }).catch(offline);
 }
 function nbDeliver(N) {
@@ -7778,7 +7942,7 @@ $("petBarrio").onclick = openBarrio;
 
 // ---------- 🐤 2.5 · Visitas: tu mascota va a casa de los vecinos y ellos vienen a la vuestra ----------
 const VISIT_MIN = 45, GUEST_MIN = 120;
-const visitOf = p => (p && p.visit && p.visit.until > Date.now() && NB[p.visit.nb]) ? p.visit : null;
+const visitOf = p => (p && p.visit && p.visit.until > Date.now() && NB[p.visit.nb]) ? p.visit : autoVisit(p);
 const guestOf = p => (p && p.guest && p.guest.until > Date.now() && NB[p.guest.nb]) ? p.guest : null;
 const NB_ACT = {
   lola: ["🧁", "Hornear magdalenas", "Os lleváis una magdalena 🧁", (q) => { q.inv = { ...(q.inv || {}) }; q.inv.cupcake = (q.inv.cupcake || 0) + 1; }],
@@ -7796,12 +7960,16 @@ function nbVisitStart(N) {
     .then(r => { if (!r) { jobCheck(state.pet); return renderNbHouse(); } nbSay = rnd([`¡Hola, ${p.name || "pollito"}! ¡Pasa, pasa! 😊`, "¡Qué alegría que vengas a verme! 💛", "¡Bienvenido! Ponte cómodo 🏡"]); SFX.pop(); sceneSig = ""; petSig = ""; renderPet(); nbArrive = true; renderNbHouse(); notifyOther(`🏘️ ${p.name || "El pollito"} se ha ido de visita a casa de ${N.n}`); })
     .catch(offline);
 }
-function nbVisitEnd() { const f = document.querySelector("#nbView .nbfig.r"); if (f) { f.classList.remove("arrive", "hop"); f.classList.add("leave"); } const loc = viewLoc(); petTx(q => { q.visit = null; q.here = { loc, until: Date.now() + 15 * 6e4, by: who }; return q; }).then(() => { sceneSig = ""; petSig = ""; renderPet(); setTimeout(() => { if (nbCur) renderNbHouse(); }, f ? 700 : 0); toast("🏠 ¡De vuelta a casa!"); }).catch(offline); }
+function nbVisitEnd() { const f = document.querySelector("#nbView .nbfig.r"); if (f) { f.classList.remove("arrive", "hop"); f.classList.add("leave"); } const loc = viewLoc(); petTx(q => { q.visit = null; q.here = { loc, until: Date.now() + 15 * 6e4, by: who }; q.outStop = Math.floor(Date.now() / OUT_SLOT); return q; }).then(() => { sceneSig = ""; petSig = ""; renderPet(); setTimeout(() => { if (nbCur) renderNbHouse(); }, f ? 700 : 0); toast("🏠 ¡De vuelta a casa!"); }).catch(offline); }
+// no repintar si tienes algo abierto encima (una ficha, un regalo…), tampoco si se abrió mientras esperábamos
+function nbBusyUI() {
+  const nv = $("nbView"); if (!nv || nv.classList.contains("hidden") || !nv.innerHTML) return true;
+  if (nbCur === "lake" || nv.querySelector(".nbfig.leave, .nbmeet, .lvpop")) return true;
+  const g = $("nbGifts"); return !!(g && !g.classList.contains("hidden"));
+}
 function nbLiveRefresh() {
-  const nv = $("nbView"); if (!nv || nv.classList.contains("hidden") || !nv.innerHTML) return;
-  if (nbCur === "lake" || nv.querySelector(".nbfig.leave, .nbmeet, .lvpop")) return;
-  const g = $("nbGifts"); if (g && !g.classList.contains("hidden")) return;
-  clearTimeout(nbLiveRefresh.t); nbLiveRefresh.t = setTimeout(() => { const v = $("nbView"); if (v && !v.classList.contains("hidden") && nbCur !== "lake") renderBarrio(); }, 300);
+  if (nbBusyUI()) return;
+  clearTimeout(nbLiveRefresh.t); nbLiveRefresh.t = setTimeout(() => { if (!nbBusyUI()) renderBarrio(); }, 300);
 }
 // pequeña reacción en la escena cuando hacéis algo juntos (sin volver a entrar en la sala)
 function nbActFx(e) {
@@ -7830,7 +7998,7 @@ function nbVisitPanel(N, p) {
   const A = NB_ACT[N.id], acts = [["merienda", "🍪", "Merendar juntos"], ["jugar", "🎲", "Jugar juntos"], ["esp", A[0], A[1]]];
   const g = guestOf(p), gHere = g && g.nb === N.id;
   if (vis && vis.job) return here ? "" : `<div class="nbreq none">💼 ${pn} está trabajando en casa de ${esc(NB[vis.nb].n)} hasta las ${hhmm(vis.until)}</div>`;
-  return here ? `<div class="nbvis"><div class="nbvhead"><b>🐤 ${pn} está de visita</b><small>hasta las ${hhmm(vis.until)}</small></div>
+  return here ? `<div class="nbvis"><div class="nbvhead"><b>🐤 ${pn} está de visita${vis.auto ? " · ha venido solo" : ""}</b><small>hasta las ${hhmm(vis.until)}</small></div>
       <div class="nbvacts">${acts.map(([k, e, n]) => `<button class="btn ${done[k] ? "" : "primary"}" data-nbdo="${k}" ${done[k] ? "disabled" : ""}><span>${e}</span>${esc(n)}${done[k] ? " ✓" : ""}</button>`).join("")}</div>
       <button class="btn" id="nbHome" style="width:100%;margin-top:8px">🏠 Volver a casa con ${pn}</button></div>`
     : gHere ? `<div class="nbvis"><div class="nbvhead"><b>🏡 ${esc(N.n)} está en vuestra casa</b><small>hasta las ${hhmm(g.until)}</small></div><button class="btn" id="nbGuestHome" style="width:100%">👋 Que ${esc(N.n)} vuelva a su casa</button></div>`
@@ -7848,7 +8016,7 @@ function nbVisitBind(N) {
 function guestSceneHTML(p, vl) {
   const g = guestOf(p); if (!g || vl !== "salon") return "";
   const N = NB[g.nb];
-  return `<div class="guestwrap ${Date.now() - (g.at || 0) < 4000 ? "arrive" : ""}" id="guestWrap"><button class="guestfig" id="guestFig" aria-label="${esc(N.n)}">${chickSVG(4, "happy", N.wear, 0, N.c, { species: N.sp })}</button><div class="guestlbl"><span>${SPECIES[N.sp].e} ${esc(N.n)}</span><button id="guestBye" aria-label="Despedir a ${esc(N.n)}">👋</button></div></div>`;
+  return `<div class="guestwrap ${Date.now() - (g.at || 0) < 4000 ? "arrive" : ""}" id="guestWrap"><button class="guestfig" id="guestFig" aria-label="${esc(N.n)}">${chickSVG(4, "happy", nbWearOf(N), 0, N.c, { species: N.sp })}</button><div class="guestlbl"><span>${SPECIES[N.sp].e} ${esc(N.n)}</span><button id="guestBye" aria-label="Despedir a ${esc(N.n)}">👋</button></div></div>`;
 }
 function guestBye(after) {
   const g = guestOf(state.pet || {}); if (!g) return; const N = NB[g.nb];
@@ -7894,7 +8062,7 @@ function renderLake() {
   v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>🎣 El lago</b><span></span></div>
     <div class="lake ${barrioMood().night ? "night" : ""}" id="lake"><div class="lksky"></div><div class="lkwater"><i></i><i></i><i></i></div><div class="lkline" id="lkLine"></div><div class="lkbob" id="lkBob"></div><div class="lkfish" id="lkFish"></div>
       <div class="lkpet">${chickSVG(Math.max(1, stageOf(p.xp || 0)), "happy", p.wear || {}, 0, p.color, { species: p.species })}<svg class="lkrod" viewBox="0 0 80 120"><path d="M6 108 Q38 52 72 6" stroke="#6b3f1d" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M6 108 Q38 52 72 6" stroke="#b07a44" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="17" cy="91" r="5.5" fill="#5a5f6a" stroke="#2c2f36" stroke-width="1.5"/><circle cx="17" cy="91" r="1.6" fill="#ddd"/><circle cx="72" cy="6" r="2.2" fill="#eee"/></svg></div>
-      ${fishers.map((N, i) => `<button class="lkmate" data-meet="${N.id}" style="right:${7 + i * 16}%" aria-label="${esc(N.n)}">${chickSVG(4, "happy", N.wear, 0, N.c, { species: N.sp })}<span>🎣</span></button>`).join("")}<div class="lkhud"><span id="lkScore">⭐ 0</span><span id="lkTime">⏱ ${FISH_TIME}</span></div><div class="lkmsg" id="lkMsg"></div></div>
+      ${fishers.map((N, i) => `<button class="lkmate" data-meet="${N.id}" style="right:${7 + i * 16}%" aria-label="${esc(N.n)}">${chickSVG(4, "happy", nbWearOf(N), 0, N.c, { species: N.sp })}<span>🎣</span></button>`).join("")}<div class="lkhud"><span id="lkScore">⭐ 0</span><span id="lkTime">⏱ ${FISH_TIME}</span></div><div class="lkmsg" id="lkMsg"></div></div>
     <div class="nbbox"><div id="lkCtl"><div class="sub" style="margin-bottom:8px">Cuando el corcho se hunda y salga <b>¡PICA!</b>, toca rápido. Si tocas antes, el pez se asusta. Tienes ${FISH_TIME} segundos.</div>
       <button class="btn primary" id="lkGo" style="width:100%">🎣 ¡A pescar!</button>
       <div class="sub" style="font-size:12px;text-align:center;margin-top:6px">🏆 Récords: ${esc(name("a"))} ${recOf(p, "pesca", "a")} · ${esc(name("b"))} ${recOf(p, "pesca", "b")}</div>${fishers.length ? `<div class="sub" style="font-size:12px;text-align:center;margin-top:4px">🎣 También están pescando: ${fishers.map(N => esc(N.n)).join(" y ")}</div>` : ""}</div>
@@ -7987,7 +8155,7 @@ function homeScore(p) {
 function renderPlaza() {
   const v = nbEl(), p = state.pet || {}, wk = weekKey(), pt = (p.party && p.party.wk === wk) ? p.party : {}, today = dayKey(), fiesta = isFiesta();
   const here = nbList(p).filter(N => nbWhere(N.id, p).k === (fiesta ? "fiesta" : "plaza"));
-  const fig = N => `<button class="pzf" data-meet="${N.id}">${chickSVG(4, fiesta ? "laugh" : "happy", N.wear, 0, N.c, { species: N.sp })}<small>${esc(N.n)}</small></button>`;
+  const fig = N => `<button class="pzf" data-meet="${N.id}">${chickSVG(4, fiesta ? "laugh" : "happy", nbWearOf(N), 0, N.c, { species: N.sp })}<small>${esc(N.n)}</small></button>`;
   const me = `<div class="pzf me">${chickSVG(Math.max(1, stageOf(p.xp || 0)), "laugh", p.wear || {}, 0, p.color, { species: p.species })}<small>${esc(p.name || "Pollito")}</small></div>`;
   const half = Math.ceil(here.length / 2), back = here.slice(0, half), front = here.slice(half), fm = Math.floor(front.length / 2);
   const figs = `${back.length ? `<div class="pzrow back">${back.map(fig).join("")}</div>` : ""}<div class="pzrow">${front.slice(0, fm).map(fig).join("")}${me}${front.slice(fm).map(fig).join("")}</div>`;
@@ -7998,7 +8166,7 @@ function renderPlaza() {
   }
   const psig = [fiesta ? 1 : 0, here.map(N => N.id).join(","), JSON.stringify(p.wear || {}), p.color, p.species, stageOf(p.xp || 0)].join("|");
   const top = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>${fiesta ? "🎉 Fiesta en la plaza" : "🛒 La plaza"}</b><span></span></div>
-    <div class="plaza ${fiesta ? "fiesta" : ""}" data-sig="${esc(psig)}"><div class="pzfont">⛲</div>${fiesta ? garl + `<i class="pzbal l">🎈</i><i class="pzbal r">🎈</i>` : ""}<div class="pzfigs">${fiesta ? figs : `<div class="pzrow wk">${here[0] ? fig(here[0]) : ""}<div class="pzstall"><span>🍅🧺🥕</span><b>Mercadillo</b><small>abierto todos los días</small></div>${here[1] ? fig(here[1]) : ""}</div>`}</div></div>`;
+    <div class="plaza ${fiesta ? "fiesta" : ""}" data-sig="${esc(psig)}"><div class="pzfont">${seasonOf().navidad ? "🎄" : "⛲"}</div>${seasonOf().castanas ? `<i class="pzcast">🌰🔥</i>` : ""}${fiesta ? garl + `<i class="pzbal l">🎈</i><i class="pzbal r">🎈</i>` : ""}<div class="pzfigs">${fiesta ? figs : `<div class="pzrow wk">${here[0] ? fig(here[0]) : ""}<div class="pzstall"><span>🍅🧺🥕</span><b>Mercadillo</b><small>abierto todos los días</small></div>${here[1] ? fig(here[1]) : ""}</div>`}</div></div>`;
   const box = `<div class="nbbox">${fiesta ? `<div class="slotname">🎉 ¡Es domingo de fiesta!</div>
       <div class="nbacts"><button class="btn ${pt.dance === today ? "" : "primary"}" id="pzDance" ${pt.dance === today ? "disabled" : ""}>${pt.dance === today ? "💃 Bailado ✓" : "💃 Bailar con todos"}</button><button class="btn ${pt.rank ? "" : "primary"}" id="pzContest" ${pt.rank ? "disabled" : ""}>${pt.rank ? `🏆 Quedasteis ${pt.rank}º` : `🏆 Concurso · ${homeScore(p)} pts`}</button></div>
       <div class="sub" style="font-size:12px;margin-top:6px">El concurso puntúa vuestros muebles, paredes, suelos y colores. ¡Decorad bien la casa antes de participar!</div>${contest}`
@@ -8010,7 +8178,7 @@ function renderPlaza() {
   $("nbBack").onclick = () => { nbCur = null; renderBarrio(); };
   v.querySelectorAll("[data-sell]").forEach(b => b.onclick = () => { const [t, k, n] = b.dataset.sell.split(":"); marketSell(t, k, +n); });
   const d = $("pzDance"); if (d) d.onclick = () => {
-    petTx(q => { const w = weekKey(); q.party = q.party && q.party.wk === w ? { ...q.party } : { wk: w }; if (q.party.dance === dayKey()) return null; q.party.dance = dayKey(); setNeed(q, "fun", 30); q.nb = { ...(q.nb || {}) }; nbMsg = null; const ms = []; nbList(q).forEach(N => { q.nb[N.id] = { f: 0, ...(q.nb[N.id] || {}) }; const f0 = q.nb[N.id].f; q.nb[N.id].f = Math.min(100, f0 + 5); const m = nbMilestone(N.id, f0, q.nb[N.id].f, q); if (m) ms.push(m); }); nbMsg = ms.join(" · ") || null; gainExp(q, 6); return q; })
+    petTx(q => { const w = weekKey(); q.party = q.party && q.party.wk === w ? { ...q.party } : { wk: w }; if (q.party.dance === dayKey()) return null; q.party.dance = dayKey(); setNeed(q, "fun", 30); q.nb = { ...(q.nb || {}) }; nbMsg = null; const ms = []; nbList(q).forEach(N => { q.nb[N.id] = { f: 0, ...(q.nb[N.id] || {}), last: Date.now() }; const f0 = q.nb[N.id].f; q.nb[N.id].f = Math.min(100, f0 + 5); const m = nbMilestone(N.id, f0, q.nb[N.id].f, q); if (m) ms.push(m); }); nbMsg = ms.join(" · ") || null; gainExp(q, 6); return q; })
       .then(r => { if (!r) return; nbAfter(); confetti(); SFX.fanfare && SFX.fanfare(); toast(`💃 ¡Qué fiesta! +5 💛 con ${here.length > 1 ? "todos los vecinos" : "el barrio"}`); renderPlaza(); }).catch(offline);
   };
   const c = $("pzContest"); if (c) c.onclick = () => {
@@ -8034,7 +8202,7 @@ function jobCheck(p) {
   const v = p && p.visit; if (!v || !v.job || v.paid || v.until > Date.now()) return;
   if (jobCheck.busy) return; jobCheck.busy = true;
   let paid = 0, nbn = "", jmsg = null;
-  petTx(q => { paid = 0; jmsg = null; const x = q.visit; if (!x || !x.job || x.paid || x.until > Date.now()) return null; paid = x.pay; nbn = (NB[x.nb] || {}).n || ""; q.coins = coinsOf(q) + x.pay; q.visit = null; q.jobs = (q.jobs || 0) + 1; gainExp(q, 4 * x.job); q.nb = { ...(q.nb || {}) }; q.nb[x.nb] = { f: 0, ...(q.nb[x.nb] || {}) }; const f0 = q.nb[x.nb].f; q.nb[x.nb].f = Math.min(100, f0 + 4 * x.job); jmsg = nbMilestone(x.nb, f0, q.nb[x.nb].f, q); return q; })
+  petTx(q => { paid = 0; jmsg = null; const x = q.visit; if (!x || !x.job || x.paid || x.until > Date.now()) return null; paid = x.pay; nbn = (NB[x.nb] || {}).n || ""; q.coins = coinsOf(q) + x.pay; q.visit = null; q.jobs = (q.jobs || 0) + 1; gainExp(q, 4 * x.job); q.nb = { ...(q.nb || {}) }; q.nb[x.nb] = { f: 0, ...(q.nb[x.nb] || {}), last: Date.now() }; const f0 = q.nb[x.nb].f; q.nb[x.nb].f = Math.min(100, f0 + 4 * x.job); jmsg = nbMilestone(x.nb, f0, q.nb[x.nb].f, q); return q; })
     .then(() => { jobCheck.busy = false; if (!paid) return; sceneSig = ""; petSig = ""; renderPet(); setTimeout(() => { coinFx(paid); readView({ icon: "💼", title: "¡Ha vuelto de trabajar!", sub: `Con ${nbn}`, text: rnd([`Ha trabajado muchísimo y ${nbn} está encantado. Trae ${paid} 🪙 de sueldo 💪`, `Dice que se lo ha pasado genial y que ${nbn} le ha invitado a merendar. Ha ganado ${paid} 🪙 🥰`, `Viene cansadito pero orgulloso: ${paid} 🪙 para la hucha 🐷`]) + (jmsg ? `\n\n🏘️ ${jmsg}` : "") }); }, 600); sendMsg(`💼 ${(state.pet || {}).name || "El pollito"} ha vuelto de trabajar con ${nbn}: +${paid} 🪙`, "pet"); })
     .catch(() => { jobCheck.busy = false; });
 }
@@ -8047,13 +8215,14 @@ function jobPanel(N, p) {
 }
 // ---- noche, lluvia y fiesta en el mapa ----
 function barrioMood() { const h = new Date().getHours(), night = h >= 21 || h < 7, dusk = !night && h >= 19, k = WX && wxOn() ? wxKindOf(WX.code) : ""; return { night, dusk, rain: k === "rain" || k === "storm", snow: k === "snow", fiesta: isFiesta() }; }
-function barrioWx() { const M = barrioMood(); return M.rain || M.snow ? `<div class="nbrain ${M.snow ? "snow" : ""}"></div>` : ""; }
+function barrioWx() { const M = barrioMood(); return M.rain || M.snow ? `<div class="nbrain ${M.snow ? "snow" : ""}"></div>` : seasonFx(); }
 function barrioOverlay() {
   const M = barrioMood(); let s = "";
   if (M.fiesta) { s += `<path d="M140 262 Q180 276 220 262 M140 332 Q180 318 220 332" stroke="#fff" stroke-width="1.5" fill="none"/>${Array.from({ length: 9 }, (_, i) => `<path d="M${144 + i * 9} ${266 + Math.sin(i) * 2} l4 8 l4 -8z" fill="${["#ff5c8a", "#ffd23f", "#4cc06a", "#4a7fe0"][i % 4]}"/>`).join("")}<text x="132" y="258" font-size="16">🎈</text><text x="214" y="342" font-size="16">🎈</text><text x="214" y="262" font-size="14">🎉</text>`; }
+  if (M.night && seasonOf().hallo) s += `<text x="40" y="150" font-size="16" class="nbbat">🦇</text><text x="300" y="420" font-size="14" class="nbbat" style="animation-delay:-1.5s">🦇</text><text x="120" y="520" font-size="13" class="nbbat" style="animation-delay:-3s">🦇</text>`;
   if (M.night || M.dusk) {
     s += `<rect width="360" height="${NB_H}" fill="${M.night ? "#0b1640" : "#3a1d4a"}" opacity="${M.night ? .55 : .22}"/>`;
-    if (M.night) { [[150, 60], [210, 150], [150, 230], [210, 360], [150, 440], [210, 520], [60, 297], [300, 297]].forEach(([x, y]) => s += `<circle cx="${x}" cy="${y}" r="16" fill="#ffe08a" opacity=".22"/><circle cx="${x}" cy="${y}" r="3.5" fill="#fff4c2"/>`); for (let i = 0; i < 16; i++) { const h = hashStr("ff" + i); s += `<circle class="ffly" cx="${h % 360}" cy="${(h >> 8) % NB_H}" r="1.6" fill="#f6ff9e" style="animation-delay:${-(i % 5)}s"/>`; }
+    if (M.night) { [[150, 60], [210, 150], [150, 230], [210, 360], [150, 440], [210, 520], [60, 297], [300, 297]].forEach(([x, y]) => s += `<circle cx="${x}" cy="${y}" r="16" fill="#ffe08a" opacity=".22"/><circle cx="${x}" cy="${y}" r="3.5" fill="#fff4c2"/>`); for (let i = 0; i < 16; i++) { const h = hashStr("ff" + i); s += `<circle class="ffly" cx="${h % 360}" cy="${(h >>> 8) % NB_H}" r="1.6" fill="#f6ff9e" style="animation-delay:${-(i % 5)}s"/>`; }
       [...nbList(state.pet || {}).map(N => [N.x, N.y, 54, nbWhere(N.id, state.pet || {}).k === "dormir" ? 1 : 0]), ...(mateOf(state.pet || {}) ? [[290, 368, 54, 0]] : []), [180, 560, 66, 0]].forEach(([x, y, h, z]) => s += `<ellipse cx="${x}" cy="${y + h / 2 + 6}" rx="17" ry="8" fill="#ffd76a" opacity=".5"/><circle cx="${x}" cy="${y + h / 2 + 5}" r="3" fill="#fff6c8"/>${z ? `<text class="nbzz" x="${x - 34}" y="${y - h / 2 + 2}" font-size="13">💤</text>` : ""}`);
       s += `<text x="10" y="30" font-size="22">🌙</text>`; }
   }
@@ -8092,43 +8261,65 @@ const nbIn = (N, p) => !N.arrive || Date.now() >= nbArriveAt(N, p || state.pet |
 const nbList = p => NEIGH.filter(N => nbIn(N, p || state.pet || {}));
 
 // ---- dónde está cada vecino (igual en los dos móviles: depende solo de la hora y de lo que hayáis hecho) ----
-const NB_SLOT = 25 * 6e4, NB_OUT = ["paseo", "plaza", "lago", "fiesta", "puerta", "tuya"];
-function nbSlotK(id, slot, M) { const r = hashStr(dayKey(slot * NB_SLOT) + ":" + slot + ":" + id) % 100; if (M.rain || M.snow) return r < 88 ? "casa" : "paseo"; return r < 60 ? "casa" : r < 79 ? "paseo" : r < 92 ? "plaza" : "lago"; }
-function nbWhere(id, p, t = Date.now()) {
+const NB_SLOT = 25 * 6e4, NB_OUT = ["paseo", "plaza", "lago", "fiesta", "puerta", "tuya", "visita"];
+function nbRawK(id, slot, M) { const r = hashStr(dayKey(slot * NB_SLOT) + ":" + slot + ":" + id) % 100; if (M.rain || M.snow) return r < 80 ? "casa" : r < 90 ? "visita" : "paseo"; return r < 52 ? "casa" : r < 62 ? "visita" : r < 79 ? "paseo" : r < 92 ? "plaza" : "lago"; }
+function nbSlotK(id, slot, M, p) {
+  let k = nbRawK(id, slot, M);
+  const nv = nbNovio(id, p); if (nv && k === "casa" && nbRawK(nv, slot, M) === "paseo") k = "paseo";   // los novios salen juntos
+  if (k === "visita") { const fr = nbFriends(id, p); if (!fr.length) return { k: "paseo" }; return { k, host: fr[hashStr(slot + ":h:" + id) % fr.length] }; }
+  return { k };
+}
+// dónde estaría cada vecino sin contar las visitas entre ellos
+function nbBase(id, p, t = Date.now()) {
   p = p || state.pet || {}; const N = NB[id]; if (!N || !nbIn(N, p)) return { k: "nada" };
   const g = guestOf(p); if (g && g.nb === id) return { k: "tuya", until: g.until };
   const v = visitOf(p); if (v && v.nb === id) return { k: "casa" };
   const kn = knockNow(p, t); if (kn && kn.id === id) return { k: "puerta" };
   if (((p.nbCall || {})[id] || 0) > t) return { k: "casa", called: 1 };
   const d = new Date(t), h = d.getHours();
-  if (h >= 21 || h < 7) return { k: "dormir" };
+  const pl = nbPlan(id, d); if (pl) return pl;
+  if (nbMood(id, p, d).k === "malito") return { k: "casa", ic: "🤒", act: "en la cama, malit" + (N.sex === "f" ? "a" : "o"), sick: 1 };
   if (isBday(id, d)) return { k: "casa", bday: 1 };
-  if (d.getDay() === 0 && h >= 11 && h < 20) { const e = new Date(d); e.setHours(20, 0, 0, 0); return { k: "fiesta", until: e.getTime() }; }
-  const M = barrioMood(), slot = Math.floor(t / NB_SLOT), k = nbSlotK(id, slot, M);
-  if (k === "casa") return { k };
-  let until = (slot + 1) * NB_SLOT; for (let i = 1; i < 4 && nbSlotK(id, slot + i, M) !== "casa"; i++) until += NB_SLOT;
-  const e = new Date(d); e.setHours(21, 0, 0, 0); return { k, until: Math.min(until, e.getTime()) };
+  if (d.getDay() === 0 && h >= 11 && h < 20 && !inHr(hrOf(d), 14, 15.5)) { const e = new Date(d); e.setHours(20, 0, 0, 0); return { k: "fiesta", until: e.getTime() }; }
+  const wk = nbWork(id, d); if (wk) return wk;
+  if (h >= 21 || h < 7) return { k: "casa" };
+  const slot = Math.floor(t / NB_SLOT), end = (slot + 1) * NB_SLOT;
+  const bf = nbFriends(id, p).find(f => isBday(f, d)); if (bf && hashStr(slot + ":bd:" + id) % 100 < 70) return { k: "visita", host: bf, party: 1, until: end };
+  const M = barrioMood(), S0 = nbSlotK(id, slot, M, p);
+  if (S0.k === "casa") return { k: "casa" };
+  let until = end; for (let i = 1; i < 4 && nbSlotK(id, slot + i, M, p).k !== "casa"; i++) until += NB_SLOT;
+  const nm = NB_MEALS.map(m => m[0]).find(x => x > hrOf(d)), cap = nm ? atHr(d, nm) : atHr(d, 21);
+  return { ...S0, until: Math.min(until, cap) };
+}
+// y con la vida social: si su anfitrión no está en casa (o están enfadados), se va de paseo; el anfitrión sabe quién ha venido
+function nbWhere(id, p, t = Date.now()) {
+  p = p || state.pet || {};
+  const b = nbBase(id, p, t);
+  if (b.k === "visita") { const hb = nbBase(b.host, p, t); return hb.k !== "casa" || nbQuarrel(id, b.host, p, t) ? { k: "paseo", until: b.until } : b; }
+  if (b.k === "casa") { const gs = nbList(p).filter(M => M.id !== id && !nbQuarrel(M.id, id, p, t)).filter(M => { const mb = nbBase(M.id, p, t); return mb.k === "visita" && mb.host === id; }).map(M => M.id); if (gs.length) return { ...b, guests: gs }; }
+  return b;
 }
 const nbOutOf = W => NB_OUT.includes(W.k);
-const NB_WHERE_T = { paseo: "Paseando por el barrio", plaza: "En la plaza, mirando el mercadillo", lago: "Pescando en el lago", fiesta: "En la fiesta de la plaza", puerta: "Llamando a vuestra puerta", tuya: "En vuestra casa", casa: "En su casa", dormir: "Durmiendo" };
+const NB_WHERE_T = { paseo: "Paseando por el barrio", plaza: "En la plaza, mirando el mercadillo", lago: "Pescando en el lago", fiesta: "En la fiesta de la plaza", puerta: "Llamando a vuestra puerta", tuya: "En vuestra casa", casa: "En su casa", dormir: "Durmiendo", visita: "De visita" };
 const MEET_SAY = {
   paseo: ["¡Hola! Estoy dando un paseíto 🚶", "¡Qué buen día para pasear! ☀️", "Voy a estirar las patas un rato 🐾", "¡Anda, qué casualidad veros por aquí! 😊"],
   paseoLluvia: ["¡Me he empapado! ☔ Menos mal que traía paraguas", "Me encanta pasear cuando llueve 🌧️", "¡Brrr! Vuelvo enseguida a casa 🥶"],
   plaza: ["Estoy mirando qué hay hoy en el mercadillo 🛒", "¡Hola! He venido a por fruta fresquita 🍎", "La fuente está preciosa hoy ⛲"],
   lago: ["Shhh… que se asustan los peces 🎣", "¡Hoy pican muchísimo!", "Llevo un rato y solo he pescado una bota 😅"],
   fiesta: ["¡Vamos a bailar! 💃", "¡Qué fiesta más bonita! 🎉", "¿Habéis apuntado vuestra casa al concurso? 🏆"],
-  puerta: ["¡Toc, toc! ¿Hay alguien en casa? 🔔"]
+  puerta: ["¡Toc, toc! ¿Hay alguien en casa? 🔔"],
+  visita: ["¡Hola! Estoy de visita, ¿os venís? 😊", "¡Qué bien lo estamos pasando! 💛"]
 };
 
 // ---- ¡Toc, toc! un par de veces al día un vecino llama a vuestra puerta ----
-function knockWins(dk) { return [0, 1].map(i => { const h = hashStr(dk + ":knock" + i); return { i, min: (i ? 16 + h % 4 : 10 + h % 4) * 60 + ((h >> 5) % 60) }; }); }
+function knockWins(dk) { return [0, 1].map(i => { const h = hashStr(dk + ":knock" + i); return { i, min: (i ? 16 + h % 4 : 10 + h % 4) * 60 + ((h >>> 5) % 60) }; }); }
 function knockNow(p, t = Date.now()) {
   p = p || state.pet || {}; if (!p.born || stageOf(p.xp || 0) === 0 || guestOf(p)) return null;
   const d = new Date(t), dk = localKey(d), m = d.getHours() * 60 + d.getMinutes();
   for (const w of knockWins(dk)) {
     if (m < w.min || m >= w.min + 60) continue;
     const key = dk + ":" + w.i; if ((p.knock || {})[key]) return null;
-    const vb = (visitOf(p) || {}).nb, L = nbList(p).filter(N => !isBday(N.id, d) && N.id !== vb && !(((p.nbCall || {})[N.id] || 0) > t));
+    const vb = (visitOf(p) || {}).nb, L = nbList(p).filter(N => !isBday(N.id, d) && N.id !== vb && !(((p.nbCall || {})[N.id] || 0) > t) && !nbBusy(N.id, t, p));
     if (!L.length) return null;
     const N = L[hashStr(key + ":who") % L.length], e = new Date(d); e.setHours(0, w.min + 60, 0, 0);
     return { id: N.id, key, until: e.getTime() };
@@ -8141,7 +8332,7 @@ function renderKnock(p) {
   if (!k) { el.classList.add("hidden"); el.dataset.k = ""; return; }
   if (el.dataset.k === k.key && !el.classList.contains("hidden")) return;
   el.dataset.k = k.key; const N = NB[k.id];
-  el.innerHTML = `<div class="kndoor"><i>🚪</i><div class="knfig">${chickSVG(4, "happy", N.wear, 0, N.c, { species: N.sp })}</div></div>
+  el.innerHTML = `<div class="kndoor"><i>🚪</i><div class="knfig">${chickSVG(4, "happy", nbWearOf(N), 0, N.c, { species: N.sp })}</div></div>
     <div class="knbox"><b>🔔 ¡Toc, toc!</b><span>${esc(N.n)} ${SPECIES[N.sp].e} está llamando a vuestra puerta</span><div class="knbtns"><button class="btn primary" id="knOpen">🚪 Abrir</button><button class="btn" id="knNo">Ahora no</button></div></div>`;
   el.classList.remove("hidden"); el.classList.remove("knin"); void el.offsetWidth; el.classList.add("knin");
   if (ls.get("knSeen") !== k.key && !$("tab-pet").classList.contains("hidden")) { ls.set("knSeen", k.key); SFX.ding(); setTimeout(() => SFX.ding(), 420); buzz([60, 90, 60]); }
@@ -8155,7 +8346,7 @@ function knockAnswer(k, open) {
     q.knock = Object.fromEntries(Object.entries({ ...(q.knock || {}), [k.key]: open ? "open" : "no" }).slice(-8));
     if (open) {
       q.guest = { nb: N.id, at: Date.now(), until: Date.now() + 60 * 6e4, by: who, knock: 1 };
-      q.nb = { ...(q.nb || {}) }; const s = { f: 0, ...(q.nb[N.id] || {}) }, f0 = s.f; s.f = Math.min(100, f0 + 6); q.nb[N.id] = s; msg = nbMilestone(N.id, f0, s.f, q);
+      q.nb = { ...(q.nb || {}) }; const s = { f: 0, ...(q.nb[N.id] || {}), last: Date.now() }, f0 = s.f; s.f = Math.min(100, f0 + 6); q.nb[N.id] = s; msg = nbMilestone(N.id, f0, s.f, q);
       if (gift) { const bag = gift[0] === "p" ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); bag[gift[1]] = (bag[gift[1]] || 0) + gift[2]; }
       gainExp(q, 4);
     }
@@ -8210,11 +8401,11 @@ function nbCallHome(N, open) {
 }
 function awayPanel(N, W) {
   const back = W.until ? `Vuelve a casa sobre las ${hhmm(W.until)}` : "";
-  const T = { paseo: ["🚶", "Ha salido a dar un paseo"], plaza: ["🛒", "Está en la plaza"], lago: ["🎣", "Ha ido a pescar al lago"], fiesta: ["🎉", "Está en la fiesta de la plaza"], puerta: ["🔔", "Está llamando a vuestra puerta"], tuya: ["🏡", "Está en vuestra casa"] }[W.k];
+  const T = { visita: ["🏠", `Ha ido a casa de ${esc((NB[W.host] || {}).n || "un vecino")}`], paseo: ["🚶", "Ha salido a dar un paseo"], plaza: ["🛒", "Está en la plaza"], lago: ["🎣", "Ha ido a pescar al lago"], fiesta: ["🎉", "Está en la fiesta de la plaza"], puerta: ["🔔", "Está llamando a vuestra puerta"], tuya: ["🏡", "Está en vuestra casa"] }[W.k];
   const call = `<button class="btn primary" id="nbCall">📞 Llamarle para que vuelva</button>`;
   const find = W.k === "paseo" ? `<button class="btn" id="nbFind">🗺️ Buscarle en el mapa</button>` : W.k === "plaza" || W.k === "fiesta" ? `<button class="btn" id="nbFind">${W.k === "fiesta" ? "🎉 Ir a la fiesta" : "🛒 Ir a la plaza"}</button>` : W.k === "lago" ? `<button class="btn" id="nbFind">🎣 Ir al lago</button>` : "";
   const btns = W.k === "tuya" ? `<button class="btn primary" id="nbSeeHome">🏡 Ir a verle a casa</button><button class="btn" id="nbGuestHome">👋 Que vuelva a su casa</button>`
-    : W.k === "puerta" ? `<button class="btn primary" id="nbSeeHome">🚪 Ir a abrirle la puerta</button>` : call + find;
+    : W.k === "puerta" ? `<button class="btn primary" id="nbSeeHome">🚪 Ir a abrirle la puerta</button>` : W.k === "visita" ? call + `<button class="btn" id="nbGoHost">🏠 Ir a casa de ${esc((NB[W.host] || {}).n || "")}</button>` : call + find;
   return `<div class="nbaway"><div class="nbawh"><i>${T[0]}</i><div><b>${esc(N.n)} · ${T[1]}</b><small>${W.k === "tuya" && W.until ? `Se queda hasta las ${hhmm(W.until)}` : back}</small></div></div><div class="nbawb">${btns}</div></div>`;
 }
 function awayBind(N, W) {
@@ -8227,38 +8418,50 @@ function awayBind(N, W) {
 function nbMeet(id) {
   const N = NB[id], p = state.pet || {}, W = nbWhere(id, p), st = nbOf(p, id), today = dayKey(), v = $("nbView"); if (!N || !v) return;
   let m = v.querySelector(".nbmeet"); if (!m) { m = document.createElement("div"); m.className = "nbmeet"; v.appendChild(m); }
-  const pool = W.k === "paseo" && (barrioMood().rain || barrioMood().snow) ? MEET_SAY.paseoLluvia : MEET_SAY[W.k] || N.hi;
-  const status = (NB_WHERE_T[W.k] || "") + (W.until && W.k !== "tuya" ? ` · vuelve a casa sobre las ${hhmm(W.until)}` : "");
-  m.innerHTML = `<button class="nbmx" aria-label="Cerrar">✕</button><div class="nbmtop"><div class="nbmfig">${chickSVG(4, W.k === "dormir" ? "sleep" : "happy", N.wear, 0, N.c, { species: N.sp })}</div><div class="nbmtxt"><b>${esc(N.n)} ${SPECIES[N.sp].e}</b><small>${esc(status)}</small><div class="nbmsay" id="nbmSay">“${esc(rnd(pool))}”</div></div></div>
-    <div class="nbmbtns">${W.k === "puerta" ? `<button class="btn primary" id="nbmDoor">🚪 Ir a abrirle</button>` : `<button class="btn ${st.talk === today ? "" : "primary"}" id="nbmTalk">${st.talk === today ? "💬 Charlar" : "💬 Charlar · +5 💛"}</button>`}${nbOutOf(W) && W.k !== "puerta" && W.k !== "tuya" ? `<button class="btn" id="nbmHome">🏠 Acompañarle a casa</button>` : `<button class="btn" id="nbmGo">🏠 Ir a su casa</button>`}</div>`;
+  const pool = W.say ? [W.say] : W.k === "paseo" && (barrioMood().rain || barrioMood().snow) ? MEET_SAY.paseoLluvia : MEET_SAY[W.k] || N.hi;
+  const status = (W.k === "visita" ? `De visita en casa de ${NB[W.host].n}` : W.act ? `${W.ic || ""} ${cap(W.act)}` : (NB_WHERE_T[W.k] || "")) + (W.until && W.k !== "tuya" ? ` · vuelve a casa sobre las ${hhmm(W.until)}` : "");
+  m.innerHTML = `<button class="nbmx" aria-label="Cerrar">✕</button><div class="nbmtop"><div class="nbmfig">${chickSVG(4, W.k === "dormir" ? "sleep" : "happy", nbWearOf(N), 0, N.c, { species: N.sp })}</div><div class="nbmtxt"><b>${esc(N.n)} ${SPECIES[N.sp].e}</b><small>${esc(status)}</small><div class="nbmsay" id="nbmSay">“${esc(rnd(pool))}”</div></div></div>
+    <div class="nbmbtns">${W.k === "puerta" ? `<button class="btn primary" id="nbmDoor">🚪 Ir a abrirle</button>` : `<button class="btn ${st.talk === today ? "" : "primary"}" id="nbmTalk">${st.talk === today ? "💬 Charlar" : "💬 Charlar · +5 💛"}</button>`}${W.k === "visita" ? `<button class="btn" id="nbmHost">🏠 Ir a casa de ${esc(NB[W.host].n)}</button>` : nbOutOf(W) && W.k !== "puerta" && W.k !== "tuya" ? `<button class="btn" id="nbmHome">🏠 Acompañarle a casa</button>` : `<button class="btn" id="nbmGo">🏠 Ir a su casa</button>`}</div>`;
   m.classList.remove("in"); void m.offsetWidth; m.classList.add("in"); SFX.pop && SFX.pop();
   m.querySelector(".nbmx").onclick = () => { m.classList.remove("in"); setTimeout(() => m.remove(), 250); };
   const t = $("nbmTalk"); if (t) t.onclick = () => { let first = false; $("nbmSay").textContent = "“" + rnd(N.talk) + "”"; nbTx(id, (q, s) => { first = false; if (s.talk === today) return null; s.talk = today; s.f += 5; gainExp(q, 2); first = true; }).then(r => { if (first) { SFX.pop(); toast(`💛 +5 amistad con ${N.n}`); nbAfter(r); t.textContent = "💬 Charlar"; t.classList.remove("primary"); } }).catch(() => { }); };
   const hm = $("nbmHome"); if (hm) hm.onclick = () => { hm.disabled = true; nbCallHome(N, true); };
   const go = $("nbmGo"); if (go) go.onclick = () => { m.remove(); nbCur = id; nbSay = ""; renderBarrio(); };
+  const hs = $("nbmHost"); if (hs) hs.onclick = () => { m.remove(); nbCur = W.host; nbSay = ""; renderBarrio(); };
   const dr = $("nbmDoor"); if (dr) dr.onclick = () => { closeBarrio(); showTab("pet"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 400); };
 }
 // figuritas en el mapa
-function miniFig(N, s, expr = "happy") { return chickSVG(4, expr, N.wear, 0, N.c, { species: N.sp }).replace('<svg viewBox="0 0 200 200"', `<svg x="${-s / 2}" y="${-s + 3}" width="${s}" height="${s}" viewBox="0 0 200 200"`); }
+function miniFig(N, s, expr = "happy") { return chickSVG(4, expr, nbWearOf(N), 0, N.c, { species: N.sp }).replace('<svg viewBox="0 0 200 200"', `<svg x="${-s / 2}" y="${-s + 3}" width="${s}" height="${s}" viewBox="0 0 200 200"`); }
 const NB_ROUTE = "M172 24 V286 H22 V306 H172 V540 H188 V306 H338 V286 H188 V24 Z", NB_ROUTE_S = 84;
 const NB_SPOT = { plaza: [[228, 262], [234, 334], [126, 336], [122, 300], [238, 298], [180, 352], [146, 344], [214, 248]], lago: [[238, 106], [342, 150], [254, 152]] };
 function barrioLife(p) {
   let s = "", out = [];
-  const used = { plaza: 0, lago: 0 }, now = Date.now();
+  const used = { plaza: 0, lago: 0 }, now = Date.now(), lead = {}, paired = new Set();
+  const walkers = nbList(p).filter(N => nbWhere(N.id, p).k === "paseo").map(N => N.id);
+  walkers.forEach(a => { if (paired.has(a)) return; const b = walkers.find(x => x !== a && !paired.has(x) && nbRel(a, x) && !nbQuarrel(a, x, p)); if (b) { paired.add(a); paired.add(b); lead[b] = a; } });
   nbList(p).forEach(N => {
-    const W = nbWhere(N.id, p); if (!nbOutOf(W) || W.k === "tuya") return; out.push([N, W]);
+    const W = nbWhere(N.id, p); if (!nbOutOf(W) || W.k === "tuya") return; out.push([N, W]); if (W.k === "visita") return;
     const foc = nbFocus === N.id ? `<circle r="22" fill="none" stroke="#ff5c8a" stroke-width="3" class="nbfoc"/>` : "";
     const hit = `<circle r="20" cy="-14" fill="transparent"/>`;
     if (W.k === "paseo") {
-      const ph = (hashStr(N.id + ":ph") % 1000) / 1000 * NB_ROUTE_S, begin = -(((now / 1000) + ph) % NB_ROUTE_S);
-      s += `<g class="nbwalk" data-nbw="${N.id}"><animateMotion dur="${NB_ROUTE_S}s" repeatCount="indefinite" begin="${begin.toFixed(1)}s" path="${NB_ROUTE}"/>${foc}<ellipse cx="0" cy="1" rx="9" ry="3" fill="rgba(0,0,0,.2)"/><g class="nbstep">${miniFig(N, 32)}</g>${hit}</g>`;
+      const L = lead[N.id], phOf = id => (hashStr(id + ":ph") % 1000) / 1000 * NB_ROUTE_S, ph = L ? phOf(L) - 1.5 : phOf(N.id), begin = -(((now / 1000) + ph) % NB_ROUTE_S + NB_ROUTE_S) % NB_ROUTE_S;
+      const heart = L && nbRelT(nbRK(L, N.id), p) === "novios" ? `<text x="-4" y="-34" font-size="11" class="nbbal">💕</text>` : "";
+      s += `<g class="nbwalk" data-nbw="${N.id}"><animateMotion dur="${NB_ROUTE_S}s" repeatCount="indefinite" begin="${begin.toFixed(1)}s" path="${NB_ROUTE}"/>${foc}<ellipse cx="0" cy="1" rx="9" ry="3" fill="rgba(0,0,0,.2)"/><g class="nbstep">${miniFig(N, 32)}</g>${heart}${W.ic ? `<text x="9" y="-22" font-size="12">${W.ic}</text>` : ""}${hit}</g>`;
     } else {
       const k = W.k === "lago" ? "lago" : W.k === "puerta" ? "puerta" : "plaza", spots = NB_SPOT[k];
       const [x, y] = k === "puerta" ? [214, 600] : spots[used[k]++ % spots.length];
-      s += `<g class="nbstand ${W.k === "fiesta" ? "dance" : ""}" data-nbw="${N.id}" transform="translate(${x} ${y})">${foc}<ellipse cx="0" cy="1" rx="9" ry="3" fill="rgba(0,0,0,.2)"/><g class="nbstep">${miniFig(N, 32)}</g>${k === "lago" ? `<text x="9" y="-20" font-size="13">🎣</text>` : k === "puerta" ? `<text x="10" y="-22" font-size="13">🔔</text>` : ""}${hit}</g>`;
+      s += `<g class="nbstand ${W.k === "fiesta" ? "dance" : ""}" data-nbw="${N.id}" transform="translate(${x} ${y})">${foc}<ellipse cx="0" cy="1" rx="9" ry="3" fill="rgba(0,0,0,.2)"/><g class="nbstep">${miniFig(N, 32)}</g>${W.ic && W.k !== "fiesta" ? `<text x="9" y="-20" font-size="13">${W.ic}</text>` : k === "lago" ? `<text x="9" y="-20" font-size="13">🎣</text>` : k === "puerta" ? `<text x="10" y="-22" font-size="13">🔔</text>` : ""}${hit}</g>`;
     }
   });
-  return { s, out };
+  const po = autoOut(p), RAIN = barrioMood().rain;
+  if (po && po.kind !== "visita") {
+    const pf = chickSVG(Math.max(2, stageOf(p.xp || 0)), "happy", p.wear || {}, 0, p.color, { species: p.species }).replace('<svg viewBox="0 0 200 200"', '<svg x="-17" y="-31" width="34" height="34" viewBox="0 0 200 200"');
+    const ring = `<circle r="15" cy="-14" fill="none" stroke="#ff5c8a" stroke-width="2.5" stroke-dasharray="4 3"/>`, tag = `<g transform="translate(0 10)"><rect x="-22" y="-7" width="44" height="13" rx="6.5" fill="#ff5c8a"/><text text-anchor="middle" y="3" font-size="8.5" font-weight="900" fill="#fff" font-family="system-ui">${esc((p.name || "Pollito").slice(0, 9))}</text></g>`;
+    if (po.kind === "paseo") { const ph = (hashStr("petph" + po.slot) % 1000) / 1000 * NB_ROUTE_S, begin = -(((now / 1000) + ph) % NB_ROUTE_S + NB_ROUTE_S) % NB_ROUTE_S; s += `<g class="nbwalk" data-nbw="pet"><animateMotion dur="${NB_ROUTE_S}s" repeatCount="indefinite" begin="${begin.toFixed(1)}s" path="${NB_ROUTE}"/>${ring}<g class="nbstep">${pf}</g>${tag}<circle r="20" cy="-14" fill="transparent"/></g>`; }
+    else { const [x, y] = po.kind === "lago" ? [262, 148] : [200, 262]; s += `<g class="nbstand" data-nbw="pet" transform="translate(${x} ${y})">${ring}<g class="nbstep">${pf}</g>${tag}<circle r="20" cy="-14" fill="transparent"/></g>`; }
+  }
+  if (RAIN) s = s.replace(/<g class="nbstep">/g, '<text x="-7" y="-36" font-size="14">☂️</text><g class="nbstep">');
+  return { s, out, pet: po };
 }
 function lotSVG(N, p) {
   const at = nbArriveAt(N, p), soon = at - Date.now() < DAY, { x, y } = N, lab = soon ? (new Date(at).toDateString() === new Date().toDateString() ? "¡Mudanza hoy!" : "¡Mudanza mañana!") : "Solar en venta";
@@ -8286,7 +8489,7 @@ function viewLabel(v) {
   if (!v) return "en la app";
   if (v.startsWith("nb:")) {
     const k = v.slice(3);
-    if (k === "map") return "mirando el mapa del barrio 🗺️"; if (k === "lake") return "en el lago 🎣"; if (k === "plaza") return isFiesta() ? "en la fiesta de la plaza 🎉" : "en la plaza 🛒";
+    if (k === "map") return "mirando el mapa del barrio 🗺️"; if (k === "news") return "leyendo El Cotilleo 📰"; if (k === "lake") return "en el lago 🎣"; if (k === "plaza") return isFiesta() ? "en la fiesta de la plaza 🎉" : "en la plaza 🛒";
     if (k === "mate") return `en casa de ${esc(((mateOf(state.pet || {}) || {}).name) || "su pareja")} 💕`;
     return NB[k] ? `en casa de ${esc(NB[k].n)} ${NB[k].e}` : "en el barrio";
   }
@@ -8306,7 +8509,9 @@ function liveTouch(e, down) {
   if (x < 0 || x > 100 || y < 0 || y > 100) return;
   myTouchAt = Date.now(); myTouchDown = down;
   if (!liveOK || !sameView()) return;
-  const now = Date.now(); if (down && now - tcSentAt < 170) return; tcSentAt = now;
+  const now = Date.now(); if (down && now - tcSentAt < 300) return;
+  if (down && liveTouch.last && Math.abs(liveTouch.last.x - x) + Math.abs(liveTouch.last.y - y) < 2 && now - tcSentAt < 1500) return;   // casi sin moverse: no hace falta enviarlo
+  tcSentAt = now; liveTouch.last = { x, y };
   S.merge("state/presence", { tc: { [who]: { x, y, d: down ? 1 : 0, t: now, v: myView() } } });
 }
 (() => {
@@ -8422,7 +8627,7 @@ function lvPop() {
 function partnerPinSVG() {
   const ov = otherView(); if (!ov) return "";
   let xy = null; const k = ov.startsWith("nb:") ? ov.slice(3) : null;
-  if (k === "lake") xy = [292, 66]; else if (k === "plaza") xy = [180, 252]; else if (k === "mate") xy = [290, 326]; else if (k && NB[k]) xy = [NB[k].x, NB[k].y - 40];
+  if (k === "lake") xy = [292, 66]; else if (k === "news") xy = [140, 172]; else if (k === "plaza") xy = [180, 252]; else if (k === "mate") xy = [290, 326]; else if (k && NB[k]) xy = [NB[k].x, NB[k].y - 40];
   else if (!k && !ov.startsWith("tab:")) xy = [180, 512];
   if (!xy) return "";
   const c = userColor(other());
@@ -8439,10 +8644,26 @@ setInterval(() => { renderLiveBar(); }, 5000);
 document.addEventListener("visibilitychange", () => { if (!liveOK) return; if (document.hidden) { S.merge("state/presence", { [who]: 1 }); myViewSent = ""; } else liveSync(true); });
 
 // ---------- ✨ 2.7 · Novedades: lo nuevo de cada versión, con botón para probarlo ----------
-const NEWS_VER = "2.7";
+const NEWS_VER = "3.0";
 function newsData() {
   const o = name(other()), nb = nextBday(), nbt = nb ? `El próximo es el de ${nb[0].n}, el ${bdayText(nb[0].id)}${nb[1] === 0 ? " (¡hoy!)" : nb[1] === 1 ? " (¡mañana!)" : ""}.` : "";
   return [
+    { v: "3.0", items: [
+      { e: "📮", t: "Kiko os trae el correo", d: `Cuando ${o} te escribe una carta, Kiko llama a tu puerta con ella en la mano (y si es de noche, viene en pijama). También trae las cápsulas del tiempo cuando ya se pueden abrir, y algunas mañanas postales de los vecinos con regalito.`, go: "pet", art: "mail" },
+      { e: "🐤", t: "Vuestro pollito sale solo", d: "De vez en cuando se va por su cuenta: a ver a sus amigos, a pasear, a la plaza o al lago. Lo veréis por el mapa y, al volver, os contará qué ha hecho y a veces traerá algo. Si lo echáis de menos, llamadle y vendrá corriendo.", go: "barrio", art: "petout" },
+      { e: "🦋", t: "Un barrio con ambiente", d: "Mariposas y pájaros de día, grillos de noche, paraguas cuando llueve y Bigotes, un gatito callejero que se deja acariciar. Y sonido de fondo, que podéis quitar con el botón 🔊 del mapa.", go: "barrio", art: "amb" }
+    ] },
+    { v: "2.9", items: [
+      { e: "🕰️", t: "Cada vecino con su horario", d: "Lola madruga para hornear el pan, Kiko reparte el correo por las mañanas, Tofu no perdona su siesta, Pingo toca el piano de noche y Mora sale a ver las estrellas al lago. Y todos comen y cenan en casa, como cualquier vecino.", go: "barrio", art: "clock" },
+      { e: "🍂", t: "Las estaciones llegan al barrio", d: "Ya es otoño: árboles naranjas, hojas cayendo y bufandas cuando hace frío. En Halloween se disfrazan, en noviembre hay castañas en la plaza y en Navidad luces de colores y nieve en los tejados.", go: "barrio", art: "autumn" },
+      { e: "💭", t: "Se acuerdan de vosotros", d: "Recuerdan los regalos que les hacéis, os echan de menos si pasáis días sin ir y tienen días buenos y malos. Si alguno se pone malito, llevadle algo calentito; si está triste, charlad con él.", go: "barrio", art: "memory" }
+    ] },
+    { v: "2.8", items: [
+      { e: "👥", t: "Los vecinos tienen vida social", d: "Ahora se visitan entre ellos, pasean en pareja y tienen sus amistades (y sus piques). Si entráis cuando tienen visita, podéis uniros a ellos.", go: "barrio", art: "social" },
+      { e: "📖", t: "Historias del barrio", d: "Cada día pasa algo nuevo y a veces os piden ayuda: un regalo para una cita, ser jurado de un concurso o entregar una carta muy especial. Lo que hagáis cambia el final.", go: "news", art: "story" },
+      { e: "😤", t: "Peleas y reconciliaciones", d: "De vez en cuando dos vecinos se pican. Si habláis con los dos el mismo día, podréis ayudarles a hacer las paces.", go: "barrio", art: "fight" },
+      { e: "📰", t: "El Cotilleo", d: "El periódico del barrio, en el quiosco de la plaza: quién está en casa de quién, las últimas noticias, las historias y quién es amigo de quién.", go: "news", art: "paper" }
+    ] },
     { v: "2.7", items: [
       { e: "💞", t: "Juntos en directo", d: `Cuando estéis los dos con el pollito verás la manita de ${o} haciéndole mimos en tiempo real y en qué habitación está. Podéis mandaros reacciones 😘 y, si le hacéis mimos a la vez unos segundos… ¡mimos a dúo!`, go: "pet", art: "live" },
       { e: "🚶", t: "Un barrio con vida", d: "Los vecinos salen a pasear, van a la plaza o se van a pescar al lago. Tócalos en el mapa para charlar con ellos y, si no están en casa, llamadles para que vuelvan.", go: "barrio", art: "walk" },
@@ -8466,11 +8687,21 @@ function newsData() {
 const verN = v => { const [a, b] = String(v || "0").split(".").map(Number); return (a || 0) * 100 + (b || 0); };
 function newsArt(k) {
   const p = state.pet || {}, me = chickSVG(Math.max(2, stageOf(p.xp || 0)), "love", p.wear || {}, 0, p.color, { species: p.species }), L = NB.lola, T = NB.tofu, B = NB.bruno, K = NB.kiko;
-  const f = (N, ex = "happy") => chickSVG(4, ex, N.wear, 0, N.c, { species: N.sp });
+  const f = (N, ex = "happy") => chickSVG(4, ex, nbWearOf(N), 0, N.c, { species: N.sp });
   if (k === "live") return `<div class="nwfig c">${me}</div><div class="nwhand l" style="--uc:${userColor("a")}"><span>✋</span><b>${userIni("a")}</b></div><div class="nwhand r" style="--uc:${userColor("b")}"><span>✋</span><b>${userIni("b")}</b></div><i class="nwfl" style="--i:0">💞</i><i class="nwfl" style="--i:1">😘</i><i class="nwfl" style="--i:2">💗</i>`;
   if (k === "walk") return `<div class="nwroad"></div><div class="nwfig w1">${f(L)}</div><div class="nwfig w2">${f(B)}</div><i class="nwtree" style="left:6%">🌳</i><i class="nwtree" style="right:8%">🌳</i>`;
   if (k === "knock") return `<div class="nwdoor">🚪</div><div class="nwfig kn">${f(T)}</div><div class="nwbub">¡Toc, toc! 🔔</div>`;
   if (k === "bday") return `<i class="nwfl" style="--i:0">🎈</i><i class="nwfl" style="--i:1">🎉</i><i class="nwfl" style="--i:2">🎈</i><div class="nwfig c">${f(L, "laugh")}</div><i class="nwcake">🎂</i>`;
+  if (k === "mail") return `<div class="nwdoor">🚪</div><div class="nwfig kn">${f(K)}</div><div class="nwbub">💌 ¡Correo!</div>`;
+  if (k === "petout") return `<i class="nwtree" style="left:4%;bottom:84px">🌳</i><i class="nwtree" style="right:6%;bottom:84px">🏡</i><div class="nwroad"></div><div class="nwfig w1">${me}</div><div class="nwfig w2">${f(L)}</div>`;
+  if (k === "amb") return `<i class="nwbf" style="--i:0">🦋</i><i class="nwbf" style="--i:1">🦋</i><i class="nwcat">🐈</i><i class="nwtree" style="left:8%">🌳</i><i class="nwtree" style="right:6%">🌳</i><i class="nwfl" style="--i:1">🎵</i>`;
+  if (k === "clock") return `<i class="nwclock">⏰</i><div class="nwfig s1">${f(L, "laugh")}</div><i class="nwbread">🥐</i><div class="nwfig s2">${f(NB.pingo, "happy")}</div><i class="nwfl" style="--i:2">🎶</i>`;
+  if (k === "autumn") return `<div class="nwfig c">${chickSVG(4, "happy", { ...L.wear, neck: "bufanda" }, 0, L.c, { species: L.sp })}</div><i class="nwleaf" style="--i:0">🍂</i><i class="nwleaf" style="--i:1">🍁</i><i class="nwleaf" style="--i:2">🍂</i><i class="nwleaf" style="--i:3">🍁</i><i class="nwpump">🎃</i>`;
+  if (k === "memory") return `<div class="nwfig s1">${f(T, "sick")}</div><i class="nwsoup">🍲</i><div class="nwthink">💭 🍰</div><div class="nwfig s2">${f(NB.nube, "happy")}</div>`;
+  if (k === "social") return `<div class="nwfig s1">${f(L, "laugh")}</div><div class="nwfig s2">${f(T, "laugh")}</div><i class="nwcup">🫖</i><i class="nwfl" style="--i:1">💬</i>`;
+  if (k === "story") return `<i class="nwbook">📖</i><div class="nwfig s1">${f(B)}</div><div class="nwfig s2">${f(NB.canela, "laugh")}</div><i class="nwfl" style="--i:0">💘</i><i class="nwfl" style="--i:2">💕</i>`;
+  if (k === "fight") return `<div class="nwfig s1 ang">${f(B, "normal")}</div><div class="nwfig s2 ang">${f(NB.pingo, "normal")}</div><i class="nwangry">😤</i><i class="nwshake">🤝</i>`;
+  if (k === "paper") return `<div class="nwpaper"><b>EL COTILLEO</b><span>¡Bruno y Canela, vistos juntos en el lago!</span><i></i><i></i><i></i></div><div class="nwfig mv">${f(K)}</div>`;
   if (k === "move") return `<i class="nwtruck">🚚</i><i class="nwbox" style="--i:0">📦</i><i class="nwbox" style="--i:1">📦</i><div class="nwfig mv">${f(K)}</div>`;
   return "";
 }
@@ -8499,19 +8730,652 @@ function newsClose() { ls.set("newsSeen", NEWS_VER); const o = $("newsView"); if
 function newsGo(k) {
   newsClose(); if (k !== "shop") closeBarrio(); showTab("pet");
   setTimeout(() => {
-    if (k === "barrio") openBarrio(); else if (k === "lake" || k === "plaza") { openBarrio(); nbCur = k; renderBarrio(); }
+    if (k === "barrio") openBarrio(); else if (k === "lake" || k === "plaza" || k === "news") { openBarrio(); nbCur = k; renderBarrio(); }
     else if (k === "garden") openGarden(); else if (k === "kitchen") openKitchen(); else if (k === "duels") openDuels(); else if (k === "shop") goShop("casa");
     else window.scrollTo({ top: 0, behavior: "smooth" });
   }, 450);
 }
 function newsMaybe() {
   if (ls.get("newsSeen") === NEWS_VER) return;
-  const busy = () => ["readView", "intro", "whoPick", "loginView"].some(id => $(id) && !$(id).classList.contains("hidden")) || document.querySelector("dialog[open]");
+  const busy = () => ["readView", "intro", "whoPick", "loginView", "coupleView"].some(id => $(id) && !$(id).classList.contains("hidden")) || document.querySelector("dialog[open]");
   let n = 0; (function tryShow() { if (busy() && n++ < 30) return setTimeout(tryShow, 2000); newsOpen(false); })();
 }
 
 $("connPill").addEventListener("click", e => { if (e.target.closest("button")) return; newsOpen(true); });
 { const sn = $("sNews"); if (sn) sn.onclick = () => { $("settings").close(); newsOpen(true); }; }
+// ---------- 👥 2.8 · Vida social entre vecinos: amistades, visitas entre ellos, historias, peleas y El Cotilleo ----------
+const NB_REL = {
+  "lola|tofu": { t: "amigos", e: "🫖", n: "amigos de toda la vida", act: ["están tomando el té con pan de canela", "comparten recetas de la abuela de Tofu", "están haciendo un puzle de 1000 piezas"] },
+  "nube|pingo": { t: "amigos", e: "🎹", n: "música para las plantas", act: ["Pingo toca el piano mientras Nube riega las plantas", "están ensayando una canción para las flores"] },
+  "bruno|pingo": { t: "rivales", e: "🏊", n: "rivales de natación", act: ["discuten quién nada más rápido", "están planeando una carrera hasta la fuente"] },
+  "canela|tofu": { t: "amigos", e: "🖼️", n: "el artista y el sabio", act: ["Canela le enseña a Tofu sus cuadros «modernos»", "pintan juntos un atardecer"] },
+  "bruno|canela": { t: "crush", e: "💘", n: "¿algo más que amigos?", act: ["Bruno ha venido a ver los cuadros de Canela… otra vez 👀", "Canela está pintando un retrato de Bruno"], actN: ["están merendando juntos, muy acaramelados 💕", "Canela le pinta un corazón en la mejilla a Bruno 💕", "ven una peli abrazaditos en el sofá 🍿"] },
+  "lola|pingo": { t: "amigos", e: "🥐", n: "conciertos a cambio de croissants", act: ["Pingo da un concierto a cambio de croissants", "Lola le hornea galletas a Pingo"] },
+  "lola|nube": { t: "amigas", e: "🥕", n: "amigas (y rivales en la cocina)", act: ["preparan juntas un bizcocho de zanahoria", "intercambian semillas y recetas"] },
+  "kiko|tofu": { t: "amigos", e: "📮", n: "el cartero y su mejor cliente", act: ["Kiko le lee a Tofu su carta de los lunes", "hablan de cuando las cartas tardaban semanas"] },
+  "kiko|lola": { t: "amigos", e: "☕", n: "café con bollo cada mañana", act: ["Kiko se toma un café con bollo antes de repartir", "Lola le da a Kiko pan para todo el barrio"] },
+  "bruno|kiko": { t: "amigos", e: "🏃", n: "compañeros de carreras", act: ["planean una carrera por todo el barrio", "Bruno le enseña a Kiko a estirar"] },
+  "mora|pingo": { t: "amigos", e: "🪐", n: "la canción de Saturno", act: ["componen una canción sobre Saturno", "miran las estrellas desde la ventana"] },
+  "mora|nube": { t: "amigas", e: "🌙", n: "las del huerto lunar", act: ["plantan semillas según la fase de la luna", "toman infusiones bajo las estrellas"] }
+};
+const nbRK = (a, b) => [a, b].sort().join("|");
+const nbRel = (a, b) => NB_REL[nbRK(a, b)];
+const nbRelT = (k, p) => (k === "bruno|canela" && storyDone("amor", p)) ? "novios" : (NB_REL[k] || {}).t;
+function nbFriends(id, p) { return Object.keys(NB_REL).filter(k => k.split("|").includes(id)).map(k => k.split("|").find(x => x !== id)).filter(x => NB[x] && nbIn(NB[x], p || state.pet || {})); }
+function nbNovio(id, p) { return storyDone("amor", p) ? (id === "bruno" ? "canela" : id === "canela" ? "bruno" : null) : null; }
+function nbSocLine(host, guest, p) {
+  const R = nbRel(host, guest) || {}, novios = nbRelT(nbRK(host, guest), p) === "novios", L = (novios && R.actN) || R.act || ["están charlando tan a gusto"];
+  return `${R.e || "💬"} ${NB[host].n} y ${NB[guest].n} ${L[hashStr(dayKey() + nbRK(host, guest)) % L.length]}`;
+}
+
+// ---- peleas: de vez en cuando dos vecinos se pican; si habláis con los dos el mismo día, les ayudáis a hacer las paces ----
+const NB_FIGHT = { "bruno|pingo": "quién nada más rápido", "lola|nube": "si la zanahoria va o no en el bizcocho", "canela|tofu": "si los cuadros de Canela son arte o garabatos", "bruno|kiko": "una carta que Bruno mordisqueó sin querer", "mora|pingo": "si Plutón es un planeta o no", "lola|pingo": "el piano a las siete de la mañana" };
+const dayIdx = (d = new Date()) => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY);
+function nbFight(p, t = Date.now()) {
+  p = p || state.pet || {}; const di = dayIdx(new Date(t)), w = Math.floor(di / 4), h = hashStr("fight:" + w);
+  if (h % 100 >= 30 || di - w * 4 > 1) return null;
+  const pairs = Object.keys(NB_FIGHT).filter(k => k.split("|").every(id => NB[id] && nbIn(NB[id], p)));
+  if (!pairs.length) return null;
+  const k = pairs[(h >>> 8) % pairs.length], key = w + ":" + k; if ((p.nbPeace || {})[key]) return null;
+  const [a, b] = k.split("|"); if (isBday(a, new Date(t)) || isBday(b, new Date(t))) return null; return { key, k, a, b, why: NB_FIGHT[k], end: (w * 4 + 2) * DAY };
+}
+const nbQuarrel = (x, y, p, t) => { const f = nbFight(p, t); return !!f && f.k === nbRK(x, y); };
+function fightCard(N, p) {
+  const f = nbFight(p); if (!f || (f.a !== N.id && f.b !== N.id)) return "";
+  const O = NB[f.a === N.id ? f.b : f.a], today = dayKey(), tA = nbOf(p, f.a).talk === today, tB = nbOf(p, f.b).talk === today, ok = tA && tB;
+  return `<div class="nbfight"><div class="nbfh"><i>😤</i><div><b>${esc(N.n)} está enfadad${N.sex === "f" ? "a" : "o"} con ${esc(O.n)}</b><small>Se han picado por ${esc(f.why)}</small></div></div>
+    ${ok ? `<button class="btn primary" id="nbPeace" style="width:100%;margin-top:8px">🤝 Ayudarles a hacer las paces</button>` : `<div class="nbfsteps"><span class="${tA ? "ok" : ""}">${tA ? "✓" : "○"} Hablar con ${esc(NB[f.a].n)}</span><span class="${tB ? "ok" : ""}">${tB ? "✓" : "○"} Hablar con ${esc(NB[f.b].n)}</span></div><small class="nbfhint">Charlad hoy con los dos y podréis ayudarles a hacer las paces</small>`}</div>`;
+}
+function nbMakePeace(N) {
+  const f = nbFight(state.pet || {}); if (!f) return renderNbHouse(); let ok = false, msgs = [];
+  petTx(q => {
+    ok = false; msgs = []; const g = nbFight(q); if (!g || g.key !== f.key) return null;
+    q.nbPeace = Object.fromEntries(Object.entries({ ...(q.nbPeace || {}), [f.key]: Date.now() }).slice(-10));
+    q.nb = { ...(q.nb || {}) }; [f.a, f.b].forEach(id => { const s = { f: 0, ...(q.nb[id] || {}), last: Date.now() }, f0 = s.f; s.f = Math.min(100, f0 + 8); q.nb[id] = s; const m = nbMilestone(id, f0, s.f, q); if (m) msgs.push(m); });
+    q.coins = coinsOf(q) + 20; gainExp(q, 10); socLog(q, `🤝 ${NB[f.a].n} y ${NB[f.b].n} han hecho las paces gracias a vosotros`); ok = true; return q;
+  }).then(r => {
+    if (!r || !ok) return renderNbHouse();
+    const O = NB[f.a === N.id ? f.b : f.a]; nbSay = rnd([`¡Tenéis razón! Voy ahora mismo a darle un abrazo a ${O.n} 🤗`, `Qué tontería lo nuestro… ¡gracias por ayudarnos! 💛`]);
+    confetti(); SFX.fanfare && SFX.fanfare(); toast(`🤝 ¡Han hecho las paces! +8 💛 con los dos · +20 🪙`, 3500); renderNbHouse(); nbActFx("🤝");
+    sendMsg(`🤝 Hemos ayudado a ${NB[f.a].n} y ${NB[f.b].n} a hacer las paces`, "pet");
+    if (msgs.length) setTimeout(() => readView({ icon: "🏘️", title: "¡Amistad en el barrio!", sub: "", text: msgs.join("\n\n") }), 1400);
+  }).catch(offline);
+}
+const FIGHT_TALK = (N, O) => [`No me hables de ${O.n}… 😤`, `${O.n} siempre quiere tener razón, ¡qué pesadez!`, `Estoy un poco enfadad${N.sex === "f" ? "a" : "o"} con ${O.n}… ya se me pasará`, `¿Vosotros qué pensáis? Yo creo que tengo razón 🙄`];
+
+// ---- historias del barrio: avanzan un capítulo al día; algunos capítulos necesitan vuestra ayuda ----
+const STORIES = [
+  { id: "amor", t: "💘 Bruno y Canela", need: ["bruno", "canela"], start: 0, ch: [
+    { k: "news", h: "Bruno ha pasado tres veces por delante de casa de Canela… 👀", d: "Los vecinos empiezan a sospechar. ¿Será casualidad?" },
+    { k: "item", at: "bruno", h: "Bruno quiere hacerle un regalo a Canela", d: "No sabe qué regalarle. Llevadle a Bruno algo de fruta, que a Canela le encanta.", items: ["fresas", "x_mango", "sandia", "uvas", "manzana", "fresa"], n: 1, btn: "🎁 Darle algo para Canela", say: "¡Gracias! Se lo llevo ahora mismo… ¡qué nervios! 😳", rw: { coins: 25, f: { bruno: 8, canela: 4 } } },
+    { k: "talk", at: "bruno", h: "¡Canela ha invitado a Bruno a pintar juntos!", d: "Bruno está hecho un flan. Id a su casa a darle ánimos.", btn: "💪 Darle ánimos", say: "Tenéis razón… ¡allá voy! Deseadme suerte 🍀", rw: { coins: 15, f: { bruno: 6 } } },
+    { k: "news", h: "¡Bruno y Canela son novios! 💕", d: "Ahora pasean juntos por el barrio y Canela le ha pintado un retrato. Dicen que fue gracias a vosotros 🥰", rw: { coins: 30, f: { bruno: 8, canela: 8 } } }
+  ] },
+  { id: "tartas", t: "🥕 El concurso de tartas", need: ["lola", "nube"], start: 1, ch: [
+    { k: "news", h: "Lola y Nube discuten: ¿quién hace la mejor tarta de zanahoria?", d: "La discusión ha llegado hasta la plaza. Habrá concurso." },
+    { k: "item", at: "nube", h: "Nube necesita zanahorias para su tarta", d: "Llevadle 3 zanahorias del huerto a Nube.", items: ["zanahoria"], n: 3, btn: "🥕 Darle 3 zanahorias", say: "¡Perfectas! Con esto gano seguro 😎", rw: { coins: 20, f: { nube: 8 } } },
+    { k: "choice", at: "lola", h: "¡La gran final! Vosotros sois el jurado", d: "Las dos tartas están deliciosas y os toca decidir. ¿Cuál gana?", opts: [["lola", "🏅 Gana la de Lola"], ["nube", "🏅 Gana la de Nube"]], say: "¡Qué emoción! Gracias por ser el jurado 🥹", rw: { coins: 20, inv: { tarta: 1 } } },
+    { k: "news", h: "{win} gana el concurso de tartas 🏆", d: "{lose} lo ha llevado con deportividad y han acabado comiéndose las dos tartas juntas. ¡Os han guardado un trozo! 🍰" }
+  ] },
+  { id: "carta", t: "📮 La carta misteriosa", need: ["kiko", "tofu"], start: 1, ch: [
+    { k: "news", h: "Kiko ha encontrado una carta sin remitente para Tofu 🤔", d: "Huele a perfume de lavanda… ¿de quién será?" },
+    { k: "talk", at: "tofu", h: "Kiko necesita que alguien le dé la carta a Tofu", d: "Id a casa de Tofu y entregádsela.", btn: "📮 Entregarle la carta", say: "¿Para mí? Esta letra… ¡no puede ser! 😮", rw: { coins: 15, f: { tofu: 6, kiko: 4 } } },
+    { k: "choice", at: "tofu", h: "¡Era de Rosa, su amor de juventud!", d: "Tofu quiere contestar, pero le tiembla el pulso. Ayudadle: ¿cómo empieza la carta?", opts: [["a", "«Querida Rosa: 50 años y no te he olvidado»"], ["b", "«Rosa, ¿un té el domingo en la plaza?»"], ["c", "«Sigo guardando tu foto en el reloj»"]], say: "Perfecto… justo lo que quería decirle 🥹", rw: { coins: 20, f: { tofu: 10 } } },
+    { k: "news", h: "Rosa ha contestado a Tofu: ¡vendrá a verle! 💌", d: "Kiko dice que nunca había repartido una carta con tanta ilusión. Tofu no para de silbar." }
+  ] }
+];
+const STORYM = Object.fromEntries(STORIES.map(s => [s.id, s]));
+const STORY_GAP = 18 * 36e5;
+const storyOf = (p, id) => (((p || {}).story || {})[id]) || { ch: 0, at: 0, log: [] };
+const storyDone = (id, p) => storyOf(p || state.pet || {}, id).ch >= STORYM[id].ch.length;
+function storyStart(S, p) {
+  if (!S.need.every(id => NB[id] && nbIn(NB[id], p))) return Infinity;
+  const base = Math.max(((p.moveIn || {}).start) || Infinity, ...S.need.map(id => NB[id].arrive ? nbArriveAt(NB[id], p) : 0));
+  if (!isFinite(base)) return Infinity; const d = new Date(base); if (S.start) { d.setDate(d.getDate() + S.start); d.setHours(9, 0, 0, 0); } return Math.max(base, d.getTime());
+}
+function storyCur(S, p, t = Date.now()) {   // capítulo actual y si ya se puede jugar
+  const st = storyOf(p, S.id); if (st.ch >= S.ch.length) return { done: true, st };
+  const unlock = st.ch === 0 ? storyStart(S, p) : (st.at || 0) + STORY_GAP;
+  return { i: st.ch, C: S.ch[st.ch], unlock, open: t >= unlock, st };
+}
+const storyFill = (txt, S, p) => { const pick = storyOf(p, S.id).pick, W = NB[pick], L = W && S.need.map(x => NB[x]).find(x => x.id !== pick); return String(txt).replace("{win}", W ? W.n : "").replace("{lose}", L ? L.n : ""); };
+function storyApplyRw(q, rw, S) {
+  if (!rw) return []; const msgs = [];
+  if (rw.coins) q.coins = coinsOf(q) + rw.coins;
+  if (rw.inv) { q.inv = { ...(q.inv || {}) }; for (const [k, n] of Object.entries(rw.inv)) q.inv[k] = (q.inv[k] || 0) + n; }
+  if (rw.f) { q.nb = { ...(q.nb || {}) }; for (const [id, n] of Object.entries(rw.f)) { const s = { f: 0, ...(q.nb[id] || {}), last: Date.now() }, f0 = s.f; s.f = Math.min(100, f0 + n); q.nb[id] = s; const m = nbMilestone(id, f0, s.f, q); if (m) msgs.push(m); } }
+  return msgs;
+}
+function socLog(q, txt) { q.socLog = [...(q.socLog || []), { at: Date.now(), t: txt }].slice(-14); }
+// publica los capítulos de "noticia" que ya tocan (se llama al abrir el barrio o el periódico)
+function storyTick(q, t = Date.now()) {
+  let changed = false;
+  for (const S of STORIES) {
+    for (let guard = 0; guard < 6; guard++) {
+      const c = storyCur(S, q, t); if (c.done || !c.open || c.C.k !== "news") break;
+      q.story = { ...(q.story || {}) }; const st = { ch: 0, at: 0, log: [], ...(q.story[S.id] || {}) };
+      st.log = [...(st.log || []), c.unlock].slice(-8); st.ch = c.i + 1; st.at = c.unlock; q.story[S.id] = st;
+      storyApplyRw(q, c.C.rw, S); changed = true;
+    }
+  }
+  return changed;
+}
+function storyPending(p) { return STORIES.map(S => ({ S, c: storyCur(S, p) })).filter(x => !x.c.done && x.c.open && x.c.C.k !== "news"); }
+function storyCards(N, p) {
+  return storyPending(p).filter(x => x.c.C.at === N.id).map(({ S, c }) => {
+    const C = c.C; let act = "";
+    if (C.k === "talk") act = `<button class="btn primary" data-story="${S.id}">${esc(C.btn)}</button>`;
+    else if (C.k === "item") { const have = C.items.map(k => [k, ((p.pantry || {})[k] || 0) + (CROPS[k] ? 0 : ((p.inv || {})[k] || 0))]).filter(([, n]) => n >= C.n); act = have.length ? `<div class="stitems">${have.map(([k, n]) => `<button class="btn primary" data-story="${S.id}" data-it="${k}">${itemE(k)} ${esc(itemN(k))}${C.n > 1 ? ` ×${C.n}` : ""} <small>(tenéis ${n})</small></button>`).join("")}</div>` : `<div class="stneed">Necesitáis ${C.n > 1 ? C.n + " de " : ""}${C.items.slice(0, 5).map(itemE).join(" ")} · cosechad o compradlo en la tienda</div>`; }
+    else if (C.k === "choice") act = `<div class="stopts">${C.opts.map(([k, l]) => `<button class="btn ${C.opts.length > 2 ? "" : "primary"}" data-story="${S.id}" data-pick="${k}">${esc(l)}</button>`).join("")}</div>`;
+    return `<div class="nbstory"><small>📖 ${esc(S.t)} · capítulo ${c.i + 1} de ${S.ch.length}</small><b>${esc(storyFill(C.h, S, p))}</b><span>${esc(C.d)}</span>${act}</div>`;
+  }).join("");
+}
+function storyDo(N, sid, it, pick) {
+  const S = STORYM[sid]; let ok = false, msgs = [], C = null;
+  petTx(q => {
+    ok = false; msgs = []; storyTick(q); const c = storyCur(S, q); if (c.done || !c.open || c.C.at !== N.id || c.C.k === "news") return null; C = c.C;
+    if (C.k === "item") { if (!C.items.includes(it)) return null; const bag = CROPS[it] ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); if ((bag[it] || 0) < C.n) return null; bag[it] -= C.n; }
+    if (C.k === "choice" && !C.opts.some(o => o[0] === pick)) return null;
+    q.story = { ...(q.story || {}) }; const st = { ch: 0, at: 0, log: [], ...(q.story[sid] || {}) };
+    st.log = [...(st.log || []), Date.now()].slice(-8); st.ch = c.i + 1; st.at = Date.now(); if (pick) st.pick = pick; q.story[sid] = st;
+    msgs = storyApplyRw(q, C.rw, S); gainExp(q, 8);
+    socLog(q, `📖 ${S.t}: ${storyFill(C.h, S, q)} — con vuestra ayuda`); ok = true; return q;
+  }).then(r => {
+    if (!r || !ok) return renderNbHouse();
+    nbSay = C.say || "¡Gracias por ayudarme! 💛"; confetti(); SFX.ding(); renderNbHouse(); nbActFx(C.k === "item" ? itemE(it) : C.k === "choice" ? "🏅" : "💛");
+    const rw = C.rw || {}; toast(`📖 ¡Capítulo completado!${rw.coins ? ` +${rw.coins} 🪙` : ""}${rw.inv ? " · " + Object.keys(rw.inv).map(itemE).join(" ") : ""}`, 3500);
+    const nx = S.ch[storyOf(r, sid).ch]; sendMsg(`📖 ${S.t}: hemos ayudado con «${storyFill(C.h, S, r)}». ${nx ? "Mañana habrá novedades en El Cotilleo 📰" : "¡Historia terminada!"}`, "pet");
+    if (msgs.length) setTimeout(() => readView({ icon: "🏘️", title: "¡Amistad en el barrio!", sub: "", text: msgs.join("\n\n") }), 1500);
+  }).catch(offline);
+}
+function storyNotify(p) {   // avisos al abrir el barrio: noticias nuevas y vecinos que piden ayuda
+  const msgs = [];
+  STORIES.forEach(S => {
+    const st = storyOf(p, S.id), c = storyCur(S, p), k = "stN:" + S.id + ":" + st.ch + ":" + (c.open ? 1 : 0);
+    if (ls.get("stN:" + S.id) === k) return; ls.set("stN:" + S.id, k);
+    if (c.open && !c.done && c.C.k !== "news") msgs.push(`📖 ${NB[c.C.at].n} necesita vuestra ayuda: ${storyFill(c.C.h, S, p)}`);
+    else if (st.ch > 0) { const L = S.ch[st.ch - 1]; if (L.k === "news") msgs.push(`📰 El Cotilleo: ${storyFill(L.h, S, p)}`); }
+  });
+  msgs.slice(0, 2).forEach((m, i) => setTimeout(() => toast(m, 4200), 900 + i * 4400));
+}
+function barrioSocialTick() {
+  const p = state.pet || {}; const q0 = JSON.parse(JSON.stringify(p)); const ch = storyTick(q0), dc = nbDecay(q0);
+  nbLifeNotice(p);
+  if (dc.miss && ls.get("missN:" + localKey()) !== "1") { ls.set("missN:" + localKey(), "1"); const [N, d] = dc.miss; setTimeout(() => toast(`💭 ${N.n} os echa de menos: hace ${d} días que no pasáis a verle`, 4200), 5200); }
+  if (ch || dc.changed) petTx(q => { storyTick(q); nbDecay(q); return q; }).then(r => { if (r) { storyNotify(r); const v = $("nbView"); if (v && !v.classList.contains("hidden") && (!nbCur || nbCur === "news")) renderBarrio(); } }).catch(() => { });
+  else storyNotify(p);
+}
+
+// ---- en casa: visitas entre vecinos, unirse a ellos y tarjetas de historia/pelea ----
+function socialCard(N, W, p) {
+  if (!W.guests || !W.guests.length) return "";
+  const G = W.guests.map(id => NB[id]), today = dayKey(), key = N.id + ">" + W.guests.join(","), done = ((p.nbSoc || {})[key]) === today;
+  const R = nbRel(N.id, G[0].id) || {};
+  return `<div class="nbsoc"><div class="nbsoch"><i>${G.map(x => SPECIES[x.sp].e).join("")}</i><div><b>${G.map(x => esc(x.n)).join(" y ")} ${G.length > 1 ? "están" : "está"} de visita</b><small>${W.bday ? "🎉 Han venido a la fiesta de cumpleaños" : esc(nbSocLine(N.id, G[0].id, p))}</small></div></div>
+    <button class="btn ${done ? "" : "primary"}" id="nbJoin" ${done ? "disabled" : ""} style="width:100%;margin-top:8px">${done ? "💛 Ya os habéis unido hoy" : `${R.e || "💬"} Unirse a ellos · +4 💛 a cada uno`}</button></div>`;
+}
+function nbJoin(N, W) {
+  const today = dayKey(), key = N.id + ">" + W.guests.join(","), ids = [N.id, ...W.guests]; let ok = false, msgs = [];
+  petTx(q => {
+    ok = false; msgs = []; if (((q.nbSoc || {})[key]) === today) return null;
+    q.nbSoc = Object.fromEntries(Object.entries({ ...(q.nbSoc || {}), [key]: today }).filter(([, d]) => d === today));
+    q.nb = { ...(q.nb || {}) }; ids.forEach(id => { const s = { f: 0, ...(q.nb[id] || {}), last: Date.now() }, f0 = s.f; s.f = Math.min(100, f0 + 4); q.nb[id] = s; const m = nbMilestone(id, f0, s.f, q); if (m) msgs.push(m); });
+    setNeed(q, "fun", 15); gainExp(q, 4); ok = true; return q;
+  }).then(r => {
+    if (!r || !ok) return renderNbHouse();
+    const G = NB[W.guests[0]]; nbSay = rnd([`¡Qué bien que os unáis! Siempre sois bienvenidos 🥰`, `${G.n} y yo justo estábamos hablando de vosotros 😊`, `¡Sentaos, sentaos! Hay sitio para todos 💛`]);
+    SFX.ding(); toast(`💛 +4 amistad con ${ids.map(id => NB[id].n).join(" y ")}`, 3000); renderNbHouse(); nbActFx((nbRel(N.id, G.id) || {}).e || "💛");
+    if (msgs.length) setTimeout(() => readView({ icon: "🏘️", title: "¡Amistad en el barrio!", sub: "", text: msgs.join("\n\n") }), 1300);
+  }).catch(offline);
+}
+function nbHouseExtras(N, W, p) { return storyCards(N, p) + fightCard(N, p) + (nbOutOf(W) ? "" : socialCard(N, W, p)); }
+function nbHouseBind(N, W) {
+  document.querySelectorAll("#nbView [data-story]").forEach(b => b.onclick = () => { document.querySelectorAll("#nbView [data-story]").forEach(x => x.disabled = true); storyDo(N, b.dataset.story, b.dataset.it, b.dataset.pick); });
+  const pc = $("nbPeace"); if (pc) pc.onclick = () => { pc.disabled = true; nbMakePeace(N); };
+  const jn = $("nbJoin"); if (jn) jn.onclick = () => { jn.disabled = true; nbJoin(N, W); };
+  const gh = $("nbGoHost"); if (gh) gh.onclick = () => { nbCur = W.host; nbSay = ""; renderBarrio(); };
+}
+// cotilleos al charlar: a veces os cuentan lo que pasa en el barrio
+function nbGossip(N, p) {
+  const L = [], f = nbFight(p);
+  if (f && (f.a === N.id || f.b === N.id)) return rnd(FIGHT_TALK(N, NB[f.a === N.id ? f.b : f.a]));
+  if (f) L.push(`¿Os habéis enterado? ${NB[f.a].n} y ${NB[f.b].n} se han enfadado por ${f.why} 🙄`);
+  STORIES.forEach(S => { const c = storyCur(S, p), st = storyOf(p, S.id); if (!S.need.includes(N.id) && st.ch > 0) { const C = S.ch[st.ch - 1]; L.push(`¿Habéis leído El Cotilleo? «${storyFill(C.h, S, p)}» 📰`); } if (!c.done && c.open && c.C.at === N.id) L.push(`Psst… ¿podéis ayudarme con una cosa? Mirad abajo 📖`); });
+  if (storyDone("amor", p) && N.id !== "bruno" && N.id !== "canela") L.push("¡Bruno y Canela hacen una pareja preciosa! 💕 Como vosotros");
+  nbFriends(N.id, p).forEach(fr => { const W = nbWhere(fr, p); if (W.k === "visita" && W.host !== N.id) L.push(`Ahora mismo ${NB[fr].n} está en casa de ${NB[W.host].n}… ¡no me han invitado! 😤😂`); });
+  return L.length && Math.random() < .45 ? rnd(L) : null;
+}
+
+// ---- 📰 El Cotilleo del barrio ----
+function socialNow(p) {
+  const L = [], seen = new Set(), walk = [], eating = [];
+  nbList(p).forEach(N => {
+    const W = nbWhere(N.id, p);
+    if (W.meal) { eating.push(N.n); return; }
+    if (W.act && W.k !== "visita" && !(W.guests && W.guests.length) && W.k !== "dormir") { L.push([W.ic || "•", `${N.n} está ${W.act}`, W.k === "lago" ? "lake" : W.k === "plaza" ? "plaza" : N.id]); return; }
+    if (W.k === "dormir" && W.nap) { L.push(["😴", `${N.n} se está echando la siesta`, N.id]); return; }
+    if (W.k === "casa" && W.guests && W.guests.length) { L.push([W.bday ? "🎉" : (nbRel(N.id, W.guests[0]) || {}).e || "💬", W.bday ? `${W.guests.map(g => NB[g].n).join(" y ")} ${W.guests.length > 1 ? "están" : "está"} en la fiesta de cumple de ${N.n}` : nbSocLine(N.id, W.guests[0], p).replace(/^\S+\s/, ""), N.id]); W.guests.forEach(g => seen.add(g)); seen.add(N.id); }
+    if (W.k === "paseo") walk.push(N.id);
+  });
+  const done = new Set();
+  walk.forEach(a => { if (done.has(a)) return; const b = walk.find(x => x !== a && !done.has(x) && nbRel(a, x) && !nbQuarrel(a, x, p)); if (b) { done.add(a); done.add(b); L.push([nbRelT(nbRK(a, b), p) === "novios" ? "💕" : "🚶", `${NB[a].n} y ${NB[b].n} pasean juntos por el barrio`, a]); } });
+  const po = autoOut(p); if (po) L.unshift([SPECIES[p.species || "pollito"].e, `${p.name || "Vuestro pollito"} ${petOutText(po, p)} (ha salido solo)`, po.kind === "visita" ? po.nb : po.kind === "lago" ? "lake" : po.kind === "plaza" ? "plaza" : null]);
+  if (eating.length) { const all = eating.length >= nbList(p).length, meal = hrOf(new Date()) > 18 ? "cenar" : "comer"; L.unshift(["🍽️", all ? `Es la hora de ${meal}: todo el barrio está en casa` : eating.length > 3 ? `Es la hora de ${meal}: casi todo el barrio está en casa` : `${joinY(eating)} ${eating.length > 1 ? "están" : "está"} ${meal === "cenar" ? "cenando" : "comiendo"} en casa`, null]); }
+  const at = k => nbList(p).filter(N => { const W = nbWhere(N.id, p); return W.k === k && !W.act; }).map(N => N.n);
+  const lk = at("lago"), pz = at("plaza"), fi = at("fiesta");
+  if (lk.length) L.push(["🎣", `${joinY(lk)} ${lk.length > 1 ? "pescan" : "pesca"} en el lago`, "lake"]);
+  if (pz.length) L.push(["🛒", `${joinY(pz)} ${pz.length > 1 ? "están" : "está"} en la plaza`, "plaza"]);
+  if (fi.length) L.push(["🎉", `${joinY(fi)} ${fi.length > 1 ? "bailan" : "baila"} en la fiesta de la plaza`, "plaza"]);
+  const f = nbFight(p); if (f) L.push(["😤", `${NB[f.a].n} y ${NB[f.b].n} no se hablan: se han picado por ${f.why}`, f.a]);
+  const asleep = nbList(p).filter(N => nbWhere(N.id, p).k === "dormir" && !nbWhere(N.id, p).nap).map(N => N.n);
+  if (asleep.length) L.unshift(["🌙", asleep.length === nbList(p).length ? "Todo el barrio duerme" : `${joinY(asleep)} ${asleep.length > 1 ? "duermen" : "duerme"}`, null]);
+  return L;
+}
+function renderNews() {
+  const v = nbEl(), p = state.pet || {}, now = new Date(), S0 = (p.moveIn || {}).start || Date.now(), num = Math.max(1, Math.floor((Date.now() - S0) / DAY) + 1);
+  const pend = storyPending(p), f = nbFight(p), nb = nextBday(p), live = socialNow(p);
+  const lastNews = STORIES.map(S => { const st = storyOf(p, S.id); return st.ch > 0 ? { S, C: S.ch[st.ch - 1], at: (st.log || []).slice(-1)[0] || st.at } : null; }).filter(Boolean).sort((a, b) => b.at - a.at)[0];
+  const head = (() => {
+    const SE = seasonOf(), sk = nbList(p).find(N => nbMood(N.id, p).k === "malito");
+    if (nb && nb[1] === 0) return { t: `¡Hoy es el cumple de ${nb[0].n}! 🎂`, d: "Id a felicitarle: hoy los regalos cuentan el doble." };
+    if (lastNews && Date.now() - lastNews.at < 2 * DAY) return { t: storyFill(lastNews.C.h, lastNews.S, p), d: storyFill(lastNews.C.d, lastNews.S, p) };
+    if (f) return { t: `${NB[f.a].n} y ${NB[f.b].n}, enfadados`, d: `Se han picado por ${f.why}. ¿Quién les ayudará a hacer las paces?` };
+    if (SE.hallo) return { t: "El barrio se disfraza para Halloween 🎃", d: "Hay calabazas en todas las puertas y murciélagos por la noche. ¿Truco o trato?" };
+    if (SE.navidad) return { t: "¡Feliz Navidad, vecinos! 🎄", d: "Las casas tienen luces de colores y hay un árbol enorme en la plaza." };
+    if (sk) return { t: `${sk.n} está malit${sk.sex === "f" ? "a" : "o"} 🤒`, d: "Dicen que una sopita calentita le vendría genial. ¿Quién se anima?" };
+    if (nb && nb[1] <= 7) return { t: `${nb[0].n} cumple años ${nb[1] === 1 ? "mañana" : `en ${nb[1]} días`} 🎂`, d: "Id pensando en un regalo: ese día cuentan el doble." };
+    if (SE.fresh) return { t: `${SE.e} Llega el ${SE.n} al barrio`, d: SE.k === "otono" ? "Los árboles se tiñen de naranja y ya hay quien saca la bufanda." : SE.k === "invierno" ? "Nieve en los tejados, bufandas y chocolate caliente." : SE.k === "primavera" ? "Vuelven las flores y los paseos largos." : "Helados, lago y paseos al atardecer." };
+    if (SE.castanas) return { t: "Ya huele a castañas asadas en la plaza 🌰", d: "El puesto de castañas ha vuelto, como cada otoño." };
+    return { t: "Un día tranquilo en el barrio", d: "Los vecinos pasean, charlan y se visitan. ¡Pasad a saludar!" };
+  })();
+  const reporter = NB.kiko && nbIn(NB.kiko, p) ? "Kiko, el cartero 📮" : "Tofu, el abuelo sabio 📚";
+  const stories = STORIES.filter(S => S.need.every(id => NB[id] && nbIn(NB[id], p))).map(S => {
+    const st = storyOf(p, S.id), c = storyCur(S, p);
+    const done = S.ch.slice(0, st.ch).map(C => `<li class="ok">✓ ${esc(storyFill(C.h, S, p))}</li>`).join("");
+    const cur = c.done ? `<li class="fin">🏁 ¡Historia terminada!</li>` : c.open ? `<li class="now">${c.C.k === "news" ? "📰" : "👉"} ${esc(storyFill(c.C.h, S, p))}${c.C.k !== "news" ? `<button class="btn primary" data-go="${c.C.at}">Ir a ayudar a ${esc(NB[c.C.at].n)}</button>` : ""}</li>` : `<li class="lock">🔒 Continuará ${isFinite(c.unlock) ? (new Date(c.unlock).toDateString() === now.toDateString() ? "hoy a las " + hhmm(c.unlock) : "mañana") : "pronto"}…</li>`;
+    return `<div class="cotst"><b>${esc(S.t)}</b><small>${Math.min(st.ch, S.ch.length)}/${S.ch.length} capítulos</small><ul>${done}${cur}</ul></div>`;
+  }).join("") || `<div class="sub">Pronto empezarán a pasar cosas en el barrio… 👀</div>`;
+  const rels = Object.keys(NB_REL).filter(k => k.split("|").every(id => NB[id] && nbIn(NB[id], p))).map(k => { const [a, b] = k.split("|"), R = NB_REL[k], t = nbRelT(k, p), fight = f && f.k === k; return `<div class="cotrel ${t}${fight ? " fight" : ""}"><span>${SPECIES[NB[a].sp].e} ${esc(NB[a].n)}</span><i>${fight ? "😤" : t === "novios" ? "💕" : R.e}</i><span>${SPECIES[NB[b].sp].e} ${esc(NB[b].n)}</span><small>${fight ? "enfadados" : t === "novios" ? "¡novios!" : esc(R.n)}</small></div>`; }).join("");
+  const log = (p.socLog || []).slice(-4).reverse().map(x => `<li>${esc(x.t)} <small>${hhmm(x.at)}${new Date(x.at).toDateString() === now.toDateString() ? "" : " · " + new Date(x.at).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</small></li>`).join("");
+  v.innerHTML = `<div class="nbtop"><button class="nbback" id="nbBack">‹ Mapa</button><b>📰 El Cotilleo</b><span></span></div>
+    <div class="cot"><div class="cotmast"><small>Nº ${num} · ${cap(now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }))}</small><h2>El Cotilleo</h2><small>El periódico del barrio · por ${reporter}</small></div>
+      <div class="cothead"><h3>${esc(head.t)}</h3><p>${esc(head.d)}</p></div>
+      ${pend.length ? `<div class="cotalert">📖 ${pend.length > 1 ? `${pend.length} vecinos necesitan` : `${esc(NB[pend[0].c.C.at].n)} necesita`} vuestra ayuda</div>` : ""}
+      <h4>Ahora mismo</h4><ul class="cotnow">${live.length ? live.map(([e, t, go]) => `<li${go ? ` data-go="${go}"` : ""}><i>${e}</i><span>${esc(t)}</span>${go ? "<em>›</em>" : ""}</li>`).join("") : `<li><i>🏡</i><span>Todos están tranquilamente en casa</span></li>`}</ul>
+      <h4>Historias del barrio</h4>${stories}
+      ${log ? `<h4>Últimas noticias</h4><ul class="cotlog">${log}</ul>` : ""}
+      <h4>Amistades</h4><div class="cotrels">${rels}</div>
+      ${nb ? `<p class="cotbd">🎂 Próximo cumple: <b>${esc(nb[0].n)}</b>, el ${bdayText(nb[0].id)}${nb[1] === 0 ? " (¡hoy!)" : nb[1] === 1 ? " (¡mañana!)" : ` (faltan ${nb[1]} días)`}</p>` : ""}
+    </div>`;
+  $("nbBack").onclick = () => { nbCur = null; renderBarrio(); };
+  v.querySelectorAll("[data-go]").forEach(b => b.onclick = e => { e.stopPropagation(); const g = b.dataset.go; nbCur = g; nbSay = ""; renderBarrio(); });
+  nbDecorate();
+}
+
+// ---------- 🍂 2.9 · Un barrio más real: horarios propios, estaciones, memoria y estados de ánimo ----------
+// ---- estaciones y fechas señaladas ----
+function seasonOf(d = new Date()) {
+  const m = d.getMonth(), day = d.getDate(), md = m * 100 + day;
+  const k = md >= 1121 || md < 221 ? "invierno" : md < 521 ? "primavera" : md < 823 ? "verano" : "otono";
+  const start = { invierno: [11, 21], primavera: [2, 21], verano: [5, 21], otono: [8, 23] }[k];
+  let s0 = new Date(d.getFullYear(), start[0], start[1]); if (s0 > d) s0 = new Date(d.getFullYear() - 1, start[0], start[1]);
+  const hallo = (m === 9 && day >= 25) || (m === 10 && day <= 1), navidad = m === 11 || (m === 0 && day <= 6), reyes = m === 0 && day >= 5 && day <= 6, castanas = m === 10 || (m === 9 && day >= 15);
+  const cold = k === "invierno" || m === 10 || m === 11 || m === 2 || (WX && wxOn() && typeof WX.temp === "number" && WX.temp < 12);
+  return { k, hallo, navidad, reyes, castanas, cold, fresh: (d - s0) / DAY < 10, e: { otono: "🍂", invierno: "❄️", primavera: "🌸", verano: "☀️" }[k], n: { otono: "otoño", invierno: "invierno", primavera: "primavera", verano: "verano" }[k] };
+}
+const SEASON_SAY = {
+  otono: ["¡Qué gusto de otoño! 🍂", "Ya empieza a refrescar, ¿eh? 🧣", "Me encanta pisar las hojas secas, ¡crac, crac! 🍁"],
+  invierno: ["¡Brrr, qué frío hace hoy! 🥶", "Día de mantita y chocolate calentito ☕", "¿Habéis visto qué blanquito está todo? ❄️"],
+  primavera: ["¡Ya huele a flores! 🌸", "Con este solecito da gusto salir 🌷", "¡Atchís! Ay, la alergia… 🤧"],
+  verano: ["¡Qué calor! ¿Un helado? 🍦", "Estoy deseando ir a remojarme al lago 🏊", "Hoy no salgo hasta que baje el sol ☀️"],
+  hallo: ["¿Truco o trato? 🎃", "¡Buuu! ¿Os he asustado? 👻", "¿De qué os vais a disfrazar? 🦇"],
+  navidad: ["¡Feliz Navidad! 🎄", "¿Ya le habéis escrito la carta a los Reyes? 👑", "¡Turrón para todos! 🍫"],
+  castanas: ["¡Ya han puesto el puesto de castañas en la plaza! 🌰"]
+};
+// ---- disfraces y ropa de abrigo según la época ----
+const NB_COSTUME = { lola: "bruja", nube: "calabaza", bruno: "orejasgato", pingo: "bruja", canela: "orejasgato", tofu: "calabaza", kiko: "bruja", mora: "orejasgato" };
+const NB_XMAS = { lola: "papanoel", nube: "reno", bruno: "papanoel", pingo: "reno", canela: "papanoel", tofu: "papanoel", kiko: "reno", mora: "reno" };
+function nbWearOf(N, d = new Date()) {
+  const S = seasonOf(d), w = { ...(N.wear || {}) };
+  if (S.hallo && NB_COSTUME[N.id]) w.head = NB_COSTUME[N.id];
+  else if (S.navidad && NB_XMAS[N.id]) w.head = NB_XMAS[N.id];
+  else if (S.cold && !w.head && (N.id === "tofu" || N.id === "nube")) w.head = "gorrolana";
+  if (S.cold && !w.neck) w.neck = S.navidad ? "bufnav" : "bufanda";
+  return w;
+}
+// ---- cada vecino con su horario: cuándo se levanta, trabaja, come, se echa la siesta y se acuesta ----
+const NB_DAY = {
+  lola: { sleep: [21.5, 30], work: [[6, 10, "casa", "🥐", "horneando el pan del día", "¡Estoy con las manos en la masa! Pasad, que huele de maravilla 🥐"]] },
+  nube: { sleep: [22, 30.5], work: [[7, 9, "casa", "🌱", "regando sus plantas", "Riego a primera hora, que es cuando más les gusta 💧"]] },
+  bruno: { sleep: [22.5, 30.5], work: [[7, 8, "paseo", "🏃", "corriendo por el barrio", "¡No puedo parar, que se me enfría el músculo! 🏃"], [18, 19, "paseo", "🏃", "entrenando", "¡Última vuelta y a la ducha! 💪"]] },
+  pingo: { sleep: [0.75, 9.5], work: [[22, 24.75, "casa", "🎹", "tocando el piano de noche", "Shhh… es la mejor hora para componer 🎶"]] },
+  canela: { sleep: [23, 32], work: [[10.5, 13, "plaza", "🎨", "pintando al aire libre", "¡La luz de la plaza es perfecta para pintar! 🎨"]] },
+  tofu: { sleep: [21, 31.5], nap: [15.5, 17], work: [[8, 9, "casa", "📰", "leyendo el periódico con su té", "Nada como el periódico y un té por la mañana 🫖"]] },
+  kiko: { sleep: [21.5, 30], work: [[8.5, 11, "paseo", "📮", "repartiendo el correo", "¡No me entretengáis, que llevo la cartera llena! 📮"]] },
+  mora: { sleep: [4, 12.5], work: [[21.5, 27, "lago", "🔭", "mirando las estrellas en el lago", "Shhh… ¡estoy a punto de ver una estrella fugaz! 🌠"]] }
+};
+const NB_MEALS = [[14, 15.5, "🍽️", "comiendo", "¡Estoy comiendo! ¿Gustáis? Hay para todos 🍽️"], [20.75, 21.5, "🍲", "cenando", "Estoy cenando una sopita, ¿os quedáis? 🍲"]];
+const inHr = (hh, a, b) => b > 24 ? (hh >= a || hh < b - 24) : (hh >= a && hh < b);
+const hrOf = d => d.getHours() + d.getMinutes() / 60;
+const atHr = (d, h) => { const e = new Date(d); e.setHours(0, 0, 0, 0); return e.getTime() + (h < hrOf(d) - 12 ? h + 24 : h) * 36e5; };
+function nbPlan(id, d = new Date()) {
+  const P = NB_DAY[id]; if (!P) return null; const hh = hrOf(d);
+  if (inHr(hh, P.sleep[0], P.sleep[1])) return { k: "dormir", act: "durmiendo" };
+  if (P.nap && inHr(hh, P.nap[0], P.nap[1])) return { k: "dormir", act: "echándose la siesta", nap: 1, until: atHr(d, P.nap[1]) };
+  return null;
+}
+function nbWork(id, d = new Date()) {
+  const P = NB_DAY[id], hh = hrOf(d);
+  for (const M of NB_MEALS) if (inHr(hh, M[0], M[1])) return { k: "casa", ic: M[2], act: M[3], say: M[4], meal: 1 };
+  for (const W of (P && P.work) || []) if (inHr(hh, W[0], W[1])) return { k: W[2], ic: W[3], act: W[4], say: W[5], until: atHr(d, W[1] > 24 ? W[1] - 24 : W[1]), work: 1 };
+  return null;
+}
+const nbBusy = (id, t, p) => { const d = new Date(t), pl = nbPlan(id, d); return !!pl || !!nbWork(id, d) || nbMood(id, p).k === "malito"; };
+// ---- estado de ánimo del día ----
+const NB_SAD = [["se me ha roto mi taza favorita", "se le ha roto su taza favorita"], ["echo de menos a mi familia", "echa de menos a su familia"], ["me ha salido mal un bizcocho", "le ha salido mal un bizcocho"], ["he perdido mi bufanda preferida", "ha perdido su bufanda preferida"], ["he tenido un mal sueño", "ha tenido un mal sueño"]];
+function nbMood(id, p, d = new Date()) {
+  p = p || state.pet || {}; const st = nbOf(p, id), today = dayKey(d.getTime());
+  if (isBday(id, d)) return { k: "feliz", e: "🥳", n: "de cumpleaños" };
+  const r = hashStr(localKey(d) + ":mood:" + id) % 100;
+  if (r < 6) return st.cured === today ? { k: "feliz", e: "😊", n: "recuperado", cured: 1 } : { k: "malito", e: "🤒", n: "malito" };
+  if (r < 14) return st.cheer === today ? { k: "feliz", e: "😊", n: "más animado" } : { k: "triste", e: "😢", n: "un poco triste", why: NB_SAD[hashStr(localKey(d) + id) % NB_SAD.length][0], whyT: NB_SAD[hashStr(localKey(d) + id) % NB_SAD.length][1] };
+  if (r < 26) return { k: "cansado", e: "🥱", n: "cansadito" };
+  if (r < 62) return { k: "normal", e: "🙂", n: "tranquilo" };
+  return { k: "feliz", e: "😄", n: "de buen humor" };
+}
+const NB_CARE = ["sopa", "te", "cremacal", "x_leche", "x_miel", "medicina"];
+function sickCard(N, p) {
+  const M = nbMood(N.id, p); if (M.k !== "malito") return "";
+  const have = NB_CARE.filter(k => ((p.inv || {})[k] || 0) > 0);
+  return `<div class="nbsick"><div class="nbfh"><i>🤒</i><div><b>${esc(N.n)} se ha puesto malit${N.sex === "f" ? "a" : "o"}</b><small>Está en la cama. Algo calentito le sentaría genial</small></div></div>
+    ${have.length ? `<div class="stitems">${have.map(k => `<button class="btn primary" data-care="${k}">${itemE(k)} Llevarle ${esc(itemN(k).toLowerCase())}</button>`).join("")}</div>` : `<div class="stneed">Necesitáis algo calentito: ${NB_CARE.slice(0, 4).map(itemE).join(" ")} (cocinadlo o compradlo en la tienda)</div>`}</div>`;
+}
+function nbCare(N, k) {
+  const today = dayKey(); let ok = false;
+  nbTx(N.id, (q, s) => { ok = false; if (s.cured === today) return null; q.inv = { ...(q.inv || {}) }; if (!(q.inv[k] > 0)) return null; q.inv[k]--; s.cured = today; s.f += 15; gainExp(q, 8); ok = true; })
+    .then(r => { if (!ok) return renderNbHouse(); nbSay = rnd(["¡Ay, qué rico! Ya me encuentro mucho mejor 🥹", "Sois los mejores vecinos del mundo… gracias 💛", "Con esto mañana estoy como nuevo 💪"]); confetti(); SFX.ding(); toast(`💛 +15 amistad con ${N.n}`); nbAfter(r); renderNbHouse(); nbActFx(itemE(k)); sendMsg(`🍲 Le hemos llevado ${itemN(k).toLowerCase()} a ${N.n}, que estaba malito`, "pet"); }).catch(offline);
+}
+// ---- memoria: se acuerdan de vuestros regalos y de si hace mucho que no vais ----
+const nbMemSaid = new Set();
+const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+function nbMemLine(N, p) {
+  if (nbMemSaid.has(N.id + dayKey())) return null; const s = nbOf(p, N.id), now = Date.now(), L = [];
+  if (s.lg && now - s.lg.at > 18 * 36e5 && now - s.lg.at < 7 * DAY) { const dd = new Date(s.lg.at), y = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(dd).setHours(0, 0, 0, 0)) / DAY); L.push(`¡Qué ${CAT[s.lg.k] && CAT[s.lg.k].cat === "comida" || CROPS[s.lg.k] ? "rico estaba" : "bonito era"} ${itemE(s.lg.k)} ${itemN(s.lg.k).toLowerCase()} que me trajisteis ${y <= 1 ? "ayer" : "el " + DIAS[dd.getDay()]}! 😋`); }
+  const lastT = s.talk ? new Date(s.talk + "T12:00:00Z").getTime() : 0, gap = lastT ? Math.floor((now - lastT) / DAY) : 0;
+  if (lastT && gap >= 4) L.push(rnd([`¡Cuánto tiempo! Ya pensaba que os habíais olvidado de mí 🥺`, `¡Por fin! Hacía ${gap} días que no veníais… os echaba de menos 💛`]));
+  else if (lastT && gap === 1) L.push(rnd(["¡Otra vez por aquí! Me encanta que vengáis tan a menudo 😊", "¡Hola de nuevo! Ya sois de la familia 🏡"]));
+  if (N.id === "bruno" && storyDone("amor", p)) L.push("Gracias otra vez por ayudarme con Canela… ¡estoy tan feliz! 💕");
+  if (N.id === "canela" && storyDone("amor", p)) L.push("Bruno me ha contado que le disteis ánimos… ¡gracias! 💕");
+  if (!L.length) return null; nbMemSaid.add(N.id + dayKey()); return rnd(L);
+}
+// saludo al entrar: ánimo > lo que está haciendo > recuerdos > la época del año > su saludo de siempre
+function nbGreet(N, p, W) {
+  const M = nbMood(N.id, p), S = seasonOf();
+  if (M.k === "malito") return rnd(["Estoy malito… achís 🤧", "Hoy no me encuentro muy bien 🤒", "Ay… me duele la cabeza 🤒"]);
+  if (M.k === "triste") return rnd([`Hoy estoy un poco triste… ${M.why} 😢`, `Perdonad, hoy no estoy muy animad${N.sex === "f" ? "a" : "o"}… ${M.why} 😔`]);
+  const mem = Math.random() < .7 ? nbMemLine(N, p) : null; if (mem) return mem;
+  if (W && W.say && Math.random() < .75) return W.say;
+  if (M.k === "cansado" && Math.random() < .5) return "Uf, hoy estoy cansadito 🥱 pero pasad, pasad";
+  const sp = S.hallo ? SEASON_SAY.hallo : S.navidad ? SEASON_SAY.navidad : S.castanas && Math.random() < .3 ? SEASON_SAY.castanas : SEASON_SAY[S.k];
+  if (Math.random() < .35) return rnd(sp);
+  return rnd(N.hi);
+}
+// ---- la amistad se enfría poco a poco si no les visitáis (nunca bajáis de nivel) ----
+const NB_FLOOR = f => f >= 80 ? 80 : f >= 40 ? 40 : f >= 15 ? 15 : 0;
+function nbLastSeen(s) { const ds = [s.talk, s.gift, s.reqDay, s.acts && s.acts.day].filter(Boolean).map(k => new Date(k + "T12:00:00Z").getTime()); return Math.max(s.last || 0, s.welcome || 0, ...ds, 0); }
+function nbDecay(q) {
+  let changed = false, miss = null; const now = Date.now();
+  nbList(q).forEach(N => {
+    const s = (q.nb || {})[N.id]; if (!s || !s.f) return; const last = nbLastSeen(s); if (!last) return;
+    const idle = Math.floor((now - last) / DAY), loss = Math.max(0, idle - 6), done = s.decAt === last ? (s.dec || 0) : 0;
+    if (loss > done) { const fl = NB_FLOOR(s.f), nf = Math.max(fl, s.f - (loss - done)); q.nb = { ...(q.nb || {}) }; q.nb[N.id] = { ...s, f: nf, dec: loss, decAt: last }; changed = true; if (!miss || idle > miss[1]) miss = [N, idle]; }
+  });
+  return { changed, miss };
+}
+// ---- avisos al abrir el barrio ----
+function nbLifeNotice(p) {
+  const k = "lifeN:" + localKey(); if (ls.get(k)) return; ls.set(k, "1");
+  const sick = nbList(p).find(N => nbMood(N.id, p).k === "malito"), S = seasonOf();
+  const t = sick ? `🤒 ${sick.n} se ha puesto malit${sick.sex === "f" ? "a" : "o"}. Llevadle algo calentito 🍲` : S.fresh ? `${S.e} ¡Ha llegado el ${S.n} al barrio!` : S.hallo ? "🎃 ¡El barrio se ha disfrazado para Halloween!" : S.navidad ? "🎄 ¡El barrio ya está decorado para Navidad!" : "";
+  if (t) setTimeout(() => toast(t, 4200), 9500);
+}
+// hojas que caen en otoño, pétalos en primavera
+function seasonFx() {
+  const S = seasonOf(), M = barrioMood(); if (M.rain || M.snow || M.night) return "";
+  const em = S.k === "otono" ? ["🍂", "🍁", "🍂"] : S.k === "primavera" ? ["🌸", "🌸", "🌼"] : S.navidad ? ["❄️", "❄️", "✨"] : null; if (!em) return "";
+  return `<div class="nbleaves">${Array.from({ length: 9 }, (_, i) => `<i style="left:${(i * 11 + (hashStr("lf" + i) % 7))}%;animation-delay:${-(i * 1.7) % 9}s;animation-duration:${8 + (i % 4) * 1.5}s;font-size:${13 + (i % 3) * 4}px">${em[i % 3]}</i>`).join("")}</div>`;
+}
+// colores de los árboles y del césped según la estación
+function treeSVG(x, y, r) {
+  const S0 = seasonOf(), S = { ...S0, k: S0.navidad && S0.k === "otono" ? "invierno" : S0.k }, h = hashStr("t" + x + ":" + y);
+  const pal = S.k === "otono" ? [["#d9792e", "#f0a24a"], ["#c9522f", "#e0784a"], ["#d9a23b", "#f2c25a"], ["#7a9a3a", "#9cbc52"]][h % 4] : S.k === "invierno" ? ["#3d7f5a", "#5e9a78"] : S.k === "primavera" ? ["#4fa852", "#6cc46c"] : ["#2f8a3e", "#4caf50"];
+  let s = `<g><circle cx="${x + 2}" cy="${y + 3}" r="${r}" fill="rgba(0,0,0,.15)"/><circle cx="${x}" cy="${y}" r="${r}" fill="${pal[0]}"/><circle cx="${x - r * .3}" cy="${y - r * .3}" r="${r * .55}" fill="${pal[1]}"/>`;
+  if (S.k === "invierno") s += `<path d="M${x - r * .8} ${y - r * .35} Q${x} ${y - r * 1.25} ${x + r * .8} ${y - r * .35} Q${x} ${y - r * .7} ${x - r * .8} ${y - r * .35}Z" fill="#fff" opacity=".9"/>`;
+  if (S.k === "primavera" && h % 2) s += [0, 1, 2].map(i => `<circle cx="${x - r * .4 + i * r * .4}" cy="${y - r * .1 + (i % 2) * r * .3}" r="${r * .16}" fill="#ffb7d5"/>`).join("");
+  if (S.navidad && h % 3 === 0) s += [0, 1, 2, 3].map(i => `<circle cx="${x - r * .6 + i * r * .4}" cy="${y + (i % 2 ? -r * .2 : r * .2)}" r="1.8" fill="${["#ff3d3d", "#ffd23f", "#4cc06a", "#4a7fe0"][i]}"/>`).join("");
+  return s + `</g>`;
+}
+const seasonLook = () => { const S = seasonOf(); return S.navidad && S.k === "otono" ? "invierno" : S.k; };
+const grassOf = () => ({ otono: "#a9c46a", invierno: "#c9ddd0", primavera: "#8fd16a", verano: "#94cf5c" })[seasonLook()];
+const grassDots = () => ({ otono: ["#d9792e", "#e0a03b", "#c9522f", "#b9cf7a"], invierno: ["#ffffff", "#e8f2ee", "#dbe9e2", "#ffffff"], primavera: ["#7cc35a", "#ffb7d5", "#ffe680", "#ffffff"], verano: ["#7cc35a", "#a3dc82", "#ffe680", "#ffb3c8"] })[seasonLook()];
+// adornos de cada casa en el mapa
+function houseDeco(x, y, w, h) {
+  const S = seasonOf(); let s = "";
+  if (S.k === "invierno" || S.navidad) s += `<rect x="${x - w / 2 + 2}" y="${y - h / 2 - 2}" width="${w - 4}" height="9" rx="4.5" fill="#fff" opacity=".95"/>`;
+  if (S.navidad) s += Array.from({ length: Math.round(w / 9) }, (_, i) => `<circle cx="${x - w / 2 + 5 + i * 9}" cy="${y - h / 2 + 2}" r="2.2" fill="${["#ff3d3d", "#ffd23f", "#4cc06a", "#4a7fe0"][i % 4]}" class="nbxl" style="animation-delay:${-(i % 4) * .4}s"/>`).join("");
+  if (S.hallo) s += `<text x="${x + 13}" y="${y + h / 2 + 10}" font-size="11">🎃</text>`;
+  return s;
+}
+function plazaDeco() {
+  const S = seasonOf(); let s = "";
+  if (S.navidad) s += `<text x="180" y="290" text-anchor="middle" font-size="30">🎄</text>`;
+  if (S.castanas) s += `<g><rect x="200" y="238" width="26" height="20" rx="3" fill="#7a4a2a"/><text x="213" y="253" text-anchor="middle" font-size="12">🌰</text></g>`;
+  if (S.k === "verano") s += `<text x="206" y="256" font-size="14">🍦</text>`;
+  if (S.hallo) s += `<text x="132" y="332" font-size="14">🕸️</text><text x="222" y="330" font-size="14">👻</text>`;
+  if (S.k === "invierno") s += `<text x="214" y="584" font-size="20">⛄</text>`;
+  return s;
+}
+
+// ---------- 2.9.1 · las filas de botones que se desplazan de lado no vuelven al principio al tocar una opción ----------
+(() => {
+  const SEL = ".tchips.one, .roombar, .tabsx, .mchips, .sptabs, .icpos, .wrmonths, .kidrow";
+  const cache = new Map();
+  const sig = r => r.id || (r.className + "|" + r.children.length + "|" + ((r.firstElementChild || {}).textContent || "").trim().slice(0, 24));
+  document.addEventListener("scroll", e => { const r = e.target; if (r && r.matches && r.matches(SEL)) cache.set(sig(r), r.scrollLeft); }, true);
+  const fix = r => {
+    if (!r.isConnected || r.scrollWidth <= r.clientWidth) return;
+    const v = cache.get(sig(r)); if (v != null && Math.abs(r.scrollLeft - v) > 1) r.scrollLeft = v;
+    const on = r.querySelector(":scope > .on, :scope > [aria-selected='true']");
+    if (on) { const rr = r.getBoundingClientRect(), cr = on.getBoundingClientRect(); if (rr.width) { if (cr.right > rr.right - 10) r.scrollLeft += cr.right - rr.right + 26; else if (cr.left < rr.left + 10) r.scrollLeft -= rr.left - cr.left + 26; } }
+    cache.set(sig(r), r.scrollLeft);
+  };
+  new MutationObserver(ms => {
+    const set = new Set();
+    for (const m of ms) {
+      if (m.target.nodeType === 1 && m.target.matches(SEL)) set.add(m.target);
+      m.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.matches(SEL)) set.add(n); if (n.firstElementChild) n.querySelectorAll(SEL).forEach(x => set.add(x)); });
+    }
+    set.forEach(fix);
+  }).observe(document.body, { childList: true, subtree: true });
+})();
+
+// ---------- 📮 3.0 · Kiko reparte el correo, el pollito sale solo al barrio y un barrio con ambiente ----------
+// ---- el correo: cartas de tu pareja, cápsulas que ya se pueden abrir y postales de los vecinos ----
+const POST_TXT = {
+  lola: ["¡Mañana hago croissants para todo el barrio! Pasad temprano 🥐", "Gracias por pasaros tanto. Os guardo siempre la primera magdalena 🧁"],
+  nube: ["Han salido los primeros brotes del huerto. ¡Venid a verlos! 🌱", "Os dejo unas semillas de regalo para vuestro huerto 🌻"],
+  bruno: ["¿Una carrera el domingo? ¡No vale rajarse! 🏃", "He batido mi récord en Vuelo. ¿Os atrevéis? 😎"],
+  pingo: ["Estoy componiendo una canción sobre vosotros dos 🎶", "Si una noche oís el piano, soy yo pensando en el barrio 🎹"],
+  canela: ["¡Os he pintado un cuadro! Está quedando precioso 🎨", "El atardecer de ayer era del color de vuestro pollito 🌅"],
+  tofu: ["Gracias por las visitas, jovencitos. Me alegráis los días 🫖", "Un consejo de abuelo: no dejéis nunca de escribiros 💌"],
+  kiko: ["Esta postal la he escrito yo mismo… ¡el cartero también escribe! 📮", "Llevo 3 días repartiendo sin perderme. ¡Récord! 🗺️"],
+  mora: ["Esta noche hay lluvia de estrellas. Pedid un deseo juntos 🌠", "He visto vuestra estrella: brilla muchísimo ✨"]
+};
+function postToday(p) {
+  const d = new Date(), dk = localKey(d), h = hashStr(dk + ":post"); if (h % 100 >= 35 || hrOf(d) < 9 || (p || {}).postDay === dk) return null;
+  const L = nbList(p).filter(N => nbOf(p, N.id).f >= 10); if (!L.length) return null;
+  const N = L[(h >>> 7) % L.length], T = POST_TXT[N.id] || ["¡Un saludo desde el barrio! 💛"], g = (h >>> 3) % 3;
+  return { id: N.id, dk, text: T[(h >>> 11) % T.length], gift: g === 0 ? { coins: 10 } : g === 1 && NB_GIFT[N.id] ? { item: NB_GIFT[N.id] } : null };
+}
+const mailGot = () => { try { return JSON.parse(ls.get("mailGot") || "[]"); } catch (e) { return []; } };
+const mailMark = id => ls.set("mailGot", JSON.stringify([...mailGot().filter(x => x !== id), id].slice(-60)));
+function mailNext(p) {
+  const got = mailGot();
+  const L = (typeof letters !== "undefined" ? letters : []).filter(l => l.to === who && !l.opened && !got.includes(l.id) && Date.now() - (l.at || 0) < 30 * DAY).sort((a, b) => a.at - b.at);
+  if (L.length) return { k: "letter", l: L[0], more: L.length - 1 };
+  const C = (typeof capsReady === "function" ? capsReady() : []).filter(c => !got.includes("cap:" + c.id));
+  if (C.length) return { k: "cap", c: C[0] };
+  const P = postToday(p); if (P && !got.includes("post:" + P.dk)) return { k: "post", P };
+  return null;
+}
+function mailCarrier() {
+  const K = NB.kiko, p = state.pet || {}, ok = K && nbIn(K, p), asleep = ok && nbPlan("kiko", new Date());
+  return { ok, asleep, fig: ok ? chickSVG(4, "happy", nbWearOf(K), 0, K.c, { species: K.sp }) : "", name: ok ? "Kiko" : "El cartero" };
+}
+function renderMail(p) {
+  const el = $("mailBar"); if (!el) return;
+  const m = hatched() ? mailNext(p || {}) : null;
+  if (!m) { el.classList.add("hidden"); el.dataset.k = ""; return; }
+  const key = m.k + ":" + (m.l ? m.l.id : m.c ? m.c.id : m.P.dk); if (el.dataset.k === key && !el.classList.contains("hidden")) return;
+  el.dataset.k = key; const K = mailCarrier(), o = name(other());
+  let title = "", sub = "", btns = "";
+  if (m.k === "letter") { const w = OW.find(x => x[0] === m.l.when) || ["", "💌", ""]; title = `¡Correo! ${K.name} ${K.asleep ? "ha venido en pijama 😴 a traerte" : "te trae"} una carta de ${esc(o)}`; sub = `${w[1]} «Ábrelo cuando ${esc(gz(w[2], who))}»${m.more ? ` · y ${m.more} más` : ""}`; btns = `<button class="btn primary" id="mlKeep">📬 Guardar en el buzón</button><button class="btn" id="mlGo">💌 Ir a Cartas</button>`; }
+  else if (m.k === "cap") { title = `${K.name} trae vuestra cápsula del tiempo`; sub = `🎁 «${esc(m.c.title || "Cápsula")}» ya se puede abrir`; btns = `<button class="btn primary" id="mlGo">🎁 Ir a abrirla</button><button class="btn" id="mlKeep">Luego</button>`; }
+  else { const N = NB[m.P.id]; title = `Postal de ${esc(N.n)} ${SPECIES[N.sp].e}`; sub = `${K.name} la ha dejado en vuestro buzón${m.P.gift ? " · ¡trae un regalito!" : ""}`; btns = `<button class="btn primary" id="mlPost">📬 Leer la postal</button>`; }
+  el.innerHTML = `<div class="mlman">${K.fig ? `<div class="mlfig">${K.fig}</div>` : `<i>📮</i>`}<span class="mlenv">${m.k === "cap" ? "🎁" : m.k === "post" ? "🖼️" : "💌"}</span></div><div class="mlbox"><b>${title}</b><span>${sub}</span><div class="knbtns">${btns}</div></div>`;
+  el.classList.remove("hidden", "knin"); void el.offsetWidth; el.classList.add("knin");
+  if (ls.get("mlSeen") !== key && !$("tab-pet").classList.contains("hidden")) { ls.set("mlSeen", key); SFX.ding(); setTimeout(() => SFX.pop && SFX.pop(), 300); buzz([30, 50, 30]); }
+  const keep = $("mlKeep"), go = $("mlGo"), pc = $("mlPost");
+  if (keep) keep.onclick = () => { mailMark(m.k === "letter" ? m.l.id : "cap:" + m.c.id); toast(m.k === "letter" ? `💌 Guardada en Cartas. Ábrela cuando ${gz((OW.find(x => x[0] === m.l.when) || ["", "", "quieras"])[2], who)}` : "📬 La tienes en Cartas cuando quieras", 3200); el.dataset.k = ""; renderMail(state.pet || {}); };
+  if (go) go.onclick = () => { mailMark(m.k === "letter" ? m.l.id : "cap:" + m.c.id); el.dataset.k = ""; renderMail(state.pet || {}); showTab("letters"); if (m.k === "cap") setTimeout(() => { const c = $("capList"); if (c) c.scrollIntoView({ behavior: "smooth", block: "center" }); }, 500); };
+  if (pc) pc.onclick = () => mailPost(m.P);
+}
+function mailPost(P) {
+  const N = NB[P.id]; let ok = false;
+  petTx(q => { ok = false; if (q.postDay === P.dk) return null; q.postDay = P.dk; if (P.gift && P.gift.coins) q.coins = coinsOf(q) + P.gift.coins; if (P.gift && P.gift.item) { const [t, k, n] = P.gift.item, bag = t === "p" ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); bag[k] = (bag[k] || 0) + n; } ok = true; return q; })
+    .then(r => { mailMark("post:" + P.dk); renderMail(state.pet || {}); if (!ok) return; const gl = P.gift ? (P.gift.coins ? `\n\n🎁 Dentro venían ${P.gift.coins} 🪙` : `\n\n🎁 Dentro venía ${P.gift.item[2] > 1 ? P.gift.item[2] + " " : ""}${itemE(P.gift.item[1])} ${itemN(P.gift.item[1]).toLowerCase()}`) : ""; readView({ icon: "🖼️", title: `Postal de ${N.n}`, sub: `${SPECIES[N.sp].e} ${N.job} · traída por ${mailCarrier().name}`, text: `«${P.text}»\n\n— ${N.n}${gl}` }); SFX.ding(); }).catch(offline);
+}
+
+// ---- el pollito sale solo: visita a sus amigos, pasea, va a la plaza o al lago ----
+const OUT_SLOT = 40 * 6e4;
+const OUT_HOBBY = { lola: "a hacer magdalenas 🧁", nube: "a plantar semillas de girasol 🌻", bruno: "a hacer flexiones 💪", pingo: "una canción nueva al piano 🎹", canela: "a pintar con los dedos 🎨", tofu: "un cuento de cuando era joven 📚", kiko: "su colección de sellos 📮", mora: "a encontrar la Osa Mayor ✨" };
+var aoMemo = null;
+function autoOut(p, t = Date.now()) {
+  p = p || state.pet || {}; const key = Math.floor(t / 6e4) + ":" + ((p.here || {}).until || 0) + ":" + (p.outStop || 0) + ":" + ((p.visit || {}).until || 0) + ":" + ((p.guest || {}).until || 0);
+  if (aoMemo && aoMemo.p === p && aoMemo.k === key) return aoMemo.v;
+  const v = autoOutRaw(p, t); aoMemo = { p, k: key, v }; return v;
+}
+function autoOutRaw(p, t) {
+  if (!p || !p.born || stageOf(p.xp || 0) < 2) return null;
+  const d = new Date(t), hh = hrOf(d); if (hh < 10 || hh >= 20) return null;
+  if (tripAway(p) || isNapping(p) || (p.visit && p.visit.until > t) || (p.here && p.here.until > t) || (p.guest && p.guest.until > t)) return null;
+  const slot = Math.floor(t / OUT_SLOT); if ((p.outStop || 0) >= slot) return null;
+  if (hashStr(slot + ":out:" + (p.born || 0)) % 100 >= 13) return null;
+  if (needNow(p, "energy", t) < 35 || needNow(p, "food", t) < 30) return null;
+  const at = slot * OUT_SLOT, until = at + OUT_SLOT, r = hashStr(slot + ":ok:" + (p.born || 0)) % 100;
+  if (d.getDay() === 0 && hh >= 11) return { kind: "plaza", at, until, slot, fiesta: 1 };
+  if (r < 55) {
+    const ns = Math.floor(t / NB_SLOT), M = barrioMood();
+    const C = nbList(p).filter(N => { if (nbPlan(N.id, d) || nbMood(N.id, p, d).k === "malito" || isBday(N.id, d)) return false; const w = nbWork(N.id, d); return w ? w.k === "casa" : nbRawK(N.id, ns, M) === "casa"; }).sort((a, b) => nbOf(p, b.id).f - nbOf(p, a.id).f).slice(0, 3);
+    if (C.length) return { kind: "visita", nb: C[hashStr(slot + ":who") % C.length].id, at, until, slot };
+  }
+  return { kind: r < 75 ? "paseo" : r < 88 ? "plaza" : "lago", at, until, slot };
+}
+function autoVisit(p) { const o = autoOut(p); return o && o.kind === "visita" && NB[o.nb] ? { nb: o.nb, at: o.at, until: o.until, auto: 1 } : null; }
+LOCN.barrio = "el barrio"; LOC_GO.barrio = ["¡Me voy a dar una vuelta por el barrio! 🏘️", "Voy a ver qué se cuece por el barrio 🐾"];
+function petOutText(o, p) { const k = o.kind; return k === "visita" ? `está en casa de ${NB[o.nb].n}` : k === "plaza" ? (o.fiesta ? "está en la fiesta de la plaza" : "está mirando el mercadillo de la plaza") : k === "lago" ? "está viendo los patos en el lago" : "está dando una vuelta por el barrio"; }
+function petMeet() {
+  const p = state.pet || {}, o = autoOut(p), v = $("nbView"); if (!o || !v) return;
+  let m = v.querySelector(".nbmeet"); if (!m) { m = document.createElement("div"); m.className = "nbmeet"; v.appendChild(m); }
+  const pn = esc(p.name || "Pollito");
+  m.innerHTML = `<button class="nbmx" aria-label="Cerrar">✕</button><div class="nbmtop"><div class="nbmfig">${chickSVG(Math.max(2, stageOf(p.xp || 0)), "happy", p.wear || {}, 0, p.color, { species: p.species })}</div><div class="nbmtxt"><b>${pn} ${SPECIES[p.species || "pollito"].e}</b><small>${esc(cap(petOutText(o, p)))} · vuelve a casa sobre las ${hhmm(o.until)}</small><div class="nbmsay">“${esc(rnd(["¡Hola! Estoy explorando el barrio 🐾", "¡Mira qué bonito está todo! 😊", "¡Ahora vuelvo, que estoy de aventura! 🗺️"]))}”</div></div></div>
+    <div class="nbmbtns"><button class="btn primary" id="pmHug">💛 Darle un mimo</button><button class="btn" id="pmHome">📣 Llamarle a casa</button></div>`;
+  m.classList.remove("in"); void m.offsetWidth; m.classList.add("in");
+  m.querySelector(".nbmx").onclick = () => { m.classList.remove("in"); setTimeout(() => m.remove(), 250); };
+  $("pmHug").onclick = () => { const f = m.querySelector(".nbmfig"); if (f) hearts(f, "💛"); buzz(20); SFX.pop && SFX.pop(); };
+  $("pmHome").onclick = () => { m.remove(); closeBarrio(); showTab("pet"); setTimeout(() => summonPet(), 400); };
+}
+// al volver, os cuenta qué ha hecho (y a veces trae algo)
+// ¿ha vuelto de un paseo que todavía no nos ha contado? (las últimas 6 horas)
+function outPending(p) {
+  if (!p || autoOut(p)) return null;
+  const cur = Math.floor(Date.now() / OUT_SLOT), seen = p.outSeen || 0;
+  for (let s = cur - 1; s >= cur - 9 && s > seen; s--) { const x = autoOutRaw({ ...p, here: null, visit: null, guest: null }, s * OUT_SLOT + 6e4); if (x && (p.outStop || 0) < s) return x; }
+  return null;
+}
+// aviso suave (no tapa nada): «¡Kiwi ha vuelto!» y te lo cuenta solo si tocas
+function renderBack(p) {
+  const el = $("backBar"); if (!el) return;
+  const o = hatched() && !outReport.busy ? outPending(p || {}) : null;
+  if (!o) { el.classList.add("hidden"); el.dataset.k = ""; return; }
+  const key = String(o.slot); if (el.dataset.k === key && !el.classList.contains("hidden")) return;
+  el.dataset.k = key; const pn = p.name || "Tu pollito", N = o.nb ? NB[o.nb] : null;
+  const where = o.kind === "visita" && N ? `en casa de ${esc(N.n)} ${SPECIES[N.sp].e}` : o.kind === "plaza" ? (o.fiesta ? "en la fiesta de la plaza 💃" : "en la plaza 🧺") : o.kind === "lago" ? "en el lago 🦆" : "dando una vuelta por el barrio 🌳";
+  el.innerHTML = `<div class="mlman"><div class="mlfig bkfig">${chickSVG(Math.max(2, stageOf(p.xp || 0)), "happy", p.wear || {}, 0, p.color, { species: p.species })}</div><span class="mlenv">🐾</span></div><div class="mlbox"><b>¡${esc(pn)} ha vuelto!</b><span>Ha estado ${where} · volvió a las ${hhmm(o.until)}</span><div class="knbtns"><button class="btn primary" id="bkTell">💬 Que te cuente</button></div></div>`;
+  el.classList.remove("hidden", "knin"); void el.offsetWidth; el.classList.add("knin");
+  $("bkTell").onclick = () => outReport(state.pet || p, o);
+}
+function outReport(p, o) {
+  if (!hatched() || outReport.busy) return;
+  o = o || outPending(p); if (!o) return renderBack(p); outReport.busy = true; const bb = $("backBar"); if (bb) bb.classList.add("hidden");
+  const h = hashStr(o.slot + ":rep"), N = o.nb ? NB[o.nb] : null, pn = p.name || "Tu pollito"; let txt = "", msgs = [], got = "";
+  petTx(q => {
+    msgs = []; got = ""; if ((q.outSeen || 0) >= o.slot) return null; q.outSeen = o.slot; setNeed(q, "fun", 12); gainExp(q, 3);
+    const bump = (id, n) => { q.nb = { ...(q.nb || {}) }; const s = { f: 0, ...(q.nb[id] || {}), last: Date.now() }, f0 = s.f; s.f = Math.min(100, f0 + n); q.nb[id] = s; const m = nbMilestone(id, f0, s.f, q); if (m) msgs.push(m); };
+    if (o.kind === "visita" && N) { bump(N.id, 3); if (h % 100 < 40 && NB_GIFT[N.id]) { const [t, k, n] = NB_GIFT[N.id], bag = t === "p" ? (q.pantry = { ...(q.pantry || {}) }) : (q.inv = { ...(q.inv || {}) }); bag[k] = (bag[k] || 0) + n; got = `${n > 1 ? n + " " : ""}${itemE(k)} ${itemN(k).toLowerCase()}`; } }
+    else if (o.kind === "paseo") { const L = nbList(q); if (L.length) { const M = L[h % L.length]; bump(M.id, 1); txt = M.n; } if (h % 100 < 30) { const c = 3 + h % 6; q.coins = coinsOf(q) + c; got = `${c} 🪙`; } }
+    else if (o.kind === "plaza") { if (h % 100 < 35) { const k = ["fresa", "tomate", "zanahoria"][h % 3]; q.pantry = { ...(q.pantry || {}) }; q.pantry[k] = (q.pantry[k] || 0) + 1; got = `${itemE(k)} ${itemN(k).toLowerCase()}`; } }
+    else if (o.kind === "lago") { if (h % 100 < 40) { q.pantry = { ...(q.pantry || {}) }; q.pantry.pescado = (q.pantry.pescado || 0) + 1; got = "🐟 un pescado"; } }
+    return q;
+  }).then(r => {
+    outReport.busy = false; renderBack(state.pet || {}); if (!r) return;
+    const t = o.kind === "visita" && N ? rnd([`¡Ya estoy en casa! He ido a ver a ${N.n} y me ha enseñado ${OUT_HOBBY[N.id] || "muchas cosas"}.`, `He merendado en casa de ${N.n}. ¡Qué bien me lo he pasado!`, `He estado con ${N.n} toda la tarde. Dice que os manda muchos besos 💛`]) + (got ? ` Y me ha regalado ${got} 🎁` : "")
+      : o.kind === "paseo" ? `¡He dado una vuelta enorme por el barrio! ${txt ? `Me he encontrado a ${txt} y hemos charlado un rato.` : ""}${got ? ` ¡Y me he encontrado ${got} en el suelo! 🤩` : ""}`
+        : o.kind === "plaza" ? `${o.fiesta ? "¡He bailado en la fiesta de la plaza! 💃" : "He estado en la plaza mirando el mercadillo."}${got ? ` Un vendedor me ha regalado ${got} 😋` : ""}`
+          : `He estado en el lago viendo los patos 🦆${got ? `… ¡y he pescado ${got}! 🎣` : "."}`;
+    readView({ icon: SPECIES[p.species || "pollito"].e, title: "¡Ya he vuelto!", sub: `${pn} ha salido solo por el barrio`, text: t + (msgs.length ? "\n\n🏘️ " + msgs.join("\n\n🏘️ ") : "") });
+    SFX.ding(); sceneSig = ""; petSig = ""; renderPet();
+  }).catch(() => { outReport.busy = false; renderBack(state.pet || {}); offline(); });
+}
+
+// ---- ambiente: mariposas, pájaros, el gatito Bigotes, paraguas y sonidos ----
+const CAT_SPOT = [[118, 230], [246, 140], [150, 608], [338, 258], [24, 430], [236, 470]];
+function catSVG() {
+  const M = barrioMood(), slot = Math.floor(Date.now() / (50 * 6e4)), [x, y] = M.rain ? [130, 368] : CAT_SPOT[hashStr("cat" + slot) % CAT_SPOT.length], sleep = M.night;
+  return `<g class="nbcat" data-nbw="cat" transform="translate(${x} ${y})"><circle r="18" cy="-8" fill="transparent"/><text text-anchor="middle" font-size="18" class="${sleep ? "" : "nbcatb"}">${sleep ? "🐈‍⬛" : "🐈"}</text>${sleep ? `<text x="10" y="-14" font-size="9">💤</text>` : ""}</g>`;
+}
+function catPet() {
+  const k = localKey(); let first = false;
+  SFX.pop && SFX.pop(); buzz(20);
+  const say = rnd(["¡Miau! Se deja acariciar y ronronea 😻", "Bigotes se frota contra vuestras piernas 🐾", "¡Prrrr! Bigotes cierra los ojitos de gusto 😽"]);
+  petTx(q => { first = false; if (q.catDay === k) return null; q.catDay = k; q.coins = coinsOf(q) + 3; first = true; return q; })
+    .then(() => toast(`🐈 Bigotes: ${say}${first ? " · os ha traído 3 🪙 que tenía escondidas" : ""}`, 3200)).catch(() => toast(`🐈 Bigotes: ${say}`));
+}
+function ambFx() {
+  const M = barrioMood(), S = seasonOf(); if (M.night || M.rain || M.snow || S.k === "invierno") return "";
+  return `<div class="nbamb"><i class="bf b1">🦋</i><i class="bf b2">🦋</i><i class="bd">🐦</i></div>`;
+}
+const AMB = { ac: null, g: null, t: null, rain: null, mode: "" };
+const ambOn = () => ls.get("amb") !== "0" && ls.get("snd") !== "0";
+function ambCtx() { try { if (!AMB.ac) { AMB.ac = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); AMB.g = AMB.ac.createGain(); AMB.g.gain.value = .5; AMB.g.connect(AMB.ac.destination); } if (AMB.ac.state === "suspended") AMB.ac.resume(); return AMB.ac; } catch (e) { return null; } }
+function ambStart() {
+  if (!ambOn()) return ambStop();
+  const M = barrioMood(), mode = M.rain ? "rain" : M.night ? "night" : "day"; if (AMB.mode === mode && AMB.t) return;
+  ambStop(); const a = ambCtx(); if (!a) return; AMB.mode = mode;
+  if (mode === "rain") { const len = a.sampleRate * 2, buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; const src = a.createBufferSource(); src.buffer = buf; src.loop = true; const f = a.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 1300; const g = a.createGain(); g.gain.value = .04; src.connect(f); f.connect(g); g.connect(AMB.g); src.start(); AMB.rain = src; }
+  const tick = () => { if (!AMB.mode) return; const now = a.currentTime; if (mode === "night") ambCricket(a, now); else if (mode === "day") ambChirp(a, now); AMB.t = setTimeout(tick, (mode === "night" ? 1100 : 1900) + Math.random() * 2600); };
+  AMB.t = setTimeout(tick, 500);
+}
+function ambChirp(a, t) { const n = 2 + Math.floor(Math.random() * 3), base = 2600 + Math.random() * 1600; for (let i = 0; i < n; i++) { const o = a.createOscillator(), g = a.createGain(), s = t + i * .11; o.type = "sine"; o.frequency.setValueAtTime(base, s); o.frequency.exponentialRampToValueAtTime(base * (1.2 + Math.random() * .35), s + .07); g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(.028, s + .015); g.gain.exponentialRampToValueAtTime(.0001, s + .09); o.connect(g); g.connect(AMB.g); o.start(s); o.stop(s + .1); } }
+function ambCricket(a, t) { for (let i = 0; i < 6; i++) { const o = a.createOscillator(), g = a.createGain(), s = t + i * .045; o.type = "triangle"; o.frequency.value = 4300; g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(.011, s + .008); g.gain.exponentialRampToValueAtTime(.0001, s + .035); o.connect(g); g.connect(AMB.g); o.start(s); o.stop(s + .04); } }
+function ambStop() { clearTimeout(AMB.t); AMB.t = null; AMB.mode = ""; if (AMB.rain) { try { AMB.rain.stop(); } catch (e) {} AMB.rain = null; } }
+function ambBtn() { return `<button class="nbsnd" id="nbSnd" aria-label="Sonido ambiente">${ambOn() ? "🔊" : "🔇"}</button>`; }
+function ambBind() {
+  const b = $("nbSnd"); if (!b) return;
+  b.onclick = e => { e.stopPropagation(); if (ls.get("snd") === "0") return toast("Tienes los sonidos de la app apagados 🔇"); ls.set("amb", ambOn() ? "0" : "1"); b.textContent = ambOn() ? "🔊" : "🔇"; if (ambOn()) ambStart(); else ambStop(); toast(ambOn() ? "🔊 Sonido del barrio activado" : "🔇 Sonido del barrio desactivado", 1600); };
+  ambStart();
+}
+
 // si le das de comer, mimos, etc. y no está contigo, viene corriendo
 document.querySelector(".actions.six").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b || !["petFeed", "petBag", "petHug", "petPlay", "petBath", "petSleep", "petTricks"].includes(b.id)) return;
@@ -8520,12 +9384,17 @@ document.querySelector(".actions.six").addEventListener("click", e => {
 setInterval(() => { if (!document.hidden && !$("tab-pet").classList.contains("hidden") && state.pet) renderPet(); }, 30000);
 async function start() {
   if (S.demo) { $("demoBanner").classList.remove("hidden"); setConn("demo"); }
+  S.watchMeta(m => { applyMeta(m); renderInvite(); renderHome(); const pl = $("connPill"); if (pl && pl.classList.contains("ok")) pl.textContent = `🟢 Conectado como ${name(who)} · v${APP_VERSION}`; });
   if (S.needsLogin) {
-    try { await S.init(loginUI); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); showRetry(); return; }
-    $("loginView").classList.add("hidden");
-    who = S.userEmail === (CONFIG.emails.a || "").toLowerCase() ? "a" : "b"; ls.set("who", who);
+    try { await S.init(loginUI, coupleUI); } catch (e) { console.error(e); $("coupleView").classList.add("hidden"); setConn("error", e && (e.code || e.message), "conectar"); showRetry(); return; }
+    $("loginView").classList.add("hidden"); $("coupleView").classList.add("hidden");
+    who = S.role || "a"; ls.set("who", who);
+    applyMeta(S.meta);
+    // pareja recién creada: las «novedades» de versiones anteriores no son novedad para vosotros
+    if (S.meta && S.meta.createdAt && Date.now() - S.meta.createdAt < 2 * DAY && !ls.get("newsSeen")) ls.set("newsSeen", NEWS_VER);
   } else if (who !== "a" && who !== "b") await pickWho();
-  if (who === "b" && !ls.get("introSeen")) openIntro();
+  renderInvite();
+  if (who === "b" && !ls.get("introSeen") && CONFIG.letter) openIntro();
   const t = ls.get("tab"); if (TABS.includes(t)) showTab(t);
   tick(); renderQuestion(); renderPet(); renderQuiz(); renderTTT(); renderMoods([]); drawWheel(); fgInfo(); renderLetters([]); renderCaps([]); renderDates([]); renderGameMenu();
   if (!S.needsLogin) { try { await S.init(); } catch (e) { console.error(e); setConn("error", e && (e.code || e.message), "conectar"); showRetry(); return; } }

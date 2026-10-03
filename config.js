@@ -23,14 +23,14 @@ export const CONFIG = {
   // Nombre de la base de datos de Firestore (el ID que pusiste al crearla)
   database: "(default)",
 
-  // 2) Código secreto de la pareja (no lo compartas; ya está generado)
+  // 2) La pareja original (Christian y Celia): con estos dos emails se entra directamente
+  //    en vuestro espacio de siempre. Cualquier otra persona crea el suyo (o se une con un código)
+  //    al registrarse, y cada pareja solo puede ver lo suyo (lo controlan las reglas de Firestore).
   couple: "4AZIZhNNdznlToMOnho9sGQq",
-
-  // 2b) Vuestros emails: SOLO estas dos personas podrán entrar (con email y contraseña).
-  //     Si los dejas vacíos, cualquiera con el código secreto podría entrar.
   emails: { a: "criswolquer@gmail.com", b: "celiarl2405@gmail.com" },
 
-  // 3) Vuestros nombres: a = tú, b = tu pareja
+  // 3) Nombres, fecha y carta de la pareja original (las demás parejas los eligen en la app;
+  //    luego se pueden cambiar en ⚙️ Ajustes → Vosotros)
   names: { a: "Christian", b: "Celia" },
 
   // 4) Fecha en que empezasteis (AAAA-MM-DD)
@@ -43,7 +43,7 @@ export const CONFIG = {
   // 7) Avisos con la app cerrada: dirección de tu servidor de Cloudflare (la pondremos cuando lo crees)
   pushUrl: "https://nosotros-avisos.criswolquer.workers.dev",
   vapidPublic: "BIESSgB6LD0_mid1CaXoeV_nqPN8YupKs8SQrxjXeRN7Nd7nFk4E6G8ND1FyagXnj0CrQlLkwze__d3MTW0rWtI",
-  pushSecret: "abTidlXm25yVH4DpA52syGZj9WyiqpB_",
+  pushSecret: "abTidlXm25yVH4DpA52syGZj9WyiqpB_",   // ya no protege nada (el servidor 3.1 comprueba vuestra cuenta); se queda por compatibilidad
 
   // 6) Nombre inicial de vuestra mascota (luego se puede cambiar desde la app)
   petName: "Pollito"

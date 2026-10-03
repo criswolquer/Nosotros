@@ -1,10 +1,94 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /couples/{code}/{document=**} {
-      allow read, write: if request.auth != null
-        && code == "4AZIZhNNdznlToMOnho9sGQq"
-        && request.auth.token.email in ["criswolquer@gmail.com", "celiarl2405@gmail.com"];
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    // con email y contraseña (no cuentas anónimas)
+    function realUser() {
+      return signedIn() && request.auth.token.firebase.sign_in_provider != "anonymous";
+    }
+    // códigos de las parejas nuevas: 8 letras/números (el de la pareja original no encaja aquí)
+    function normal(code) {
+      return code.matches("[A-HJ-NP-Z2-9]{8}");
+    }
+    // La pareja original (Christian y Celia): sus dos emails y, en cuanto han entrado los dos, solo esas dos cuentas
+    function legacy(code) {
+      return code == "4AZIZhNNdznlToMOnho9sGQq"
+        && request.auth.token.email in ["criswolquer@gmail.com", "celiarl2405@gmail.com"]
+        && (!exists(/databases/$(database)/documents/couples/4AZIZhNNdznlToMOnho9sGQq)
+            || get(/databases/$(database)/documents/couples/4AZIZhNNdznlToMOnho9sGQq).data.members.size() < 2
+            || request.auth.uid in get(/databases/$(database)/documents/couples/4AZIZhNNdznlToMOnho9sGQq).data.members);
+    }
+    function isMember(code) {
+      return signedIn() && (legacy(code)
+        || (normal(code) && request.auth.uid in get(/databases/$(database)/documents/couples/$(code)).data.members));
+    }
+
+    // A qué pareja pertenece cada persona (solo lo ve y lo cambia ella misma)
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create, update: if realUser() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(["couple", "at"]);
+    }
+
+    // Cada pareja: quién está, nombres, fecha… y dentro, todos sus datos
+    match /couples/{code} {
+      allow get: if signedIn() && (legacy(code) || (normal(code) && request.auth.uid in resource.data.members));
+      allow list: if false;
+
+      // crear un espacio nuevo: tú como único miembro
+      allow create: if signedIn() && (legacy(code) || (
+        realUser() && normal(code)
+        && request.resource.data.members == [request.auth.uid]
+        && request.resource.data.a == request.auth.uid
+        && !("b" in request.resource.data)));
+
+      allow update: if signedIn() && (legacy(code) || (normal(code) && (
+        // los dos pueden cambiar nombres, fecha, carta… pero no quién está en la pareja
+        (request.auth.uid in resource.data.members
+          && request.resource.data.members == resource.data.members
+          && request.resource.data.a == resource.data.a
+          && request.resource.data.get("b", "") == resource.data.get("b", ""))
+        // unirse con el código: solo mientras falte la otra persona
+        || (realUser()
+          && resource.data.members.size() == 1
+          && !(request.auth.uid in resource.data.members)
+          && request.resource.data.members == resource.data.members.concat([request.auth.uid])
+          && request.resource.data.b == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["members", "b", "joinedAt"]))
+        // te equivocaste al crearlo y sigues solo/a: se cierra para siempre (nadie puede reabrirlo ni unirse)
+        || (resource.data.members == [request.auth.uid]
+          && request.resource.data.members.size() == 0))));
+
+      // los espacios no se borran: se cierran (así su código no lo puede reutilizar nadie)
+      allow delete: if false;
+
+      // todo lo de dentro (mascota, cartas, fotos…): solo los dos miembros
+      match /{col}/{rest=**} {
+        allow read, write: if isMember(code);
+      }
+    }
+
+    // Contadores de mensajes con la IA: el servidor los sube de 1 en 1 y nadie puede bajarlos
+    match /usage/{uid}/days/{day} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow create: if realUser() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(["n"])
+        && request.resource.data.n is int && request.resource.data.n == 1;
+      allow update: if realUser() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(["n"])
+        && request.resource.data.n is int && request.resource.data.n == resource.data.n + 1;
+    }
+    match /usageAll/{day} {
+      allow get: if signedIn();
+      allow create: if realUser()
+        && request.resource.data.keys().hasOnly(["n"])
+        && request.resource.data.n is int && request.resource.data.n == 1;
+      allow update: if realUser()
+        && request.resource.data.keys().hasOnly(["n"])
+        && request.resource.data.n is int && request.resource.data.n == resource.data.n + 1;
     }
   }
 }

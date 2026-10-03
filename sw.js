@@ -1,4 +1,4 @@
-const CACHE = "nosotros-v76";
+const CACHE = "nosotros-v81";
 const FILES = ["./", "index.html", "app.js", "store.js", "config.js", "manifest.json", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
@@ -28,7 +28,8 @@ self.addEventListener("push", e => {
 });
 self.addEventListener("notificationclick", e => {
   e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || "./";
+  // solo abrimos páginas de la propia app (nunca un enlace de fuera)
+  let url = "./"; try { const u = new URL((e.notification.data && e.notification.data.url) || "./", self.registration.scope); if (u.origin === self.location.origin) url = u.href; } catch (x) {}
   e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
     for (const c of list) if ("focus" in c) return c.focus();
     return self.clients.openWindow(url);
