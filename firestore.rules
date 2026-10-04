@@ -31,6 +31,7 @@ service cloud.firestore {
       allow read: if signedIn() && request.auth.uid == uid;
       allow create, update: if realUser() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(["couple", "at"]);
+      allow delete: if signedIn() && request.auth.uid == uid;
     }
 
     // Cada pareja: quién está, nombres, fecha… y dentro, todos sus datos
@@ -51,15 +52,22 @@ service cloud.firestore {
           && request.resource.data.members == resource.data.members
           && request.resource.data.a == resource.data.a
           && request.resource.data.get("b", "") == resource.data.get("b", ""))
-        // unirse con el código: solo mientras falte la otra persona
+        // unirse con el código: solo mientras falte la otra persona (y si nadie se ha ido de este espacio)
         || (realUser()
+          && !("left" in resource.data)
           && resource.data.members.size() == 1
           && !(request.auth.uid in resource.data.members)
           && request.resource.data.members == resource.data.members.concat([request.auth.uid])
           && request.resource.data.b == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["members", "b", "joinedAt"]))
-        // te equivocaste al crearlo y sigues solo/a: se cierra para siempre (nadie puede reabrirlo ni unirse)
-        || (resource.data.members == [request.auth.uid]
+        // salir de la pareja: te quitas tú; tu pareja se queda con los recuerdos y nadie nuevo puede entrar
+        || (request.auth.uid in resource.data.members
+          && resource.data.members.size() == 2
+          && request.resource.data.members == resource.data.members.removeAll([request.auth.uid])
+          && request.resource.data.get("left", "") == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["members", "left", "leftAt"]))
+        // cerrar el espacio (al borrarlo o si te equivocaste al crearlo): para siempre, nadie puede reabrirlo ni unirse
+        || (request.auth.uid in resource.data.members
           && request.resource.data.members.size() == 0))));
 
       // los espacios no se borran: se cierran (así su código no lo puede reutilizar nadie)

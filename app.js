@@ -4236,9 +4236,16 @@ function applyMeta(m) {
   if (m.petName) CONFIG.petName = m.petName;
   const bl = $("btnLetter"); if (bl) bl.classList.toggle("hidden", !CONFIG.letter);
 }
-const partnerPending = () => { const m = S.meta || {}; return !S.demo && !S.isLegacy && !!S.coupleCode && (m.members || []).length < 2; };
+const partnerPending = () => { const m = S.meta || {}; return !S.demo && !S.isLegacy && !!S.coupleCode && (m.members || []).length < 2 && !m.left; };
 function renderInvite() {
   const el = $("inviteBanner"); if (!el) return;
+  const m = S.meta || {};
+  if (!S.demo && !S.isLegacy && m.left && (m.members || []).length < 2) {
+    el.classList.remove("hidden"); el.classList.add("left");
+    el.innerHTML = `<span>💔 <b>${esc(name(other()))}</b> ha salido de vuestro espacio. Tus recuerdos siguen aquí.</span><button class="btn" id="invBtn" type="button">Opciones</button>`;
+    $("invBtn").onclick = () => openPriv(); return;
+  }
+  el.classList.remove("left");
   const on = partnerPending(); el.classList.toggle("hidden", !on); if (!on) return;
   el.innerHTML = `<span>💌 <b>${esc(name(other()))}</b> aún no se ha unido · código <b class="invc">${fmtCode(S.coupleCode)}</b></span><button class="btn" id="invBtn" type="button">Invitar</button>`;
   $("invBtn").onclick = () => shareInvite(S.coupleCode, name(who), name(other()));
@@ -4266,7 +4273,7 @@ function saveSetCouple() {
   Promise.resolve(S.updateMeta(up)).catch(e => { console.warn(e); toast("⚠️ No se han podido guardar vuestros datos"); });
 }
 
-const APP_VERSION = "3.1";
+const APP_VERSION = "3.4";
 const ERR_HELP = {
   "permission-denied": "sin permiso: revisa las reglas de Firestore",
   "unavailable": "sin conexión a internet",
@@ -6680,19 +6687,22 @@ function renderSpSettings() {
   const me = spOpted(who), ot = spOpted(other()), o = esc(name(other()));
   el.innerHTML = `<label class="sndrow"><span>🌶️ Zona privada para los dos</span><input type="checkbox" id="spOpt" ${me ? "checked" : ""}></label>
     <div class="sub" style="font-size:12px;margin-top:4px">${me && ot ? "Activada por los dos ✅ La encontrarás en la pestaña Nosotros, con PIN." : me ? `Tú la has activado. Falta que ${o} la active en su móvil.` : ot ? `${o} la ha activado. Actívala tú también si te apetece 😏` : "Juegos y mensajes íntimos solo para vosotros. Solo aparece si la activáis los dos."}${me ? ` · <button class="linkbtn" id="spPinReset" style="font-size:12px">cambiar PIN</button>` : ""}</div>`;
-  $("spOpt").onchange = e => { S.merge("state/spicy", { opt: { [who]: e.target.checked } }); if (e.target.checked && !ot) notifyOther("🌶️ Te he propuesto algo… mira en ⚙️ Ajustes"); };
+  $("spOpt").onchange = e => {
+    if (e.target.checked && !spAdultOK()) { if (!confirm("🔞 La zona privada es solo para mayores de 18 años.\n\n¿Confirmas que tienes 18 años o más?")) { e.target.checked = false; return; } spAdultMark(); }
+    S.merge("state/spicy", { opt: { [who]: e.target.checked } }); if (e.target.checked && !ot) notifyOther("🌶️ Te he propuesto algo… mira en ⚙️ Ajustes"); };
   const pr = $("spPinReset"); if (pr) pr.onclick = () => { ls.set("spPinH", ""); toast("PIN borrado. Pondrás uno nuevo al entrar 🔒"); };
 }
 function renderSpEntry() {
   const el = $("spEntry"); if (!el) return;
   el.classList.toggle("hidden", !spOn());
   if (!spOn()) return;
-  const n = spLetters.filter(l => l.to === who && !l.read).length + spCoupons.filter(c => c.to === who && !c.seen).length;
+  const n = spLetters.filter(l => l.to === who && !l.read).length + spCoupons.filter(c => c.to === who && !c.seen).length + spPhNew();
   el.innerHTML = `<button class="spbtn" id="spGo"><span>🔒</span><div><b>Zona privada</b><small>Solo para vosotros dos${n ? ` · ${n} nuevo${n > 1 ? "s" : ""} 🔥` : ""}</small></div><i>›</i></button>`;
   $("spGo").onclick = spEnter;
 }
 function spEnter() {
   if (!spOn()) return;
+  if (!spAdultOK()) return spAgeGate(spEnter);
   if (Date.now() - spUnlockedAt < 3 * 6e4) return spShow();
   const has = !!ls.get("spPinH");
   spPinPad(has ? "Escribe tu PIN" : "Crea un PIN de 4 números", async pin => {
@@ -6714,8 +6724,8 @@ function spPinPad(title, cb) {
   };
   v.classList.remove("hidden"); draw();
 }
-function spShow() { spOpen = true; $("spView").classList.remove("hidden"); document.body.style.overflow = "hidden"; renderSp(); }
-function spClose() { spOpen = false; $("spView").classList.add("hidden"); document.body.style.overflow = ""; }
+function spShow() { spOpen = true; $("spView").classList.remove("hidden"); document.body.style.overflow = "hidden"; renderSp(); setTimeout(() => spYnCheck(false), 600); }
+function spClose() { if (spPhView) spPhClose(); spCallStop(); spOpen = false; $("spView").classList.add("hidden"); document.body.style.overflow = ""; }
 document.addEventListener("visibilitychange", () => { if (document.hidden && spOpen) { spClose(); spUnlockedAt = 0; } });
 function renderSp() {
   const v = $("spBody"); if (!v) return;
@@ -6725,23 +6735,15 @@ function renderSp() {
   const o = esc(name(other())), me = esc(name(who));
   let h = "";
   if (spTab === "juego") {
-    h = `<div class="splv">${SP_LV.map(([k, e, n]) => `<button class="${spLevel === k ? "on" : ""}" data-lv="${k}">${e} ${n}</button>`).join("")}</div>
+    if (!SP_TRUTH[spLevel]) spLevel = "coqueto";
+    h = `<div class="splv">${SP_LV.map(([k, e, n]) => `<button class="${spLevel === k ? "on" : ""}" data-lv="${k}"><i>${e}</i>${n}</button>`).join("")}</div>
       <div class="spcard" id="spCard"><div class="spk">Elige verdad o reto</div><div class="spq">🎲</div></div>
       <div class="sprow"><button class="spb" id="spTruth">🗣️ Verdad</button><button class="spb hot" id="spDare">🔥 Reto</button></div>
-      <button class="spb ghost" id="spSendQ" style="width:100%;margin-top:8px">💌 Mandárselo a ${o}</button>`;
-  } else if (spTab === "dados") {
-    h = `<div class="sub sptxt">Tirad los dados… y apuntadlo para cuando os veáis 😏</div><div class="dice"><div class="die" id="d1">💋</div><div class="die" id="d2">✨</div></div><div class="spres" id="dRes"></div>
-      <button class="spb hot" id="dRoll" style="width:100%">🎲 Tirar los dados</button>`;
-  } else if (spTab === "atreves") {
-    const mine = ((spState.dare || {})[who]) || {}, theirs = ((spState.dare || {})[other()]) || {};
-    const both = SP_IDEAS.map((t, i) => [t, i]).filter(([, i]) => mine[i] === 2 && theirs[i] === 2), maybe = SP_IDEAS.map((t, i) => [t, i]).filter(([, i]) => (mine[i] === 2 && theirs[i] === 1) || (mine[i] === 1 && theirs[i] === 2));
-    const done = Object.keys(mine).length, odone = Object.keys(theirs).length;
-    h = `<div class="sub sptxt">Marca cada idea. <b>Solo veréis las que os apetezcan a los dos</b>; lo que diga que no ${o} no lo verás nunca, y al revés 🤫</div>
-      ${both.length ? `<div class="spsec">💞 Os apetece a los dos</div>${both.map(([t]) => `<div class="spmatch">🔥 ${esc(t)}</div>`).join("")}` : ""}
-      ${maybe.length ? `<div class="spsec">💛 Uno dice sí y otro quizá… habladlo</div>${maybe.map(([t]) => `<div class="spmatch maybe">${esc(t)}</div>`).join("")}` : ""}
-      ${!both.length && !maybe.length ? `<div class="spmatch empty">${odone ? "Aún no hay coincidencias… ¡sigue marcando!" : `Cuando ${o} marque las suyas, aquí saldrán las que coincidan 😏`}</div>` : ""}
-      <div class="spsec">Tus respuestas · ${done}/${SP_IDEAS.length}</div>
-      ${SP_IDEAS.map((t, i) => `<div class="spidea"><span>${esc(t)}</span><div class="ynm">${[[2, "💚"], [1, "💛"], [0, "✕"]].map(([val, e]) => `<button class="${mine[i] === val ? "on v" + val : ""}" data-i="${i}" data-v="${val}">${e}</button>`).join("")}</div></div>`).join("")}`;
+      <button class="spb ghost" id="spSendQ" style="width:100%;margin-top:8px">💌 Mandárselo a ${o}</button>${spMineHtml()}`;
+  } else if (spTab === "dados") { h = spDiceHtml();
+  } else if (spTab === "atreves") { h = spYnHtml();
+  } else if (spTab === "dist") { h = spDistHtml();
+  } else if (spTab === "fotos") { h = spPhotosHtml();
   } else if (spTab === "cupones") {
     const got = spCoupons.filter(c => c.to === who), sent = spCoupons.filter(c => c.from === who);
     h = `<div class="spsec">🎟️ Regálale un cupón a ${o}</div><div class="cpgrid">${SP_COUPONS.map((c, i) => `<button class="cpopt" data-cp="${i}">${esc(c)}</button>`).join("")}</div>
@@ -6757,6 +6759,7 @@ function renderSp() {
   } else if (spTab === "ks") { h = renderKs();
   }
   v.innerHTML = h;
+  spBindExtra(v);
   if (spTab === "cal") bindSpCal();
   v.querySelectorAll("[data-kf]").forEach(b => b.onclick = () => { ksFilter = b.dataset.kf; renderSp(); });
   v.querySelectorAll("[data-ks]").forEach(b => b.onclick = () => ksOpen(b.dataset.ks));
@@ -6769,7 +6772,7 @@ function renderSp() {
   const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
   v.querySelectorAll("[data-lv]").forEach(b => b.onclick = () => { spLevel = b.dataset.lv; ls.set("spLv", spLevel); renderSp(); });
   let last = null;
-  const showQ = kind => { const L = (kind === "t" ? SP_TRUTH : SP_DARE)[spLevel]; const q = rnd(L); last = { kind, q }; const c = $("spCard"); c.classList.remove("flip"); void c.offsetWidth; c.classList.add("flip"); c.innerHTML = `<div class="spk">${kind === "t" ? "🗣️ Verdad" : "🔥 Reto"} · ${SP_LV.find(x => x[0] === spLevel)[1]}</div><div class="spq">${esc(q)}</div>`; SFX.pop(); };
+  const showQ = kind => { const pk = rnd(spPool(kind)), q = pk.q; last = { kind, q }; const c = $("spCard"); c.classList.remove("flip"); void c.offsetWidth; c.classList.add("flip"); c.innerHTML = `<div class="spk">${kind === "t" ? "🗣️ Verdad" : "🔥 Reto"} · ${SP_LV.find(x => x[0] === spLevel)[1]}</div><div class="spq">${esc(q)}</div>${pk.by ? `<div class="spby">✏️ Escrito por ${esc(name(pk.by))}</div>` : ""}`; SFX.pop(); };
   on("spTruth", () => showQ("t")); on("spDare", () => showQ("d"));
   on("spSendQ", () => { if (!last) return toast("Primero saca una verdad o un reto 😏"); spAddText("spletters", { from: who, to: other(), text: `${last.kind === "t" ? "🗣️ Verdad" : "🔥 Reto"} para ti: ${last.q}`, at: Date.now(), read: 0 }); notifyOther("🔒 Tienes algo nuevo en la zona privada 😏"); toast(`Enviado a ${name(other())} en secreto 🔒`); });
   on("dRoll", () => {
@@ -6984,13 +6987,14 @@ let ksOpenId = null, ksSpinTok = 0;
 const ksMeter = (n, max, cls = "") => `<span class="kmt ${cls}">${Array.from({ length: max }, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("")}</span>`;
 function renderKs() {
   const { pc } = ksPc(), tried = KS.filter(k => pc[k.id]).length, both = KS.filter(k => ksBoth(k.id)), mine = KS.filter(k => ksWant(who, k.id));
-  const L = KS.filter(k => ksFilter === "todas" || (ksFilter === "probadas" ? pc[k.id] : ksFilter === "nuevas" ? !pc[k.id] : ksFilter === "lista" ? ksBoth(k.id) : ksFilter === "mias" ? ksWant(who, k.id) : String(k.d) === ksFilter));
+  const L = KS.filter(k => ksFilter === "todas" || (ksFilter === "probadas" ? pc[k.id] : ksFilter === "nuevas" ? !pc[k.id] : ksFilter === "lista" ? ksBoth(k.id) : ksFilter === "mias" ? ksWant(who, k.id) : String(k.d) === ksFilter)).filter(k => ksType === "todos" || ksCat(k.id) === ksType);
   const day = KS[hashStr(localKey()) % KS.length], pct = Math.round(tried / KS.length * 100);
   const F = [["todas", "Todas"], ["nuevas", "Sin probar"], ["probadas", `✓ Probadas (${tried})`], ["mias", `❤️ Mis deseos (${mine.length})`], ["lista", `💞 Los dos (${both.length})`], ["1", "🔥 Fácil"], ["2", "🔥🔥 Media"], ["3", "🔥🔥🔥 Difícil"], ["4", "🔥🔥🔥🔥 Experta"]];
   return `<div class="ksprog"><div class="ksring" style="--p:${pct}"><div><b>${tried}</b><small>/${KS.length}</small></div></div><div class="ksprogt"><b>Vuestro Kamasutra</b><small>${pct}% explorado · ${both.length ? `💞 ${both.length} ${both.length === 1 ? "deseo compartido" : "deseos compartidos"}` : "marcad las que os apetezcan ❤️"}</small><div class="ksbar"><i style="width:${pct}%"></i></div></div></div>
     <button class="ksday" data-ks="${day.id}"><div class="ksdayart">${ksSVG(day.id)}</div><div class="ksdayt"><small>✨ Postura del día</small><b>${esc(day.n)}</b><span>${"🔥".repeat(day.d)} · ${KS_I[day.i]}</span></div><i>›</i></button>
     <button class="spb hot ksspin" id="ksSpin">🎰 Ruleta de posturas <small>¿no sabéis cuál? que elija la suerte</small></button>
     <div class="chips ksfil">${F.map(([k, t]) => `<button class="chip ${ksFilter === k ? "on" : ""}" data-kf="${k}">${t}</button>`).join("")}</div>
+    <div class="chips ksfil kstype">${[["todos", `Todos los tipos · ${KS.length}`], ...KS_TYPES.map(([k, e, n]) => [k, `${e} ${n} · ${KS.filter(x => ksCat(x.id) === k).length}`])].map(([k, t]) => `<button class="chip ${ksType === k ? "on" : ""}" data-kt="${k}">${t}</button>`).join("")}</div>
     ${ksFilter === "lista" && !both.length ? `<div class="spmatch empty">Abrid las fichas y pulsad <b>🤍 ¿Te apetece?</b>. Solo saldrán aquí las que queráis <b>los dos</b>; lo que marque cada uno por separado es secreto 🤫</div>` : ""}
     <div class="ksgrid">${L.map(k => `<button class="kstile ${pc[k.id] ? "done" : ""}" data-ks="${k.id}"><div class="kstart">${ksSVG(k.id)}${ksBoth(k.id) ? `<em class="kmatch">💞</em>` : ksWant(who, k.id) ? `<em class="kmatch">❤️</em>` : ""}${pc[k.id] ? `<em class="kdone">✓ ${pc[k.id]}</em>` : ""}</div><b>${esc(k.n)}</b><small>${ksMeter(k.d, 4)}<span>${KS_D[k.d]}</span></small></button>`).join("") || (ksFilter === "lista" ? "" : `<div class="spmatch empty" style="grid-column:1/-1">Nada por aquí todavía</div>`)}</div>
     <div class="sub sptxt" style="font-size:12px;margin-top:12px;text-align:center">Id siempre a vuestro ritmo, con comunicación y respetando los límites de cada uno 💛</div>`;
@@ -7336,7 +7340,7 @@ async function spDecodeSpicy() {
     st.dare[u] = { ...((d.dare && d.dare[u]) || {}), ...((x && x.dare) || {}) };
     st.ksw[u] = { ...((d.ksw && d.ksw[u]) || {}), ...((x && x.ksw) || {}) };
   }
-  if (my !== spSeq.spicy) return; spState = st; renderSpSettings(); spRender(); spMigrate();
+  if (my !== spSeq.spicy) return; spState = st; renderSpSettings(); spRender(); spMigrate(); spYnCheck(false);
 }
 async function spDecodeCal() {
   const my = ++spSeq.cal, out = {}, plain = [];
@@ -7362,6 +7366,8 @@ function watchSpicy() {
   S.watchDoc("state/spicy", d => { spRaw.spicy = d || {}; spRaw.got.spicy = 1; spState = { ...spState, opt: (d || {}).opt, kchk: (d || {}).kchk, kby: (d || {}).kby }; renderSpEntry(); renderSpSettings(); spDecodeSpicy(); });
   S.watchCol("spcoupons", l => { spRaw.coupons = l; spRaw.got.coupons = 1; spDecodeTexts("coupons"); }, 60);
   S.watchCol("spletters", l => { spRaw.letters = l; spRaw.got.letters = 1; spDecodeTexts("letters"); }, 40);
+  S.watchCol("spcustom", l => { spCustom = l; if (!spOpen || spTab !== "juego") return; if (spMineOpen) { const t = $("mineTxt"); if (t) spMineOpen.draft = t.value; renderSp(); } else { const b = $("mineOpen"); if (b) b.textContent = `✏️ Vuestras verdades y retos${l.length ? ` · ${l.length}` : ""}`; } }, 300);
+  S.watchCol("spphotos", l => { const had = spPhNew(); spPhotos = l; spPhClean(l); if (spPhView && !l.some(p => p.id === spPhView.id)) spPhClose(); spRender(); if (spOpen && spPhNew() > had) { toast(`📸 ${name(other())} te ha mandado una foto 🔥`, 3000); buzz([30, 50, 30]); } }, 30);
 }
 function watchSpCal() { S.watchCol("spcal", l => { spRaw.cal = l; spRaw.got.cal = 1; spDecodeCal(); }, 500); }
 // ---- guardar cifrado ----
@@ -8644,10 +8650,18 @@ setInterval(() => { renderLiveBar(); }, 5000);
 document.addEventListener("visibilitychange", () => { if (!liveOK) return; if (document.hidden) { S.merge("state/presence", { [who]: 1 }); myViewSent = ""; } else liveSync(true); });
 
 // ---------- ✨ 2.7 · Novedades: lo nuevo de cada versión, con botón para probarlo ----------
-const NEWS_VER = "3.0";
+const NEWS_VER = "3.3";
 function newsData() {
   const o = name(other()), nb = nextBday(), nbt = nb ? `El próximo es el de ${nb[0].n}, el ${bdayText(nb[0].id)}${nb[1] === 0 ? " (¡hoy!)" : nb[1] === 1 ? " (¡mañana!)" : ""}.` : "";
   return [
+    { v: "3.3", items: [
+      { e: "📖", t: "Kamasutra ampliado", d: "Ya son 44 posturas, cada una con su dibujo, su consejo y su dificultad, y ahora ordenadas por tipos: cara a cara, encima, de lado, por detrás, sentados, de pie, en muebles y sitios (sofá, escalera, ducha, bañera, espejo…).", go: "spks", art: "sp", cond: () => spOn() },
+      { e: "✏️", t: "Vuestras propias verdades y retos", d: "En Verdad o reto podéis escribir las vuestras, en el nivel que queráis. Salen mezcladas con las de la app (y más a menudo), o solo las vuestras si lo preferís.", go: "spjuego", art: "sp", cond: () => spOn() }
+    ] },
+    { v: "3.2", items: [
+      { e: "👫", t: "Vuestros datos, a vuestro gusto", d: "En ⚙️ Ajustes → Vosotros podéis cambiar vuestros nombres, si sois chico o chica (para que los textos os hablen bien) y la fecha en la que empezasteis.", go: "settings", art: "vos" },
+      { e: "🔥", t: "Zona privada más atrevida", d: "Un nivel nuevo «Sin filtros» en verdad o reto, muchos más deseos en Sí / No / Quizás (solo veis lo que coincide), juegos para la videollamada con temporizador, noches temáticas, un dado con modo a distancia y fotos que se ven una sola vez.", go: "sp", art: "sp", cond: () => spOn() }
+    ] },
     { v: "3.0", items: [
       { e: "📮", t: "Kiko os trae el correo", d: `Cuando ${o} te escribe una carta, Kiko llama a tu puerta con ella en la mano (y si es de noche, viene en pijama). También trae las cápsulas del tiempo cuando ya se pueden abrir, y algunas mañanas postales de los vecinos con regalito.`, go: "pet", art: "mail" },
       { e: "🐤", t: "Vuestro pollito sale solo", d: "De vez en cuando se va por su cuenta: a ver a sus amigos, a pasear, a la plaza o al lago. Lo veréis por el mapa y, al volver, os contará qué ha hecho y a veces traerá algo. Si lo echáis de menos, llamadle y vendrá corriendo.", go: "barrio", art: "petout" },
@@ -8702,13 +8716,17 @@ function newsArt(k) {
   if (k === "story") return `<i class="nwbook">📖</i><div class="nwfig s1">${f(B)}</div><div class="nwfig s2">${f(NB.canela, "laugh")}</div><i class="nwfl" style="--i:0">💘</i><i class="nwfl" style="--i:2">💕</i>`;
   if (k === "fight") return `<div class="nwfig s1 ang">${f(B, "normal")}</div><div class="nwfig s2 ang">${f(NB.pingo, "normal")}</div><i class="nwangry">😤</i><i class="nwshake">🤝</i>`;
   if (k === "paper") return `<div class="nwpaper"><b>EL COTILLEO</b><span>¡Bruno y Canela, vistos juntos en el lago!</span><i></i><i></i><i></i></div><div class="nwfig mv">${f(K)}</div>`;
+  if (k === "sp") return `<i class="nwlock">🔒</i><i class="nwfl" style="--i:0">🔥</i><i class="nwfl" style="--i:1">💋</i><i class="nwfl" style="--i:2">😈</i>`;
+  if (k === "vos") return `<div class="nwfig s1">${me}</div><i class="nwcup">⚙️</i><i class="nwfl" style="--i:1">💞</i>`;
   if (k === "move") return `<i class="nwtruck">🚚</i><i class="nwbox" style="--i:0">📦</i><i class="nwbox" style="--i:1">📦</i><div class="nwfig mv">${f(K)}</div>`;
   return "";
 }
 function newsOpen(all) {
   const seen = ls.get("newsSeen"), D = newsData(), cur = D.filter(x => all || !seen || verN(x.v) > verN(seen));
   if (!cur.length) return;
-  const main = cur[0].v === NEWS_VER ? cur[0].items : [], rest = cur.filter(x => x.v !== NEWS_VER);
+  cur.forEach(x => { x.items = x.items.filter(it => !it.cond || it.cond()); });
+  const main = cur[0].v === NEWS_VER ? cur[0].items : [], rest = cur.filter(x => x.v !== NEWS_VER && x.items.length);
+  if (!main.length && !rest.length) return newsClose();
   let o = $("newsView"); if (!o) { o = document.createElement("div"); o.id = "newsView"; o.className = "newsview"; document.body.appendChild(o); }
   const slides = main.map((it, i) => `<section class="nwslide" data-i="${i}"><div class="nwart nw-${it.art}">${newsArt(it.art)}</div><div class="nwbody"><small>Novedad ${i + 1} de ${main.length}</small><h3>${it.e} ${esc(it.t)}</h3><p>${esc(it.d)}</p><button class="btn primary" data-nwgo="${it.go}">Probarlo ahora ➜</button></div></section>`);
   if (rest.length) slides.push(`<section class="nwslide nwlist"><div class="nwbody"><small>${main.length ? "Y por si te lo perdiste…" : "Novedades"}</small><h3>✨ Desde hace poco</h3><div class="nwrows">${rest.map(x => x.items.map(it => `<button class="nwrow" data-nwgo="${it.go}"><i>${it.e}</i><span><b>${esc(it.t)}</b><small>${esc(it.d)}</small></span><em>v${x.v}</em></button>`).join("")).join("")}</div></div></section>`);
@@ -8728,6 +8746,8 @@ function newsOpen(all) {
 }
 function newsClose() { ls.set("newsSeen", NEWS_VER); const o = $("newsView"); if (!o) return; o.classList.remove("show"); setTimeout(() => o.classList.add("hidden"), 300); }
 function newsGo(k) {
+  if (k === "settings") { newsClose(); setTimeout(() => $("btnSettings").click(), 350); return; }
+  if (k === "sp" || k === "spks" || k === "spjuego") { newsClose(); if (k === "spks") spTab = "ks"; if (k === "spjuego") spTab = "juego"; setTimeout(spEnter, 350); return; }
   newsClose(); if (k !== "shop") closeBarrio(); showTab("pet");
   setTimeout(() => {
     if (k === "barrio") openBarrio(); else if (k === "lake" || k === "plaza" || k === "news") { openBarrio(); nbCur = k; renderBarrio(); }
@@ -8743,6 +8763,8 @@ function newsMaybe() {
 
 $("connPill").addEventListener("click", e => { if (e.target.closest("button")) return; newsOpen(true); });
 { const sn = $("sNews"); if (sn) sn.onclick = () => { $("settings").close(); newsOpen(true); }; }
+{ const sp = $("sPriv"); if (sp) sp.onclick = () => { $("settings").close(); openPriv(); }; }
+{ const lp = $("lgPolicy"); if (lp) lp.onclick = openPolicy; }
 // ---------- 👥 2.8 · Vida social entre vecinos: amistades, visitas entre ellos, historias, peleas y El Cotilleo ----------
 const NB_REL = {
   "lola|tofu": { t: "amigos", e: "🫖", n: "amigos de toda la vida", act: ["están tomando el té con pan de canela", "comparten recetas de la abuela de Tofu", "están haciendo un puzle de 1000 piezas"] },
@@ -9178,7 +9200,7 @@ function plazaDeco() {
 
 // ---------- 2.9.1 · las filas de botones que se desplazan de lado no vuelven al principio al tocar una opción ----------
 (() => {
-  const SEL = ".tchips.one, .roombar, .tabsx, .mchips, .sptabs, .icpos, .wrmonths, .kidrow";
+  const SEL = ".tchips.one, .roombar, .tabsx, .mchips, .sptabs, .icpos, .wrmonths, .kidrow, .yncats, .kstype";
   const cache = new Map();
   const sig = r => r.id || (r.className + "|" + r.children.length + "|" + ((r.firstElementChild || {}).textContent || "").trim().slice(0, 24));
   document.addEventListener("scroll", e => { const r = e.target; if (r && r.matches && r.matches(SEL)) cache.set(sig(r), r.scrollLeft); }, true);
@@ -9374,6 +9396,464 @@ function ambBind() {
   const b = $("nbSnd"); if (!b) return;
   b.onclick = e => { e.stopPropagation(); if (ls.get("snd") === "0") return toast("Tienes los sonidos de la app apagados 🔇"); ls.set("amb", ambOn() ? "0" : "1"); b.textContent = ambOn() ? "🔊" : "🔇"; if (ambOn()) ambStart(); else ambStop(); toast(ambOn() ? "🔊 Sonido del barrio activado" : "🔇 Sonido del barrio desactivado", 1600); };
   ambStart();
+}
+
+
+// =====================================================================
+//   3.2 · 🌶️ Zona privada más atrevida: +18, «Sin filtros», Sí/No/Quizás,
+//         juegos a distancia, dado ampliado y fotos que se ven una vez
+// =====================================================================
+// ---- más verdades y retos (y un nivel nuevo) ----
+SP_TRUTH.coqueto.push("¿Qué foto mía guardas como favorita y por qué?", "¿Qué es lo primero que harías al verme en el aeropuerto?", "¿Qué olor te recuerda a mí?", "¿Qué parte de nuestras videollamadas es tu preferida?", "Si pudieras teletransportarte ahora mismo, ¿dónde me besarías primero?", "¿Qué apodo cariñoso te gustaría que te pusiera?", "¿Qué es lo que más te gusta de cómo te hablo?", "¿Qué plan haríamos el primer día que volvamos a vernos?");
+SP_TRUTH.atrevido.push("¿Qué prenda mía te gustaría quitarme primero?", "¿Qué es lo más atrevido que has pensado de mí en un sitio público?", "¿Qué te gustaría que te hiciera con los ojos vendados?", "¿Qué parte de tu cuerpo quieres que bese más despacio la próxima vez?", "¿Qué mensaje te gustaría recibir de mí a medianoche?", "Del 1 al 10, ¿cuántas ganas me tienes ahora mismo? ¿Y qué harías con ese número?", "¿Prefieres que te provoque poco a poco o que vaya al grano?", "¿Qué es lo que más te gusta que te susurre?");
+SP_TRUTH.picante.push("¿Qué es lo que más te gusta que te haga… y lo que más te gusta hacerme?", "¿Cuál es el sitio más arriesgado donde te gustaría que estuviéramos juntos?", "¿Qué palabra o frase mía te enciende al instante?", "¿Qué te gustaría que lleváramos puesto (o no) en nuestro próximo reencuentro?", "¿Hay algún juguete o juego que te dé curiosidad probar conmigo?", "¿Te gusta más mandar o que te manden? ¿En qué?", "¿Qué te ha hecho pensar en mí de forma nada inocente esta semana?", "¿Qué te gustaría oírme decir justo en el momento más intenso?");
+SP_TRUTH.sinfiltros = ["¿Cuál es tu fantasía más secreta conmigo? Con todos los detalles que te atrevas a dar.", "Describe, paso a paso, cómo empezaría nuestra próxima noche juntos.", "¿Qué es lo más intenso que te gustaría probar conmigo y aún no te has atrevido a pedir?", "¿Alguna vez has pensado en mí estando a solas? ¿Qué imaginabas?", "¿Qué parte de mi cuerpo te gustaría tener para ti toda una noche?", "Si mañana tuviéramos 24 horas en un hotel sin salir, ¿qué haríamos primero?", "¿Qué es lo que más te enciende de estar lejos y tenernos tantas ganas?", "¿Qué tres cosas querrías que te hiciera nada más cerrar la puerta?", "¿Hasta dónde te atreverías a llegar en una videollamada esta noche?", "¿Qué es lo más atrevido que has hecho pensando en mí?", "¿Qué te gustaría que te pidiera durante una noche entera?", "¿Qué sonido mío te hace perder la cabeza?", "¿Hay algo que te dé vergüenza pedirme en la cama? Este es el momento.", "Elige: despacio y toda la noche, o rápido y donde nos pille. ¿Por qué?", "¿Qué te gustaría que hiciera con mis manos la próxima vez?", "¿Qué recuerdo nuestro te sigue encendiendo cuando lo piensas?", "¿Qué te pondrías (o te quitarías) para que yo perdiera la cabeza?", "¿Qué límite tuyo te gustaría explorar conmigo, con calma y confianza?", "Si pudiera leerte la mente ahora mismo, ¿qué vería?", "¿Qué es lo que más te gusta de cómo te miro cuando estamos a solas?"];
+SP_DARE.coqueto.push("Mándale una foto de lo que llevas puesto ahora mismo (sin trampas)", "Mándale un audio cantándole un trocito de vuestra canción", "Hazle una videollamada solo para darle un beso de buenas noches", "Dile qué harías si estuviera a tu lado ahora mismo (versión bonita)", "Mándale una foto de tus labios", "Escríbele tres cosas que te encantan de su cuerpo");
+SP_DARE.atrevido.push("Mándale en 📸 Fotos de una vez una foto con la prenda que más le gusta", "Escríbele un mensaje que empiece por «Esta noche he soñado que…»", "Videollamada: tenéis 1 minuto para provocaros solo con miradas", "Dile en un audio qué parte de su cuerpo besarías primero", "Describe en un audio cómo sería quitarle la ropa muy despacio", "Elige una canción sensual y mándasela con un «piensa en mí»");
+SP_DARE.picante.push("Mándale una foto sugerente en 📸 Fotos de una vez (tú decides cuánto enseñas)", "Escríbele, con detalle, cómo te gustaría que te despertara", "Graba un audio de 30 segundos susurrando lo que te gustaría que te hiciera", "Videollamada con poca luz: quítate una prenda por cada pregunta que no contestes", "Escríbele tu fantasía en tres frases y que adivine el final", "Durante una hora, mándale algo picante cada 10 minutos");
+SP_DARE.sinfiltros = ["Videollamada de strip-preguntas: quien no conteste, se quita una prenda. Sin trampas.", "Mándale la foto más atrevida que te atrevas a enviar, en 📸 Fotos de una vez.", "Graba un audio de un minuto contándole, sin cortarte, todo lo que le harías esta noche.", "Escríbele cómo sería vuestro reencuentro: desde que se abre la puerta hasta que os dormís.", "Videollamada a oscuras, solo con la linterna del móvil: tú decides qué se ve.", "Durante 5 minutos, solo podéis hablaros en susurros diciendo lo que os gustaría hacer.", "Elige una parte de tu cuerpo y dile qué quieres que haga con ella la próxima vez.", "Dile tres cosas que quieres probar juntos, de menos a más atrevida.", "Ponte algo que le encante y que adivine por videollamada qué llevas debajo.", "Mándale algo muy subido de tono justo antes de dormir… y no contestes hasta mañana.", "Que te guíe por videollamada durante 3 minutos: tú solo puedes obedecer (con vuestros límites).", "Cuéntale tu fantasía más secreta. Si se ríe, cumples tú un reto extra.", "Regálale un cupón «sin filtros» y que elija cuándo canjearlo.", "Haz una lista de 5 cosas que quieres hacerle en vuestro próximo encuentro y mándasela en Secretos.", "Videollamada: describe muy despacio lo que llevas puesto… y lo que te sobra.", "Escríbele cómo te gustaría que te acariciara, como si fuera una receta paso a paso.", "Mándale un audio con tu respiración y una sola frase: lo que más deseas ahora mismo.", "Juego del espejo: durante 2 minutos, haz por videollamada exactamente lo que haga tu pareja."];
+SP_LV.push(["sinfiltros", "😈", "Sin filtros"]);
+
+// ---- Sí / No / Quizás: más deseos, por categorías ----
+const SP_YN_CAT = [["rom", "💞", "Romántico"], ["atr", "🔥", "Atrevido"], ["fan", "😈", "Fantasías"], ["jue", "🎲", "Juegos"], ["lug", "📍", "Lugares"], ["dis", "📱", "A distancia"]];
+const SP_IDEA_CAT = ["rom", "lug", "rom", "rom", "rom", "atr", "rom", "fan", "dis", "dis", "atr", "lug", "lug", "rom", "dis", "atr", "jue", "fan", "rom", "rom", "rom", "lug", "atr", "rom", "rom", "fan", "atr", "atr", "rom", "jue"];
+[["atr", "Desnudarnos el uno al otro muy despacio"], ["atr", "Hielo y besos por todo el cuerpo"], ["atr", "Un masaje de cuerpo entero… con final libre"], ["atr", "Ropa interior elegida por el otro"], ["atr", "Una noche entera sin prisas ni relojes"], ["atr", "Besos por todo el cuerpo con los ojos vendados"], ["atr", "Despertar al otro de una forma muy especial"], ["atr", "Que uno mande toda la noche"], ["atr", "Atar las manos con un pañuelo (suave y con palabra de seguridad)"], ["atr", "Probar un juguete para parejas"], ["atr", "Hacerlo frente a un espejo"], ["atr", "Un striptease para el otro"],
+ ["lug", "En el coche, en un sitio tranquilo"], ["lug", "En la playa o en una piscina de noche"], ["lug", "En un hotel con bañera"], ["lug", "En un sitio donde nos puedan pillar (sin que nos pillen)"], ["lug", "En la cocina"], ["lug", "Una escapada solo para no salir de la habitación"], ["lug", "Bajo las estrellas, en plena naturaleza"],
+ ["dis", "Videollamada solo con luz de velas"], ["dis", "Mandarnos fotos atrevidas que se ven una vez"], ["dis", "Contarnos una fantasía por audio antes de dormir"], ["dis", "Mensajes subidos de tono mientras el otro trabaja"], ["dis", "Que uno guíe al otro por videollamada"], ["dis", "Strip-preguntas por videollamada"], ["dis", "Una noche temática a distancia"], ["dis", "Dormirnos con la videollamada puesta"],
+ ["jue", "El dado atrevido"], ["jue", "Strip póker"], ["jue", "Verdad o reto sin filtros"], ["jue", "Quien pierda, cumple un deseo del otro"], ["jue", "Adivinar con los ojos cerrados qué parte te toca"], ["jue", "El juego del semáforo: verde, ámbar y rojo"],
+ ["fan", "Juego de roles con disfraces"], ["fan", "Hacer realidad una fantasía del otro"], ["fan", "Contarnos nuestra fantasía más secreta"], ["fan", "Una cita a ciegas fingida en un bar"], ["fan", "Que el otro mande durante un día entero (con límites)"], ["fan", "Sorprendernos con algo que nunca hayamos hecho"], ["rom", "Escribirnos un relato erótico a cuatro manos"], ["rom", "Repetir nuestra mejor noche juntos"]].forEach(([c, t]) => { SP_IDEAS.push(t); SP_IDEA_CAT.push(c); });
+let spYnCat = ls.get("spYnCat") || "todas";
+function spYnLists() {
+  const mine = ((spState.dare || {})[who]) || {}, theirs = ((spState.dare || {})[other()]) || {}, I = SP_IDEAS.map((t, i) => [t, i]);
+  return { mine, theirs, both: I.filter(([, i]) => mine[i] === 2 && theirs[i] === 2), maybe: I.filter(([, i]) => (mine[i] === 2 && theirs[i] === 1) || (mine[i] === 1 && theirs[i] === 2)) };
+}
+function spYnHtml() {
+  const o = esc(name(other())), { mine, theirs, both, maybe } = spYnLists(), N = SP_IDEAS.length, done = Object.keys(mine).filter(i => i < N).length, odone = Object.keys(theirs).filter(i => i < N).length;
+  const catOf = i => SP_IDEA_CAT[i] || "rom", L = SP_IDEAS.map((t, i) => [t, i]).filter(([, i]) => spYnCat === "todas" || (spYnCat === "pend" ? mine[i] == null : catOf(i) === spYnCat));
+  const cats = [["todas", "Todas"], ["pend", `Sin responder${N - done ? ` · ${N - done}` : ""}`], ...SP_YN_CAT.map(([k, e, n]) => [k, `${e} ${n}`])];
+  return `<div class="sub sptxt">Responde en secreto: 💚 sí, 💛 quizás, ✕ no. <b>Solo veréis lo que os apetezca a los dos</b>; lo que ${o} diga que no, no lo verás nunca, y al revés 🤫</div>
+    ${both.length ? `<div class="spsec">💞 Os apetece a los dos · ${both.length}</div>${both.map(([t, i]) => `<div class="spmatch"><span class="yncat">${(SP_YN_CAT.find(c => c[0] === catOf(i)) || [])[1] || "🔥"}</span> ${esc(t)}</div>`).join("")}<button class="spb hot ynpick" id="ynPick">🎲 ¿Y cuál toca? Elegid una al azar</button><div class="ynpicked hidden" id="ynPicked"></div>` : ""}
+    ${maybe.length ? `<div class="spsec">💛 Uno dice sí y otro quizás… habladlo</div>${maybe.map(([t]) => `<div class="spmatch maybe">${esc(t)}</div>`).join("")}` : ""}
+    ${!both.length && !maybe.length ? `<div class="spmatch empty">${odone ? "Aún no hay coincidencias… ¡sigue respondiendo!" : `Cuando ${o} responda, aquí saldrán las que coincidan 😏`}</div>` : ""}
+    <div class="ynprog"><div><span>Tú</span><i style="--p:${Math.round(done / N * 100)}%"></i><b>${done}/${N}</b></div><div><span>${o}</span><i style="--p:${Math.round(odone / N * 100)}%"></i><b>${odone}/${N}</b></div></div>
+    <div class="chiprow yncats">${cats.map(([k, n]) => `<button class="chip ${spYnCat === k ? "on" : ""}" data-yc="${k}">${n}</button>`).join("")}</div>
+    ${L.length ? L.map(([t, i]) => `<div class="spidea"><span>${esc(t)}</span><div class="ynm">${[[2, "💚"], [1, "💛"], [0, "✕"]].map(([val, e]) => `<button class="${mine[i] === val ? "on v" + val : ""}" data-yi="${i}" data-yv="${val}" aria-label="${["No", "Quizás", "Sí"][val]}">${e}</button>`).join("")}</div></div>`).join("") : `<div class="spmatch empty">¡Ya has respondido todas! 🎉</div>`}`;
+}
+// coincidencias nuevas (también las que llegan de tu pareja): se celebran una vez
+function spYnCheck(byMe) {
+  const { both } = spYnLists(), ids = both.map(([, i]) => i), seenRaw = ls.get("spYnSeen");
+  if (seenRaw === null) { ls.set("spYnSeen", JSON.stringify(ids)); return; }
+  let seen = []; try { seen = JSON.parse(seenRaw) || []; } catch (e) {}
+  const fresh = ids.filter(i => !seen.includes(i)); if (!fresh.length || !spOpen) return;   // se celebra al entrar en la zona
+  ls.set("spYnSeen", JSON.stringify([...new Set([...seen, ...ids])]));
+  confetti(); buzz([30, 60, 30]); SFX.ding && SFX.ding();
+  toast(`💞 ¡Coincidencia! A los dos os apetece «${SP_IDEAS[fresh[0]]}»${fresh.length > 1 ? ` y ${fresh.length - 1} más` : ""}`, 4200);
+  if (byMe) notifyOther("💞 Tenéis algo nuevo en común en la zona privada 🔒");
+}
+
+// ---- juegos a distancia: retos de videollamada con temporizador y noches temáticas ----
+const SP_CALL = {
+  coqueto: [["Miraos a los ojos sin reíros", 60], ["Decíos tres cosas bonitas cada uno, por turnos", 120], ["Bailad la misma canción, cada uno en su casa", 180], ["Contaos el mejor momento de la semana… y terminad con un beso a la cámara", 120], ["Haced juntos una lista de planes para cuando os veáis", 180], ["Dibujaos el uno al otro en un minuto y enseñadlo", 60]],
+  atrevido: [["Provocaos solo con miradas, sin hablar", 60], ["Con cascos: susurraos lo que os haríais", 90], ["Uno habla y el otro escucha con los ojos cerrados", 120], ["Describe tu beso perfecto con todo detalle", 90], ["Cambiaos de ropa en directo… a algo más cómodo", 120], ["Elegid en secreto vuestra fantasía favorita de la lista y descubridla a la vez", 60]],
+  picante: [["Strip-preguntas suave: quien no conteste, se quita un accesorio", 300], ["Solo con la luz de una vela: contaos qué os gustaría hacer", 180], ["Uno elige una parte del cuerpo y el otro le cuenta qué haría con ella", 120], ["Masaje a distancia: uno da las instrucciones y el otro se lo hace a sí mismo", 180], ["Leed en voz alta un mensaje picante que os hayáis escrito", 90], ["El juego del «más cerca»: acercaos a la cámara poco a poco, sin hablar", 60]],
+  sinfiltros: [["Strip-preguntas sin filtros: quien no conteste, se quita una prenda", 420], ["A oscuras, solo con la linterna del móvil: tú decides qué se ve", 180], ["Uno manda y el otro obedece (con vuestros límites y una palabra de seguridad)", 300], ["Contaos vuestra fantasía más secreta mirándoos a los ojos", 180], ["Juego del espejo: haz exactamente lo que haga tu pareja", 120], ["Susurraos cómo sería el reencuentro, sin saltaros ningún detalle", 240]]
+};
+const SP_NIGHTS = [
+  { e: "🕯️", n: "Noche de velas", d: "Romántica y lenta, para hablar y provocaros poco a poco.", need: ["Velas o luz tenue", "Vuestra bebida favorita", "La misma playlist lenta"], steps: ["Videollamada solo con la luz de las velas: brindad mirándoos a los ojos", "Contaos qué es lo que más echáis de menos del otro… del cuerpo también", "Tres rondas de verdad o reto en nivel Atrevido", "Para terminar, decid en un susurro qué haríais si estuvierais juntos ahora"] },
+  { e: "🍸", n: "Desconocidos en un bar", d: "Hacéis como que no os conocéis y uno intenta ligar con el otro.", need: ["Arreglaos como para salir", "Una bebida", "Un nombre inventado"], steps: ["Empezad la llamada como dos desconocidos que coinciden en la barra", "Uno lanza la primera frase para ligar; el otro decide si se deja", "Prohibido salir del personaje durante 15 minutos", "Si el ligue sale bien… la cita termina como queráis 😏"] },
+  { e: "🏨", n: "Hotel de lujo", d: "Cada uno convierte su habitación en una suite por una noche.", need: ["La habitación recogida y sábanas limpias", "Algo cómodo y bonito para ponerte", "Algo rico para picar"], steps: ["Enseñaos vuestra «suite» por videollamada", "Servicio de habitaciones: pídele al otro un capricho (un baile, una foto, una confesión)", "Una ducha o un baño largo… y luego os lo contáis", "Terminad en la cama, con la cámara cerca y la luz baja"] },
+  { e: "🙈", n: "Noche de los sentidos", d: "Con los ojos tapados: solo vale la voz.", need: ["Un antifaz o un pañuelo", "Cascos", "Una crema o un aceite que huela bien"], steps: ["Tapaos los ojos y quitad la cámara: solo audio", "Uno describe despacio qué le gustaría que sintiera el otro; el otro solo escucha", "Usad la crema o el aceite siguiendo las indicaciones del otro", "Cambiad los papeles, sin quitaros el antifaz hasta el final"] },
+  { e: "🎲", n: "Noche de juegos", d: "Dados, retos y apuestas con premio.", need: ["Esta app 😉", "Papel y boli para apuntar los puntos"], steps: ["Tres tiradas del dado a distancia cada uno", "Verdad o reto: quien se niegue, suma un punto en contra", "Quien acabe con más puntos en contra regala un cupón", "Ronda final en nivel Sin filtros, solo si os apetece a los dos"] },
+  { e: "💃", n: "Show privado", d: "Uno prepara un pequeño espectáculo para el otro.", need: ["Una canción que os guste a los dos", "Luz tenue", "Ropa para ir quitando… o no"], steps: ["Decidid quién hace el show esta vez", "El público solo puede mirar, aplaudir y pedir un bis", "Una canción entera, sin cortar", "La próxima noche, os cambiáis los papeles"] },
+  { e: "🛌", n: "Dormir «juntos»", d: "Una noche tranquila y muy cercana, como si compartierais cama.", need: ["El cargador cerca de la cama", "Vuestro pijama más bonito"], steps: ["Meteos en la cama a la vez, con la videollamada puesta", "Contaos el día con la luz apagada", "Decid tres cosas que os gustan del otro antes de dormir", "Dejad la llamada puesta hasta que uno se duerma"] },
+  { e: "📝", n: "Planear el reencuentro", d: "Diseñad juntos, con todo detalle, vuestra próxima noche juntos.", need: ["Las ganas"], steps: ["Elegid juntos el sitio, la ropa y la música", "Cada uno añade tres cosas que quiere que pasen", "Apuntadlas en Secretos para que no se os olviden", "Poned la fecha en ⚙️ «Próxima vez que os veis» y que empiece la cuenta atrás"] }
+];
+let spCallLv = ls.get("spCallLv") || "atrevido", spCallCur = null, spCallT = null, spNightOpen = -1;
+const spFmtS = s => s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}` : `0:${String(s).padStart(2, "0")}`;
+const spFmtLen = s => s % 60 ? `${s} s` : `${s / 60} min`;
+function spDistHtml() {
+  const o = esc(name(other()));
+  if (!spCallCur || spCallCur.lv !== spCallLv) spCallCur = { lv: spCallLv, c: rnd(SP_CALL[spCallLv]) };
+  const [t, secs] = spCallCur.c, run = spCallT && spCallT.c === spCallCur.c;
+  return `<div class="sub sptxt">Para cuando estáis lejos: llamaos, elegid un reto y dadle al temporizador 📱</div>
+    <div class="spsec">⏱️ Reto por videollamada</div>
+    <div class="splv">${SP_LV.map(([k, e, n]) => `<button class="${spCallLv === k ? "on" : ""}" data-clv="${k}"><i>${e}</i>${n}</button>`).join("")}</div>
+    <div class="spcard callcard"><div class="spk">📱 ${spFmtLen(secs)} · ${SP_LV.find(x => x[0] === spCallLv)[1]}</div><div class="spq">${esc(t)}</div>
+      <div class="calltimer ${run ? "on" : ""}" id="callT" style="--p:${run ? Math.round((1 - spCallT.left / secs) * 100) : 0}%"><b id="callTn">${spFmtS(run ? spCallT.left : secs)}</b></div></div>
+    <div class="sprow"><button class="spb" id="callNext">🎲 Otro</button><button class="spb hot" id="callGo">${run ? (spCallT.paused ? "▶️ Seguir" : "⏸️ Pausa") : "▶️ Empezar"}</button></div>
+    <button class="spb ghost" id="callSend" style="width:100%;margin-top:8px">💌 Proponérselo a ${o}</button>
+    <div class="spsec">🌙 Noches temáticas a distancia</div>
+    <div class="nights">${SP_NIGHTS.map((N, i) => `<button class="night ${spNightOpen === i ? "open" : ""}" data-night="${i}"><i>${N.e}</i><span><b>${esc(N.n)}</b><small>${esc(N.d)}</small></span><em>${spNightOpen === i ? "▾" : "›"}</em></button>
+      ${spNightOpen === i ? `<div class="nightplan"><div class="npsec">Qué necesitáis</div><ul>${N.need.map(x => `<li>${esc(x)}</li>`).join("")}</ul><div class="npsec">El plan</div><ol>${N.steps.map(x => `<li>${esc(x)}</li>`).join("")}</ol><button class="spb hot" data-nsend="${i}" style="width:100%">💌 Proponérsela a ${o}</button></div>` : ""}`).join("")}</div>
+    <button class="spb ghost" id="goDice" style="width:100%;margin-top:14px">🎯 Ir al dado (también tiene modo a distancia)</button>`;
+}
+function spCallTick() {
+  if (!spCallT || spCallT.paused) return;
+  spCallT.left = Math.max(0, Math.ceil((spCallT.end - Date.now()) / 1000));
+  const n = $("callTn"), r = $("callT"); if (n) n.textContent = spFmtS(spCallT.left); if (r) r.style.setProperty("--p", Math.round((1 - spCallT.left / spCallT.secs) * 100) + "%");
+  if (spCallT.left <= 0) { clearInterval(spCallT.iv); spCallT = null; SFX.ding && SFX.ding(); buzz([60, 80, 60]); toast("⏰ ¡Tiempo! ¿Otro reto? 😏", 3000); if (spOpen && spTab === "dist") renderSp(); }
+}
+function spCallStop() { if (spCallT) clearInterval(spCallT.iv); spCallT = null; }
+
+// ---- dado ampliado: tres dados y modo a distancia ----
+SP_DICE_A.push("Recorrer con los dedos", "Soplar suavemente");
+SP_DICE_B.splice(SP_DICE_B.length - 1, 1, "la nuca", "la cintura", "los muslos", "el pecho", "la parte que tú elijas 😏");
+const SP_DICE_D = ["Descríbele cómo besarías", "Susúrrale lo que harías con", "Cuéntale cómo acariciarías", "Dile qué te gusta de", "Pídele una foto de", "Dile en voz baja que te mueres por"];
+const SP_DICE_T = ["30 segundos", "1 minuto", "2 minutos", "3 minutos", "lo que dure una canción", "hasta que diga «basta»"];
+let spDiceMode = ls.get("spDiceMode") || "juntos";
+function spDiceHtml() {
+  return `<div class="splv two"><button class="${spDiceMode === "juntos" ? "on" : ""}" data-dm="juntos"><i>💑</i>Juntos</button><button class="${spDiceMode === "lejos" ? "on" : ""}" data-dm="lejos"><i>📱</i>A distancia</button></div>
+    <div class="sub sptxt">${spDiceMode === "lejos" ? "Para la videollamada: tirad por turnos y cumplid lo que salga 😏" : "Tirad los dados… o apuntadlo para cuando os veáis 😏"}</div>
+    <div class="dice three"><div class="die" id="d1">💋</div><div class="die" id="d2">✨</div><div class="die" id="d3">⏱️</div></div><div class="spres" id="dRes"></div>
+    <button class="spb hot" id="dRoll3" style="width:100%">🎲 Tirar los dados</button>`;
+}
+
+// ---- 📸 fotos que se ven una vez ----
+let spPhotos = [], spPhSecs = +(ls.get("spPhSecs") || 10), spPhDraft = null, spPhView = null;
+async function spCompress(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    let max = 1280, q = .8, out = "";
+    for (let k = 0; k < 7; k++) {
+      const s = Math.min(1, max / Math.max(img.naturalWidth || 1, img.naturalHeight || 1)), c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(img.naturalWidth * s)); c.height = Math.max(1, Math.round(img.naturalHeight * s));
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      out = c.toDataURL("image/jpeg", q);
+      if (out.length < 650000) return out;
+      max = Math.round(max * .8); q = Math.max(.5, q - .07);
+    }
+    return out.length < 900000 ? out : null;
+  } finally { URL.revokeObjectURL(url); }
+}
+const spPhNew = () => spPhotos.filter(p => p.to === who && !p.viewed && p.img).length;
+function spPhotosHtml() {
+  const o = esc(name(other())), now = Date.now(), got = spPhotos.filter(p => p.to === who), sent = spPhotos.filter(p => p.from === who);
+  const ago = t => { const m = Math.round((now - t) / 6e4); return m < 1 ? "ahora" : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : fmtDate(t, { day: "numeric", month: "short" }); };
+  return `<div class="sub sptxt">Se ven <b>una sola vez</b>, durante unos segundos, y después se borran para siempre. Ojo: el móvil de ${o} siempre podría hacer una captura, así que manda solo lo que quieras 🤍</div>
+    ${spPhDraft ? `<div class="phdraft"><div class="phprev" style="background-image:url('${spPhDraft.img}')"></div>
+      <input id="phCap" maxlength="80" placeholder="Un mensajito (opcional)…" value="${esc(spPhDraft.cap || "")}">
+      <div class="phsecs"><span>Se verá durante</span>${[5, 10, 30].map(s => `<button class="chip ${spPhSecs === s ? "on" : ""}" data-phs="${s}">${s} s</button>`).join("")}</div>
+      <div class="sprow"><button class="spb" id="phCancel">Cancelar</button><button class="spb hot" id="phSend">🔥 Enviar a ${o}</button></div></div>`
+      : `<button class="spb hot phpick" id="phPick">📸 Elegir o hacer una foto</button><input type="file" accept="image/*" id="phFile" class="hidden">`}
+    <div class="spsec">📥 Para ti</div>
+    ${got.length ? got.map(p => p.img && !p.viewed ? `<button class="phitem new" data-phv="${p.id}"><i>📸</i><span><b>Foto de ${esc(name(p.from))}</b><small>${ago(p.at)} · se ve ${p.secs || 10} s · toca para verla</small></span><em>👁️</em></button>`
+      : `<div class="phitem"><i>🫥</i><span><b>Foto de ${esc(name(p.from))}</b><small>vista ${ago(p.viewed || p.at)} · ya no existe</small></span></div>`).join("") : `<div class="spmatch empty">Todavía no te ha llegado ninguna 😏</div>`}
+    ${sent.length ? `<div class="spsec">📤 Las que has mandado</div>${sent.map(p => `<div class="phitem mine"><i>${p.viewed ? "👀" : "📨"}</i><span><b>${p.viewed ? `${o} la ha visto` : "Sin abrir"}</b><small>${p.viewed ? ago(p.viewed) : `enviada ${ago(p.at)}`}${p.cap ? ` · «${esc(p.cap)}»` : ""}</small></span>${!p.viewed ? `<button class="spb" data-phdel="${p.id}">Deshacer</button>` : ""}</div>`).join("")}` : ""}`;
+}
+function spPhOpen(id) {
+  const p = spPhotos.find(x => x.id === id); if (!p || !p.img || p.viewed) return;
+  const secs = Math.max(3, Math.min(30, p.secs || 10));
+  let v = $("spPhoto"); if (!v) { v = document.createElement("div"); v.id = "spPhoto"; v.className = "spphoto"; $("spView").appendChild(v); }
+  v.innerHTML = `<div class="phimg" style="background-image:url('${p.img}')"></div><div class="phtop"><b>${esc(name(p.from))}</b><span class="phring" id="phRing" style="--p:0%"><em id="phLeft">${secs}</em></span></div>${p.cap ? `<div class="phcap">${esc(p.cap)}</div>` : ""}<div class="phhint">Toca para cerrar · después se borra</div>`;
+  v.classList.remove("hidden"); spPhView = { id, end: Date.now() + secs * 1000, secs };
+  S.merge("spphotos/" + id, { opened: Date.now() });   // por si se cierra la app a medias: ya cuenta como vista
+  spPhView.iv = setInterval(() => {
+    const left = Math.max(0, (spPhView.end - Date.now()) / 1000), r = $("phRing"), l = $("phLeft");
+    if (r) r.style.setProperty("--p", Math.round((1 - left / secs) * 100) + "%"); if (l) l.textContent = Math.ceil(left);
+    if (left <= 0) spPhClose();
+  }, 200);
+  v.onclick = spPhClose;
+}
+function spPhClose() {
+  if (!spPhView) return; const { id, iv } = spPhView; spPhView = null; clearInterval(iv);
+  const v = $("spPhoto"); if (v) { v.classList.add("hidden"); v.innerHTML = ""; }
+  // se borra la imagen; queda solo «vista» para que tu pareja lo sepa
+  const i = spPhotos.findIndex(x => x.id === id); if (i >= 0) spPhotos[i] = { ...spPhotos[i], img: null, viewed: Date.now() };
+  S.merge("spphotos/" + id, { img: null, viewed: Date.now() }); notifyOther("👀 Han visto lo que mandaste a la zona privada 🔒");
+  if (spOpen) renderSp(); renderSpEntry();
+}
+function spPhClean(list) {
+  // lo de hace más de una semana se borra del todo (vistas o no)
+  const old = Date.now() - 7 * DAY; list.filter(p => (p.at || 0) < old && (p.from === who || p.viewed)).forEach(p => S.del("spphotos/" + p.id));
+  // si se abrió y se cerró la app sin terminar, se termina de borrar
+  list.filter(p => p.to === who && p.opened && p.img && Date.now() - p.opened > 60000 && (!spPhView || spPhView.id !== p.id)).forEach(p => S.merge("spphotos/" + p.id, { img: null, viewed: p.opened }));
+}
+
+// ---- 🔞 solo para mayores de 18 ----
+const spAdultOK = () => ls.get("sp18") === "1" || !!(((spRaw.spicy || {}).adult || {})[who]);
+function spAdultMark() { ls.set("sp18", "1"); S.merge("state/spicy", { adult: { [who]: Date.now() } }); }
+function spAgeGate(ok) {
+  const v = $("spPin"); v.classList.remove("hidden");
+  v.innerHTML = `<div class="pinbox agebox"><div class="pinlock">🔞</div><b>Solo para mayores de 18</b><p>La zona privada tiene juegos y contenido íntimo para adultos. Entra solo si tienes 18 años o más.</p><button class="spb hot" id="ageYes" style="width:100%">Tengo 18 años o más</button><button class="linkbtn" id="ageNo">No, salir</button></div>`;
+  $("ageYes").onclick = () => { spAdultMark(); v.classList.add("hidden"); ok(); };
+  $("ageNo").onclick = () => v.classList.add("hidden");
+}
+
+// ---- enlazar los botones nuevos (lo llama renderSp) ----
+function spBindExtra(v) {
+  const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
+  // Kamasutra por tipos
+  v.querySelectorAll("[data-kt]").forEach(b => b.onclick = () => { ksType = b.dataset.kt; ls.set("ksType", ksType); renderSp(); });
+  // vuestras verdades y retos
+  const keep = () => { const t = $("mineTxt"); if (t) spMineOpen.draft = t.value; };
+  on("mineOpen", () => { spMineOpen = { draft: "" }; spMineLv = spLevel; renderSp(); setTimeout(() => { const m = v.querySelector(".spmine"); if (m) m.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60); });
+  on("mineClose", () => { spMineOpen = false; renderSp(); });
+  { const t = $("mineTxt"); if (t && spMineOpen && spMineOpen.draft) t.value = spMineOpen.draft; }
+  v.querySelectorAll("[data-mk]").forEach(b => b.onclick = () => { keep(); spMineK = b.dataset.mk; renderSp(); });
+  v.querySelectorAll("[data-mlv]").forEach(b => b.onclick = () => { keep(); spMineLv = b.dataset.mlv; renderSp(); });
+  on("mineAdd", async () => {
+    const ta = $("mineTxt"), t = ((ta || {}).value || "").trim(); if (t.length < 3) return toast("Escribe tu verdad o tu reto ✍️");
+    if (ta) ta.value = ""; if (spMineOpen) spMineOpen.draft = "";
+    await S.add("spcustom", { by: who, k: spMineK, lv: spMineLv || spLevel, text: t.slice(0, 240), at: Date.now() });
+    toast(`${spMineK === "t" ? "🗣️ Verdad" : "🔥 Reto"} añadido 😏`); SFX.pop && SFX.pop();
+  });
+  { const c = $("mineOnly"); if (c) c.onchange = () => { spOnlyOurs = c.checked; ls.set("spOnlyOurs", spOnlyOurs ? "1" : "0"); toast(spOnlyOurs ? "Solo saldrán las vuestras ✏️" : "Mezcladas con las de la app 🎲", 1800); }; }
+  v.querySelectorAll("[data-mdel]").forEach(b => b.onclick = () => { if (!confirm("¿Borrar esta?")) return; keep(); S.del("spcustom/" + b.dataset.mdel); });
+  // Sí / No / Quizás
+  v.querySelectorAll("[data-yc]").forEach(b => b.onclick = () => { spYnCat = b.dataset.yc; ls.set("spYnCat", spYnCat); renderSp(); });
+  v.querySelectorAll("[data-yi]").forEach(b => b.onclick = async () => { const i = +b.dataset.yi, val = +b.dataset.yv; SFX.tap(); await spSaveMine({ dare: { [i]: val } }); spYnCheck(true); });
+  on("ynPick", () => { const { both } = spYnLists(); if (!both.length) return; const [t] = rnd(both), el = $("ynPicked"); el.classList.remove("hidden"); el.innerHTML = `<b>🔥 ${esc(t)}</b><small>¿Para cuándo? Apuntadlo en el calendario o mandádoslo en Secretos 😏</small>`; SFX.ding && SFX.ding(); confetti(); });
+  // a distancia
+  v.querySelectorAll("[data-clv]").forEach(b => b.onclick = () => { spCallLv = b.dataset.clv; ls.set("spCallLv", spCallLv); spCallStop(); spCallCur = null; renderSp(); });
+  on("callNext", () => { spCallStop(); const L = SP_CALL[spCallLv]; let c = rnd(L); for (let k = 0; k < 4 && spCallCur && c === spCallCur.c; k++) c = rnd(L); spCallCur = { lv: spCallLv, c }; SFX.pop && SFX.pop(); renderSp(); });
+  on("callGo", () => {
+    const [, secs] = spCallCur.c;
+    if (!spCallT || spCallT.c !== spCallCur.c) { spCallStop(); spCallT = { c: spCallCur.c, secs, left: secs, end: Date.now() + secs * 1000, paused: false }; spCallT.iv = setInterval(spCallTick, 250); buzz(30); }
+    else if (spCallT.paused) { spCallT.paused = false; spCallT.end = Date.now() + spCallT.left * 1000; }
+    else { spCallT.paused = true; }
+    renderSp();
+  });
+  on("callSend", () => { const [t, secs] = spCallCur.c; spAddText("spletters", { from: who, to: other(), text: `📱 Reto por videollamada (${spFmtLen(secs)}): ${t}. ¿Me llamas? 😏`, at: Date.now(), read: 0 }); notifyOther("🔒 Tienes algo nuevo en la zona privada 😏"); toast(`Propuesto a ${name(other())} en secreto 🔒`); });
+  v.querySelectorAll("[data-night]").forEach(b => b.onclick = () => { const i = +b.dataset.night; spNightOpen = spNightOpen === i ? -1 : i; renderSp(); });
+  v.querySelectorAll("[data-nsend]").forEach(b => b.onclick = () => { const N = SP_NIGHTS[+b.dataset.nsend]; spAddText("spletters", { from: who, to: other(), text: `🌙 Te propongo una noche temática: «${N.n}» ${N.e}\n${N.d}\n\nQué necesitas: ${N.need.join(", ")}.\n\nEl plan:\n${N.steps.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\n¿Cuándo te viene bien? 😏`, at: Date.now(), read: 0 }); notifyOther("🔒 Tienes algo nuevo en la zona privada 😏"); toast(`Noche propuesta a ${name(other())} 🌙🔒`); confetti(); });
+  on("goDice", () => { spTab = "dados"; renderSp(); $("spBody").scrollTop = 0; });
+  // dado
+  v.querySelectorAll("[data-dm]").forEach(b => b.onclick = () => { spDiceMode = b.dataset.dm; ls.set("spDiceMode", spDiceMode); renderSp(); });
+  on("dRoll3", () => {
+    const a = $("d1"), b = $("d2"), c = $("d3"); [a, b, c].forEach(d => d.classList.add("roll")); SFX.bounce && SFX.bounce(); let n = 0;
+    const it = setInterval(() => {
+      a.textContent = rnd(["💋", "🤲", "👄", "😘", "💆", "🤗"]); b.textContent = rnd(["✨", "🌙", "🔥", "💫", "❤️", "🌶️"]); c.textContent = rnd(["⏱️", "⏳", "🎵", "⌛"]);
+      if (++n > 10) { clearInterval(it); [a, b, c].forEach(d => d.classList.remove("roll")); const x = rnd(spDiceMode === "lejos" ? SP_DICE_D : SP_DICE_A), y = rnd(SP_DICE_B), z = rnd(SP_DICE_T); $("dRes").innerHTML = `<b>${x}</b> ${y}<small>⏱️ ${z}</small>`; SFX.ding && SFX.ding(); }
+    }, 90);
+  });
+  // fotos
+  on("phPick", () => $("phFile").click());
+  const pf = $("phFile"); if (pf) pf.onchange = async () => {
+    const f = pf.files && pf.files[0]; if (!f) return; toast("Preparando la foto… 📸", 1500);
+    try { const img = await spCompress(f); if (!img) return toast("Esa foto es demasiado grande, prueba con otra 🙈"); spPhDraft = { img, cap: "" }; renderSp(); }
+    catch (e) { console.warn(e); toast("No he podido abrir esa foto 🙈"); }
+  };
+  v.querySelectorAll("[data-phs]").forEach(b => b.onclick = () => { spPhSecs = +b.dataset.phs; ls.set("spPhSecs", spPhSecs); if (spPhDraft) spPhDraft.cap = ($("phCap") || {}).value || ""; renderSp(); });
+  on("phCancel", () => { spPhDraft = null; renderSp(); });
+  on("phSend", async () => {
+    if (!spPhDraft) return; const cap = (($("phCap") || {}).value || "").trim().slice(0, 80), b = $("phSend"); b.disabled = true; b.textContent = "Enviando…";
+    try { await S.add("spphotos", { from: who, to: other(), at: Date.now(), img: spPhDraft.img, cap, secs: spPhSecs, viewed: 0 }); spPhDraft = null; notifyOther("📸 Tienes algo nuevo en la zona privada 🔒"); toast(`Enviada 🔥 ${name(other())} solo podrá verla una vez`, 3200); SFX.ding && SFX.ding(); renderSp(); }
+    catch (e) { console.warn(e); b.disabled = false; b.textContent = `🔥 Enviar a ${name(other())}`; toast("No se ha podido enviar, prueba otra vez"); }
+  });
+  v.querySelectorAll("[data-phv]").forEach(b => b.onclick = () => spPhOpen(b.dataset.phv));
+  v.querySelectorAll("[data-phdel]").forEach(b => b.onclick = () => { if (!confirm("¿Deshacer el envío? Se borra sin que la vea.")) return; S.del("spphotos/" + b.dataset.phdel); spPhotos = spPhotos.filter(p => p.id !== b.dataset.phdel); renderSp(); });
+}
+
+
+// =====================================================================
+//   3.3 · 📖 Kamasutra ampliado (44 posturas, por tipos) y ✏️ vuestras propias verdades y retos
+// =====================================================================
+// ---- 3.3 · más sitios para las posturas: escalera, sofá, bañera, espejo y ducha ----
+Object.assign(KP, {
+  stairs: () => `<rect x="0" y="72" width="62" height="58" fill="url(#@wood)"/><rect x="0" y="72" width="62" height="3" fill="rgba(255,255,255,.12)"/><rect x="62" y="92" width="52" height="38" fill="url(#@wood)"/><rect x="62" y="92" width="52" height="3" fill="rgba(255,255,255,.12)"/><rect x="114" y="110" width="86" height="20" fill="url(#@wood)"/><rect x="114" y="110" width="86" height="3" fill="rgba(255,255,255,.12)"/><rect x="0" y="122" width="200" height="8" fill="url(#@floor)"/>`,
+  sofa: () => `<rect x="10" y="56" width="20" height="56" rx="7" fill="#7a2f45"/><rect x="18" y="92" width="98" height="16" rx="6" fill="#8e3a54"/><rect x="18" y="104" width="98" height="10" rx="3" fill="#6a2539"/><rect x="24" y="114" width="5" height="8" fill="#3b2418"/><rect x="106" y="114" width="5" height="8" fill="#3b2418"/><rect x="28" y="92" width="86" height="3" rx="1.5" fill="rgba(255,255,255,.12)"/>`,
+  tub: () => `<rect x="34" y="88" width="142" height="30" rx="12" fill="#f3eef2"/><rect x="38" y="91" width="134" height="6" rx="3" fill="#d9cfd8"/><rect x="48" y="117" width="7" height="6" rx="2" fill="#c9b8a8"/><rect x="156" y="117" width="7" height="6" rx="2" fill="#c9b8a8"/><path d="M170 88v-26q0-6 6-6h6" stroke="#c9c2c8" stroke-width="3" fill="none"/>`,
+  water: () => `<rect x="38" y="97" width="134" height="18" rx="7" fill="rgba(150,200,235,.55)"/><ellipse cx="70" cy="97" rx="10" ry="2" fill="rgba(255,255,255,.55)"/><ellipse cx="128" cy="98" rx="8" ry="1.6" fill="rgba(255,255,255,.5)"/><circle cx="96" cy="95" r="2" fill="rgba(255,255,255,.7)"/><circle cx="102" cy="93" r="1.4" fill="rgba(255,255,255,.7)"/>`,
+  mirror: () => `<rect x="12" y="30" width="26" height="90" rx="4" fill="#7a5a3c"/><rect x="15" y="33" width="20" height="84" rx="2.5" fill="#b9c7d6"/><path d="M18 40l10-6M18 54l14-8" stroke="rgba(255,255,255,.55)" stroke-width="2"/>`,
+  shower: () => `<rect x="0" y="0" width="36" height="130" fill="#d9e2ea"/>${Array.from({ length: 9 }, (_, i) => `<line x1="0" y1="${14 * i + 6}" x2="36" y2="${14 * i + 6}" stroke="#b9c6d2" stroke-width="1"/>`).join("")}<line x1="18" y1="0" x2="18" y2="130" stroke="#b9c6d2" stroke-width="1"/><path d="M36 30h26v6" stroke="#9aa7b4" stroke-width="3" fill="none"/><rect x="54" y="35" width="16" height="4" rx="2" fill="#9aa7b4"/>`,
+  drops: () => Array.from({ length: 14 }, (_, i) => `<line x1="${50 + (i * 13) % 30}" y1="${44 + (i * 17) % 60}" x2="${48 + (i * 13) % 30}" y2="${50 + (i * 17) % 60}" stroke="rgba(170,215,245,.75)" stroke-width="1.4" stroke-linecap="round"/>`).join(""),
+});
+Object.assign(KPOSE, {
+  // cara a cara
+  abrazo: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [112, 93], t: 180, a: [[-55, -120], [-50, -115]], l: [[-35, -165], [-30, -160]] }, "b"], [{ fc: -1, h: [118, 81], t: 187, n: 192, a: [[100, 85], [95, 90]], l: [[20, 2], [15, 5]] }, "a"]] },
+  flexion: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [112, 93], t: 180, a: [[200, 250], [195, 260]], l: [[0, 0], [-4, 4]] }, "b"], [{ fc: -1, h: [124, 80], t: 190, n: 192, a: [[92, 90], [96, 92]], l: [[10, 10], [8, 8]] }, "a"]] },
+  arrodillado: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [116, 90], t: 172, n: 178, a: [[200, 250], [195, 260]], l: [[-25, 35], [-30, 30]] }, "b"], [{ fc: -1, h: [134, 80], t: -110, n: -112, a: [[110, 100], [105, 95]], l: [[92, 2], [88, 0]] }, "a"]] },
+  vela: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [110, 93], t: 180, a: [[190, 180], [185, 180]], l: [[-82, -88], [-86, -90]] }, "b"], [{ fc: -1, h: [128, 79], t: -92, n: -98, a: [[205, 240], [200, 235]], l: [[92, 2], [88, 0]] }, "a"]] },
+  // encima
+  reclinada: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [118, 93], t: 180, a: [[200, 250], [195, 260]], l: [[0, 0], [-5, 5]] }, "a"], [{ fc: -1, h: [116, 83], t: -62, n: -80, a: [[55, 80], [60, 85]], l: [[150, 0], [145, 5]] }, "b"]] },
+  pegados: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [118, 93], t: 180, a: [[-40, -150], [-45, -160]], l: [[0, 0], [-4, 4]] }, "a"], [{ fc: -1, h: [118, 86], t: 182, n: 186, a: [[110, 170], [100, 175]], l: [[3, 0], [-1, 2]] }, "b"]] },
+  amazonalado: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [118, 93], t: 180, a: [[200, 250], [195, 260]], l: [[0, 0], [-5, 5]] }, "a"], [{ fc: 1, h: [116, 82], t: -95, n: -88, a: [[110, 60], [100, 70]], l: [[15, 45], [20, 50]] }, "b"]] },
+  // de lado
+  cucharapierna: { bg: KP.bed() + KP.pillow(22, 82), f: [[{ fc: 1, h: [120, 84], t: 184, a: [[120, 170], [175, 180]], l: [[22, -15], [18, -12]] }, "a"], [{ fc: 1, h: [112, 93], t: 181, a: [[160, 190], [165, 190]], l: [[-40, -5], [18, -12]] }, "b"]] },
+  pretzel: { bg: KP.bed() + KP.pillow(22, 86), f: [[{ fc: 1, h: [104, 93], t: 182, n: 188, a: [[200, 170], [190, 175]], l: [[-60, -15], [0, 2]] }, "b"], [{ fc: -1, h: [126, 79], t: -98, n: -105, a: [[120, 150], [115, 145]], l: [[92, 2], [88, 0]] }, "a"]] },
+  // por detrás
+  esfinge: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: -1, h: [115, 93], t: 186, n: 205, a: [[95, 175], [100, 180]], l: [[0, 0], [-25, 30]] }, "b"], [{ fc: -1, h: [122, 84], t: 188, n: 194, a: [[110, 120], [105, 115]], l: [[2, 0], [-2, 2]] }, "a"]] },
+  perezoso: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: -1, h: [124, 79], t: 162, n: 175, a: [[150, 180], [145, 175]], l: [[95, 2], [90, 0]] }, "b"], [{ fc: -1, h: [137, 76], t: -100, n: -110, a: [[125, 110], [120, 105]], l: [[85, 3], [80, 0]] }, "a"]] },
+  rodillas: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: -1, h: [100, 79], t: -92, n: -95, a: [[-60, 0], [100, 95]], l: [[92, 2], [88, 0]] }, "b"], [{ fc: -1, h: [112, 79], t: -96, n: -102, a: [[160, 150], [170, 160]], l: [[92, 2], [88, 0]] }, "a"]] },
+  // sentados
+  sillainv: { bg: KP.chair(88, 102) + KP.floor(), f: [[{ fc: 1, h: [88, 96], t: -92, n: -88, a: [[30, 0], [35, 5]], l: [[0, 80], [5, 85]] }, "a"], [{ fc: 1, h: [100, 92], t: -82, n: -78, a: [[70, 80], [75, 85]], l: [[15, 85], [10, 90]] }, "b"]] },
+  arana: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: 1, h: [84, 95], t: -125, n: -105, a: [[115, 100], [120, 105]], l: [[-12, 20], [-8, 25]] }, "a"], [{ fc: -1, h: [118, 95], t: -55, n: -75, a: [[65, 80], [60, 85]], l: [[192, 160], [188, 155]] }, "b"]] },
+  banera: { bg: KP.tub(), fg: KP.water(), sy: 119, f: [[{ fc: 1, h: [84, 104], t: -112, n: -95, a: [[30, -10], [40, 0]], l: [[-6, 8], [-2, 4]] }, "a"], [{ fc: 1, h: [100, 103], t: -100, n: -88, a: [[60, 80], [70, 90]], l: [[-4, 4], [0, 2]] }, "b"]] },
+  // de pie
+  koala: { bg: KP.floor(), f: [[{ fc: 1, h: [92, 81], t: -92, n: -88, a: [[30, -60], [25, -55]], l: [[92, 90], [85, 95]] }, "a"], [{ fc: -1, h: [106, 74], t: -100, n: -108, a: [[200, 120], [195, 115]], l: [[175, 100], [178, 95]] }, "b"]] },
+  pared: { bg: KP.wall(34) + KP.floor(), f: [[{ fc: -1, h: [62, 81], t: -95, n: -100, a: [[200, 190], [210, 195]], l: [[92, 90], [85, 95]] }, "b"], [{ fc: -1, h: [76, 81], t: -97, n: -102, a: [[180, 160], [170, 150]], l: [[95, 90], [100, 92]] }, "a"]] },
+  ducha: { bg: KP.shower() + KP.floor(), fg: KP.drops(), f: [[{ fc: 1, h: [52, 81], t: -90, a: [[-15, -30], [-25, -40]], l: [[92, 90], [80, 95]] }, "b"], [{ fc: -1, h: [72, 81], t: -97, n: -100, a: [[190, 200], [200, 205]], l: [[95, 90], [100, 92]] }, "a"]] },
+  espejo: { bg: KP.mirror() + KP.floor(), f: [[{ fc: -1, h: [70, 81], t: -92, n: -95, a: [[100, 110], [95, 105]], l: [[92, 90], [88, 92]] }, "b"], [{ fc: -1, h: [84, 81], t: -95, n: -97, a: [[170, 190], [165, 185]], l: [[95, 90], [100, 92]] }, "a"]] },
+  // al borde y en muebles
+  reverencia: { bg: KP.bed(14, 110) + KP.floor(), f: [[{ fc: -1, h: [128, 80], t: 190, n: 195, a: [[100, 90], [95, 85]], l: [[95, 90], [85, 95]] }, "b"], [{ fc: -1, h: [146, 80], t: -100, n: -105, a: [[150, 170], [145, 165]], l: [[95, 88], [88, 92]] }, "a"]] },
+  sofa: { bg: KP.sofa() + KP.floor(), f: [[{ fc: -1, h: [70, 78], t: -122, n: -132, a: [[195, 205], [190, 200]], l: [[92, 2], [88, 0]] }, "b"], [{ fc: -1, h: [96, 81], t: -100, n: -105, a: [[170, 150], [165, 145]], l: [[95, 90], [88, 92]] }, "a"]] },
+  escalera: { bg: KP.stairs(), f: [[{ fc: 1, h: [74, 87], t: -118, n: -100, a: [[150, 100], [140, 95]], l: [[-10, 75], [0, 80]] }, "b"], [{ fc: -1, h: [104, 91], t: -95, n: -100, a: [[190, 170], [185, 165]], l: [[92, 2], [88, 0]] }, "a"]] },
+  // más juegos
+  masaje: { bg: KP.bed() + KP.pillow(22, 92), f: [[{ fc: -1, h: [118, 95], t: 180, n: 178, a: [[170, 190], [175, 185]], l: [[0, 0], [-2, 2]] }, "b"], [{ fc: -1, h: [128, 82], t: -112, n: -128, a: [[128, 150], [122, 145]], l: [[100, 2], [95, 0]] }, "a"]] },
+});
+KS.push(
+  { id: "abrazo", n: "El abrazo", d: 1, i: 3, t: "Variante del misionero: quien está abajo rodea con las piernas la cintura de la otra persona y la abraza. Muy cercana.", tip: "Cruzar los tobillos ayuda a marcar el ritmo juntos." },
+  { id: "flexion", n: "La flexión", d: 2, i: 2, t: "Quien está encima se sostiene con los brazos estirados, como en una flexión, sin apoyar el pecho. Os podéis mirar todo el rato.", tip: "Exige brazos: alternadla con el misionero para descansar." },
+  { id: "arrodillado", n: "La ofrenda", d: 2, i: 2, t: "Una persona tumbada boca arriba con un cojín bajo las caderas; la otra, de rodillas frente a ella, le sujeta la cintura.", tip: "El cojín es el secreto: cambia por completo el ángulo." },
+  { id: "vela", n: "La vela", d: 3, i: 2, t: "Una persona tumbada boca arriba levanta las piernas rectas hacia el techo; la otra, de rodillas, la sujeta por los tobillos o los muslos.", tip: "Apoyar las piernas en un hombro de la pareja descansa mucho." },
+  { id: "reclinada", n: "La amazona reclinada", d: 2, i: 2, t: "Como la amazona, pero quien está encima se echa hacia atrás y apoya las manos en la cama, detrás de su cuerpo.", tip: "Muy visual: buena luz y sin prisas." },
+  { id: "pegados", n: "Piel con piel", d: 1, i: 3, t: "Quien está encima se tumba por completo sobre la otra persona, pecho con pecho y con las piernas juntas.", tip: "Ideal para moverse despacio y besarse todo el rato." },
+  { id: "amazonalado", n: "La amazona de lado", d: 2, i: 2, t: "Quien está encima se sienta de lado, con las dos piernas hacia el mismo costado, como al montar a la amazona.", tip: "Girar un poco el torso hacia la pareja permite miraros." },
+  { id: "cucharapierna", n: "La cuchara abierta", d: 1, i: 3, t: "Como la cucharita, pero quien está delante levanta la pierna de arriba o la apoya hacia atrás sobre la otra persona.", tip: "Una mano libre para acariciar lo cambia todo." },
+  { id: "pretzel", n: "El pretzel", d: 3, i: 2, t: "Una persona tumbada de lado con la pierna de arriba doblada hacia el pecho; la otra, de rodillas, a horcajadas sobre su pierna de abajo.", tip: "Permite miraros y llegar a las manos del otro." },
+  { id: "esfinge", n: "La esfinge", d: 2, i: 2, t: "Una persona boca abajo, apoyada en los codos, con una pierna estirada y la otra doblada; la otra persona encima, detrás.", tip: "La pierna doblada cambia el ángulo: probad a cambiar de lado." },
+  { id: "perezoso", n: "El perrito perezoso", d: 1, i: 1, t: "Como el perrito, pero quien está delante baja el pecho hasta la cama y apoya la cabeza en los brazos o en una almohada.", tip: "Mucho más cómoda para alargar el momento." },
+  { id: "rodillas", n: "De rodillas", d: 2, i: 3, t: "Los dos de rodillas sobre la cama, uno detrás del otro y con el cuerpo erguido, muy pegados.", tip: "Quien está detrás puede abrazar y besar el cuello." },
+  { id: "sillainv", n: "La silla invertida", d: 2, i: 2, t: "Una persona sentada en una silla firme y la otra sentada encima, de espaldas, apoyando los pies en el suelo.", tip: "Quien está encima marca el ritmo con las piernas." },
+  { id: "arana", n: "La araña", d: 3, i: 2, t: "Los dos sentados frente a frente, echados hacia atrás y apoyados en las manos, con las piernas entrelazadas.", tip: "Más de balanceo suave que de velocidad: buscad el ritmo juntos." },
+  { id: "banera", n: "En la bañera", d: 1, i: 3, t: "Sentados en la bañera, una persona entre las piernas de la otra, espalda contra pecho. Perfecta para mimos y caricias.", tip: "Agua calentita, velas y sin prisa." },
+  { id: "koala", n: "El koala", d: 4, i: 3, t: "Una persona de pie sostiene en brazos a la otra, que le rodea la cintura con las piernas y el cuello con los brazos.", tip: "Mejor cerca de una pared o de la cama, por si hay que apoyarse." },
+  { id: "pared", n: "Contra la pared", d: 2, i: 1, t: "Los dos de pie: una persona apoyada de frente en la pared y la otra detrás, muy pegada.", tip: "Un pequeño escalón compensa la diferencia de altura." },
+  { id: "ducha", n: "En la ducha", d: 3, i: 2, t: "De pie y cara a cara bajo el agua, con la espalda de uno apoyada en la pared.", tip: "Una alfombrilla antideslizante evita sustos." },
+  { id: "espejo", n: "Frente al espejo", d: 2, i: 2, t: "De pie frente a un espejo, una persona delante y la otra detrás, abrazándola. Os veis los dos todo el rato.", tip: "La luz tenue favorece muchísimo 😉" },
+  { id: "reverencia", n: "La reverencia", d: 2, i: 1, t: "Una persona de pie, inclinada hacia delante y con las manos apoyadas en la cama o en un mueble; la otra, de pie detrás.", tip: "Ajustad la altura separando los pies o con un cojín." },
+  { id: "sofa", n: "En el sofá", d: 1, i: 1, t: "Una persona de rodillas en el sofá, apoyada en el respaldo; la otra, detrás, de pie o de rodillas.", tip: "El respaldo da estabilidad: aprovechadlo." },
+  { id: "escalera", n: "La escalera", d: 3, i: 2, t: "Una persona sentada en un escalón y la otra, de rodillas en uno más abajo, frente a ella.", tip: "Un cojín en el escalón lo hace mucho más cómodo." },
+  { id: "masaje", n: "El masaje", d: 1, i: 3, t: "Una persona tumbada boca abajo y la otra sentada sobre sus muslos, dándole un masaje de espalda… y lo que surja.", tip: "Aceite templado en las manos antes de empezar." }
+);
+KS.forEach(k => { KSM[k.id] = k; });
+// por tipos, para que con tantas no se haga una lista eterna
+const KS_TYPES = [["frente", "💑", "Cara a cara"], ["encima", "🏇", "Encima"], ["lado", "🥄", "De lado"], ["detras", "🍑", "Por detrás"], ["sentados", "🪑", "Sentados"], ["depie", "🧍", "De pie"], ["muebles", "🛋️", "Muebles y sitios"], ["acrob", "🤸", "Acrobáticas"], ["juegos", "💆", "Más juegos"]];
+const KS_CAT = { misionero: "frente", yunque: "frente", abrazo: "frente", flexion: "frente", arrodillado: "frente", vela: "frente", lado: "frente",
+  amazona: "encima", amazonainv: "encima", rana: "encima", reclinada: "encima", pegados: "encima", amazonalado: "encima",
+  cucharita: "lado", tijera: "lado", cucharapierna: "lado", pretzel: "lado",
+  perrito: "detras", elefante: "detras", esfinge: "detras", perezoso: "detras", rodillas: "detras",
+  loto: "sentados", silla: "sentados", sillainv: "sentados", arana: "sentados", banera: "sentados",
+  depie: "depie", bailarina: "depie", koala: "depie", pared: "depie", ducha: "depie", espejo: "depie",
+  mesa: "muebles", mariposa: "muebles", arado: "muebles", sofa: "muebles", escalera: "muebles", reverencia: "muebles",
+  carretilla: "acrob", puente: "acrob", cascada: "acrob", "69": "juegos", masaje: "juegos" };
+const ksCat = id => KS_CAT[id] || "juegos";
+{ const ord = Object.fromEntries(KS_TYPES.map(([k], i) => [k, i])), idx = Object.fromEntries(KS.map((k, i) => [k.id, i])); KS.sort((a, b) => (ord[ksCat(a.id)] - ord[ksCat(b.id)]) || (idx[a.id] - idx[b.id])); }
+let ksType = ls.get("ksType") || "todos";
+
+// ---- ✏️ vuestras verdades y retos ----
+let spCustom = [], spMineOpen = false, spMineK = "d", spMineLv = null, spOnlyOurs = ls.get("spOnlyOurs") === "1";
+function spPool(kind) {
+  const base = ((kind === "t" ? SP_TRUTH : SP_DARE)[spLevel] || []).map(q => ({ q })), own = spCustom.filter(c => c.k === kind && c.lv === spLevel).map(c => ({ q: c.text, by: c.by }));
+  if (spOnlyOurs && own.length) return own;
+  return [...base, ...own, ...own];   // las vuestras salen el doble de a menudo
+}
+function spMineHtml() {
+  const lv = spMineLv || spLevel, mine = spCustom.slice().sort((a, b) => (b.at || 0) - (a.at || 0)), n = spCustom.length;
+  if (!spMineOpen) return `<button class="spb ghost mineopen" id="mineOpen">✏️ Vuestras verdades y retos${n ? ` · ${n}` : ""}</button>`;
+  return `<div class="spmine"><div class="spminehd"><b>✏️ Vuestras verdades y retos</b><button class="nwx" id="mineClose" aria-label="Cerrar">✕</button></div>
+    <div class="sub sptxt" style="margin:2px 0 8px">Escribid las vuestras: saldrán mezcladas con las de la app (y más a menudo). Solo las veis vosotros dos 🔒</div>
+    <div class="splv two"><button class="${spMineK === "t" ? "on" : ""}" data-mk="t"><i>🗣️</i>Verdad</button><button class="${spMineK === "d" ? "on" : ""}" data-mk="d"><i>🔥</i>Reto</button></div>
+    <div class="splv">${SP_LV.map(([k, e, nm]) => `<button class="${lv === k ? "on" : ""}" data-mlv="${k}"><i>${e}</i>${nm}</button>`).join("")}</div>
+    <textarea id="mineTxt" maxlength="240" placeholder="${spMineK === "t" ? "Escribe una pregunta para tu pareja…" : "Escribe un reto para tu pareja…"}"></textarea>
+    <button class="spb hot" id="mineAdd" style="width:100%;margin-top:8px">➕ Añadir ${spMineK === "t" ? "verdad" : "reto"}</button>
+    <label class="sndrow mineonly"><span>Sacar solo las vuestras${n ? "" : " (cuando tengáis)"}</span><input type="checkbox" id="mineOnly" ${spOnlyOurs ? "checked" : ""}></label>
+    ${n ? `<div class="spsec">Las vuestras · ${n}</div>${mine.map(c => `<div class="mineitem"><small>${c.k === "t" ? "🗣️ Verdad" : "🔥 Reto"} · ${(SP_LV.find(x => x[0] === c.lv) || ["", "🔥", ""])[1]} ${(SP_LV.find(x => x[0] === c.lv) || ["", "", ""])[2]} · de ${esc(name(c.by))}</small><p>${esc(c.text)}</p>${c.by === who ? `<button class="mdel" data-mdel="${c.id}" aria-label="Borrar">🗑️</button>` : ""}</div>`).join("")}` : `<div class="spmatch empty">Aún no habéis escrito ninguna. ¡Estrenadlo! 😏</div>`}</div>`;
+}
+
+
+// =====================================================================
+//   3.4 · 🔒 Privacidad y cuenta: descargar todo, salir de la pareja,
+//         borrar el espacio, borrar la cuenta y política de privacidad
+// =====================================================================
+const PRIV_DATE = "3 de octubre de 2026", PRIV_MAIL = "criswolquer@gmail.com";
+function policyHTML() {
+  return `<h2>Política de privacidad</h2><p class="pvdate">Última actualización: ${PRIV_DATE}</p>
+  <p>Nosotros es un rincón privado para parejas. Aquí te contamos, sin letra pequeña, qué datos guarda la app, para qué y cómo puedes borrarlos.</p>
+  <h3>1. Quién se encarga de tus datos</h3><p>Nosotros es una app creada por Christian Segovia Martín. Para cualquier cosa sobre tus datos puedes escribir a <b>${PRIV_MAIL}</b>.</p>
+  <h3>2. Qué datos se guardan</h3><ul>
+    <li><b>Tu cuenta:</b> tu email. La contraseña la gestiona Firebase (de Google) y nadie puede verla, tampoco el creador de la app.</li>
+    <li><b>Lo que hacéis en la app:</b> mensajes, cartas, cápsulas, fotos y recuerdos, diario, planes, fechas, estados de ánimo, dibujos, juegos, vuestra mascota y su barrio, y todo lo de la zona privada si la activáis.</li>
+    <li><b>Datos de la pareja:</b> los nombres que ponéis, si sois chico o chica y la fecha en la que empezasteis.</li>
+    <li><b>Avisos:</b> si los activas, el identificador que da tu móvil para poder mandarte notificaciones.</li>
+    <li><b>Chat con la mascota:</b> un contador diario de mensajes (solo un número) para poner un límite, y algunas cosas que la mascota recuerda de lo que le contáis (podéis verlas y borrarlas en su chat).</li>
+    <li><b>En tu móvil:</b> algunas preferencias, el PIN de la zona privada (guardado de forma que no se puede leer) y una copia para que la app funcione sin conexión.</li></ul>
+  <h3>3. Para qué se usan</h3><p>Solo para que la app funcione. <b>No hay publicidad</b>, no se venden ni se comparten tus datos para otros fines y no se usan herramientas de seguimiento ni de analítica.</p>
+  <h3>4. Quién los ve</h3><p>Solo vosotros dos. Ninguna otra pareja puede ver nada vuestro. El creador de la app tiene acceso técnico a la base de datos para poder mantenerla, pero no la consulta salvo que se lo pidáis para resolver un problema.</p>
+  <h3>5. Dónde se guardan y qué servicios intervienen</h3><ul>
+    <li><b>Google Firebase:</b> la base de datos y las cuentas.</li>
+    <li><b>Cloudflare:</b> el servidor que manda los avisos y habla con la inteligencia artificial.</li>
+    <li><b>Inteligencia artificial:</b> cuando habláis con la mascota, vuestro mensaje y algo de contexto (vuestros nombres, cómo está la mascota…) se envían a un servicio de IA (Cloudflare Workers AI o Anthropic Claude) solo para generar la respuesta.</li>
+    <li><b>El tiempo y los mapas:</b> si los usáis, la app pide información a Open-Meteo y a OpenStreetMap con la zona que elijáis.</li></ul>
+  <p>Algunos de estos servicios pueden tratar datos fuera del Espacio Económico Europeo, siempre con las garantías que exige la ley.</p>
+  <h3>6. Por qué se pueden tratar</h3><p>Porque lo pides al crear tu cuenta y usar la app (es necesario para darte el servicio) y, en el caso de la zona privada, porque la activáis los dos expresamente.</p>
+  <h3>7. Cuánto tiempo</h3><p>Mientras uséis la app. Las fotos «de una vez» se borran al verlas (y como mucho a la semana). Si borráis vuestro espacio o tu cuenta, se borra en ese momento; las copias internas de los proveedores pueden tardar unos días más en desaparecer.</p>
+  <h3>8. Tus derechos</h3><p>Puedes ver y descargar todos vuestros datos, corregirlos, borrarlos y llevártelos desde <b>⚙️ Ajustes → Privacidad y cuenta</b>, o escribiendo a ${PRIV_MAIL}. Si crees que tus datos no se tratan bien, puedes reclamar ante la autoridad de protección de datos de tu país (en España, la Agencia Española de Protección de Datos, aepd.es).</p>
+  <h3>9. Edad</h3><p>La app es para mayores de 16 años. La zona privada es solo para mayores de 18.</p>
+  <h3>10. Cambios</h3><p>Si esta política cambia en algo importante, os avisaremos dentro de la app.</p>`;
+}
+function openPolicy() {
+  let v = $("policyView"); if (!v) { v = document.createElement("div"); v.id = "policyView"; v.className = "policyview hidden"; document.body.appendChild(v); }
+  v.innerHTML = `<div class="pvbar"><b>📄 Privacidad</b><button class="nwx" id="pvClose" aria-label="Cerrar">✕</button></div><div class="pvbody">${policyHTML()}</div>`;
+  v.classList.remove("hidden"); v.scrollTop = 0; $("pvClose").onclick = () => v.classList.add("hidden");
+}
+async function exportAll(b) {
+  if (b) { b.disabled = true; b.dataset.t = b.innerHTML; b.querySelector("b") ? b.querySelector("b").textContent = "Preparando la copia…" : b.textContent = "Preparando…"; }
+  try {
+    const d = await S.dumpAll(); if (d.spphotos) d.spphotos = d.spphotos.map(({ img, ...r }) => r);
+    const out = { app: "Nosotros", version: APP_VERSION, fecha: new Date().toISOString(), pareja: { nombres: CONFIG.names, desde: CONFIG.start || null }, datos: d };
+    const blob = new Blob([JSON.stringify(out, null, 1)], { type: "application/json" }), a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = `nosotros-datos-${localKey()}.json`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+    toast("📤 Copia descargada: guárdala en Archivos", 3200);
+  } catch (e) { console.warn(e); toast("No se ha podido descargar, prueba otra vez"); }
+  finally { if (b) { b.disabled = false; b.innerHTML = b.dataset.t; } }
+}
+const coupleMembers = () => (S.meta && S.meta.members) || [];
+function openPriv(step) {
+  let v = $("privView"); if (!v) { v = document.createElement("div"); v.id = "privView"; v.className = "privview hidden"; document.body.appendChild(v); }
+  const o = esc(name(other())), M = S.meta || {}, two = coupleMembers().length >= 2, left = !!M.left, legacy = S.isLegacy, demo = S.demo;
+  const row = (id, e, t, s, dz) => `<button class="privrow${dz ? " dz" : ""}" id="${id}"><i>${e}</i><span><b>${t}</b><small>${s}</small></span><em>›</em></button>`;
+  let h = "";
+  if (!step) {
+    h = `<div class="privhd"><b>🔒 Privacidad y cuenta</b><button class="nwx" id="pvX" aria-label="Cerrar">✕</button></div>
+      ${S.userEmail ? `<p class="privsub">Has entrado como <b>${esc(S.userEmail)}</b></p>` : ""}
+      <p class="privsub">Lo vuestro solo lo veis vosotros dos. Sin publicidad y sin rastreo.</p>
+      ${row("pvDown", "📤", "Descargar todos vuestros datos", "Un archivo con todo lo que hay en vuestro espacio")}
+      ${row("pvPolicy", "📄", "Política de privacidad", "Qué se guarda, dónde y para qué")}
+      ${legacy ? `<div class="privnote">💛 Este es el espacio original de Nosotros, así que desde aquí no se puede salir ni borrar.</div>` : `<div class="privdz">Zona peligrosa</div>
+        ${two ? row("pvLeave", "💔", "Salir de la pareja", `Te vas tú; ${o} se queda con vuestros recuerdos`, 1) : ""}
+        ${row("pvWipe", "🗑️", left ? "Borrar el espacio y empezar de cero" : "Borrar vuestro espacio", two ? `Se borra todo para siempre, también para ${o}` : "Se borra todo para siempre", 1)}
+        ${demo ? "" : row("pvDel", "❌", "Borrar mi cuenta", "Tu cuenta desaparece para siempre", 1)}`}`;
+  } else {
+    const T = {
+      leave: ["💔", "Salir de la pareja", `Dejarás de ver todo lo de vuestro espacio y ya no recibirás nada de ${o}. ${o} podrá seguir viendo vuestros recuerdos y a la mascota, pero nadie nuevo podrá entrar en él.<br><br>Si prefieres que se borre todo, usa «Borrar vuestro espacio».`, "SALIR", "Salir de la pareja"],
+      wipe: ["🗑️", "Borrar vuestro espacio", `Se borrará <b>para siempre</b> todo: mensajes, cartas, fotos, recuerdos, la mascota, los juegos y la zona privada${two ? `, también para ${o}` : ""}. No se puede deshacer.`, "BORRAR", "Borrar todo para siempre"],
+      del: ["❌", "Borrar mi cuenta", two ? `Saldrás de la pareja y se borrará tu cuenta. ${o} se quedará con vuestros recuerdos, salvo que marques la casilla de abajo.` : "Se borrará tu cuenta y todo vuestro espacio, para siempre.", "BORRAR", "Borrar mi cuenta"]
+    }[step];
+    h = `<div class="privhd"><button class="nwx" id="pvBack" aria-label="Volver">‹</button><b>${T[0]} ${T[1]}</b><span></span></div>
+      <p class="privwarn">${T[2]}</p>
+      ${step !== "leave" ? `<button class="btn privdl" id="pvDown2">📤 Descargar una copia antes</button>` : ""}
+      ${step === "del" && two ? `<label class="privchk"><input type="checkbox" id="pvAlso"> Borrar también todo nuestro espacio (también para ${o})</label>` : ""}
+      ${step === "del" ? `<label class="privlbl" for="pvPass">Tu contraseña</label><input id="pvPass" type="password" autocomplete="current-password" placeholder="Para confirmar que eres tú">` : ""}
+      <label class="privlbl" for="pvWord">Escribe <b>${T[3]}</b> para confirmar</label><input id="pvWord" autocomplete="off" autocapitalize="characters" placeholder="${T[3]}">
+      <button class="btn privgo" id="pvGo" disabled>${T[4]}</button><div class="privmsg" id="pvMsg"></div>`;
+    v.dataset.word = T[3];
+  }
+  v.innerHTML = `<div class="privcard">${h}</div>`; v.classList.remove("hidden"); v.scrollTop = 0;
+  const on = (id, f) => { const b = $(id); if (b) b.onclick = f; };
+  on("pvX", () => v.classList.add("hidden")); on("pvBack", () => openPriv());
+  on("pvDown", e => exportAll(e.currentTarget)); on("pvDown2", e => exportAll(e.currentTarget)); on("pvPolicy", openPolicy);
+  on("pvLeave", () => openPriv("leave")); on("pvWipe", () => openPriv("wipe")); on("pvDel", () => openPriv("del"));
+  const w = $("pvWord"), go = $("pvGo"), msg = t => { const m = $("pvMsg"); if (m) m.textContent = t || ""; };
+  if (w) w.oninput = () => { go.disabled = w.value.trim().toUpperCase() !== v.dataset.word; };
+  if (go) go.onclick = async () => {
+    go.disabled = true; w.disabled = true; msg("Un momento…");
+    try {
+      if (step === "leave") { await S.leaveCouple(); msg("Hecho. Hasta pronto 💛"); }
+      if (step === "wipe") { await S.wipeAll(n => msg(`Borrando… ${n}`)); await S.closeCouple(); msg("Borrado ✓"); }
+      if (step === "del") {
+        const pass = ($("pvPass") || {}).value || "";
+        try { await S.reauth(pass); } catch (e) { go.disabled = false; w.disabled = false; return msg(e && (e.code === "auth/invalid-credential" || e.code === "auth/wrong-password") ? "Esa contraseña no es correcta" : e && e.code === "auth/too-many-requests" ? "Demasiados intentos, espera un poco" : "No se ha podido comprobar tu contraseña"); }
+        if (!two || ($("pvAlso") || {}).checked) { await S.wipeAll(n => msg(`Borrando… ${n}`)); await S.closeCouple(); } else await S.leaveCouple();
+        await S.deleteAccount(); try { localStorage.clear(); } catch (e) {} msg("Tu cuenta se ha borrado. Gracias por haber estado aquí 💛");
+      }
+      setTimeout(() => location.reload(), 1600);
+    } catch (e) {
+      console.error(e); go.disabled = false; w.disabled = false;
+      msg(String((e && e.code) || "").includes("permission") ? "No se ha podido: falta actualizar las reglas de Firebase (avisa a quien lleva la app)" : "No se ha podido, prueba otra vez");
+    }
+  };
 }
 
 // si le das de comer, mimos, etc. y no está contigo, viene corriendo

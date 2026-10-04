@@ -40,6 +40,16 @@ export const tx = (p, fn) => impl.tx(p, fn);
 export const updateMeta = d => impl.updateMeta(d);
 // El "pase" que el servidor de Cloudflare comprueba para saber que eres tú (caduca cada hora y se renueva solo)
 export async function idToken() { try { return impl && impl.token ? await impl.token() : null; } catch (e) { return null; } }
+// ---- privacidad: descargar todo, salir de la pareja, borrar el espacio y borrar la cuenta ----
+// todas las "carpetas" que la app guarda dentro de couples/{código}
+export const COUPLE_COLS = ["state", "games", "quiz", "answers", "push", "photos", "diary", "memories", "messages", "plans", "moods", "dates", "letters", "capsules", "weekly", "drawings", "vouchers", "petpics", "spcal", "spletters", "spcoupons", "spcustom", "spphotos"];
+export const dumpAll = () => impl.dump(COUPLE_COLS);                 // copia completa de vuestros datos
+export const wipeAll = onProgress => impl.wipe(COUPLE_COLS, onProgress);   // borra TODO lo de dentro
+export const leaveCouple = () => impl.leave();                       // te sales (tu pareja se queda con los recuerdos)
+export const closeCouple = () => impl.close();                       // cierra el espacio para los dos (tras borrarlo)
+export const reauth = pass => impl.reauth(pass);                     // confirmar con la contraseña antes de algo serio
+export const deleteAccount = () => impl.deleteAccount();             // borra tu cuenta de Firebase
+
 // Recuperar contraseña: Firebase manda un email para elegir una nueva
 let resetFn = null;
 export async function resetPassword(email) { if (!resetFn) throw { code: "no-firebase" }; return resetFn(email); }
@@ -188,6 +198,34 @@ async function firebaseImpl(loginUI, coupleUI) {
   };
   return {
     logout: api.logout,
+    dump: async cols => { const out = {}; for (const c of cols) { try { const s = await fs.getDocs(fs.collection(db, "couples", coupleCode, c)); out[c] = s.docs.map(d => ({ id: d.id, ...d.data() })); } catch (e) { out[c] = []; } } return out; },
+    wipe: async (cols, onProgress) => {
+      let n = 0;
+      for (const c of cols) {
+        const s = await fs.getDocs(fs.collection(db, "couples", coupleCode, c));
+        for (let i = 0; i < s.docs.length; i += 400) { const b = fs.writeBatch(db); s.docs.slice(i, i + 400).forEach(d => b.delete(d.ref)); await b.commit(); n += Math.min(400, s.docs.length - i); onProgress && onProgress(n); }
+      }
+      return n;
+    },
+    leave: async () => {
+      try { await fs.deleteDoc(R("push/" + role)); } catch (e) {}   // tu suscripción de avisos, fuera
+      await fs.updateDoc(CD(coupleCode), { members: fs.arrayRemove(uid), left: uid, leftAt: Date.now() });
+      await fs.setDoc(UD, { couple: null, at: Date.now() }, { merge: true }).catch(() => {});
+      try { localStorage.removeItem(CK); } catch (e) {}
+    },
+    close: async () => {
+      await fs.setDoc(CD(coupleCode), { members: [], closedAt: Date.now() }, { merge: true });
+      await fs.setDoc(UD, { couple: null, at: Date.now() }, { merge: true }).catch(() => {});
+      try { localStorage.removeItem(CK); } catch (e) {}
+    },
+    reauth: async pass => { const u = auth.currentUser || user; await au.reauthenticateWithCredential(u, au.EmailAuthProvider.credential(u.email, pass)); },
+    deleteAccount: async () => {
+      const u = auth.currentUser || user;
+      await fs.deleteDoc(UD).catch(() => {});
+      await au.deleteUser(u);
+      try { localStorage.removeItem(CK); } catch (e) {}
+      try { await fs.terminate(db); await fs.clearIndexedDbPersistence(db); } catch (e) {}
+    },
     token: () => (auth.currentUser || user).getIdToken(),
     updateMeta: d => api.update(d),
     watchDoc: (p, cb) => fs.onSnapshot(R(p), s => { statusCb("ok"); cb(s.exists() ? s.data() : null); }, fail("leer")),
@@ -237,7 +275,11 @@ function localImpl() {
       const parts = p.split("/"); const id = parts.pop(); const c = parts.join("/");
       localStorage.removeItem(K(p)); set(c + "/__ids", ids(c).filter(x => x !== id)); fire(p);
     },
-    tx: async (p, fn) => { const nd = fn(get(p)); if (nd) { reg(p); set(p, nd); fire(p); } return nd; }
+    tx: async (p, fn) => { const nd = fn(get(p)); if (nd) { reg(p); set(p, nd); fire(p); } return nd; },
+    // modo prueba: todo vive en este móvil
+    dump: async cols => { const out = {}; cols.forEach(c => { out[c] = ids(c).map(id => ({ id, ...(get(c + "/" + id) || {}) })); }); return out; },
+    wipe: async (cols, onProgress) => { const ks = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith("demo:")) ks.push(k); } ks.forEach(k => localStorage.removeItem(k)); onProgress && onProgress(ks.length); return ks.length; },
+    leave: async () => {}, close: async () => {}, reauth: async () => {}, deleteAccount: async () => {}
   };
 }
 
