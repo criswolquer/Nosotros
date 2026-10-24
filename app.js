@@ -2212,7 +2212,7 @@ function renderScene(I, pvScene, pvRoom) {
   const p = I.p, scene = pvScene || p.scene || "jardin", room = { ...roomOf(p, curRoom), ...(pvRoom || {}) };
   const photo = phOf(memList.find(m => phOf(m)) || {}), wk = wxKind(), away = tripAway(p);
   const tog = !!(state.main || {}).together;
-  const sig = [tog ? "tog" : "", (p.pets || []).map(x => x.sp + x.name + (mpHungry(x) ? 1 : 0) + (x.house ? "h" : "") + JSON.stringify(x.wear || {}) + (x.toy || "")).join(","), petView, curRoom, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0, wk, away ? 1 : 0, editMode, JSON.stringify(p.family || []).length, month, treasureReady(p) ? 1 : 0, room.items.reloj && petView === "in" ? Math.floor(Date.now() / 3e5) : 0].join("|");
+  const sig = [tog ? "tog" : "", (p.pets || []).map(x => x.sp + x.name + (mpHungry(x) ? 1 : 0) + (x.house ? "h" : "") + JSON.stringify(x.wear || {}) + (x.toy || "") + mpHome(x) + (x.bed ? "b" : "") + (mpNapping(x) ? "z" : "")).join(","), petView, curRoom, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0, wk, away ? 1 : 0, editMode, JSON.stringify(p.family || []).length, month, treasureReady(p) ? 1 : 0, room.items.reloj && petView === "in" ? Math.floor(Date.now() / 3e5) : 0].join("|");
   if (sig + famSig(p) === sceneSig) return; sceneSig = sig + famSig(p);
   const S0 = $("petScene");
   let sky = "";
@@ -5218,15 +5218,30 @@ const MP_TREAT = 10;
 const mpLvl = x => Math.min(5, 1 + Math.floor(((x && x.xp) || 0) / 40));
 const mpHearts = x => { const l = mpLvl(x); return "❤️".repeat(l) + "🤍".repeat(5 - l); };
 // con casita aguantan un día más sin ponerse tristes
-const mpHungry = x => !!x && x.fed !== dayKey() && (!x.fed || daysBetween(x.fed, dayKey()) >= (x.house ? 3 : 2));
+const mpHungry = x => !!x && x.fed !== dayKey() && (!x.fed || daysBetween(x.fed, dayKey()) >= (x.house || x.bed ? 3 : 2));
+// 🏡 Dónde vive cada una: fuera (el jardín grande) o en una habitación de la casita; 😴 siesta cuando queráis
+const MP_HOMES = [["fuera", "🌳 Fuera"], ...ROOMS];
+const mpHome = x => x.home || "fuera";
+const mpNapping = x => (x.nap || 0) > Date.now();
+const MP_BED = 50;
+function mpBedSVG() {
+  const u = "mb" + (++mpUid);
+  return `<svg viewBox="0 0 120 56"><defs><linearGradient id="${u}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c7b2ff"/><stop offset="1" stop-color="#8f74e0"/></linearGradient><radialGradient id="${u}c" cx=".45" cy=".35"><stop offset="0" stop-color="#ffd6e4"/><stop offset="1" stop-color="#ff9fbe"/></radialGradient></defs>
+    <ellipse cx="60" cy="50" rx="56" ry="5" fill="#000" opacity=".18"/><ellipse cx="60" cy="34" rx="56" ry="20" fill="url(#${u}r)" stroke="#6d55b8" stroke-opacity=".5" stroke-width="2"/>
+    <ellipse cx="60" cy="30" rx="44" ry="13" fill="url(#${u}c)"/><ellipse cx="46" cy="25" rx="14" ry="4" fill="#fff" opacity=".5"/>
+    <g fill="#fff" opacity=".7"><circle cx="96" cy="40" r="3"/><circle cx="91" cy="35" r="1.6"/><circle cx="96" cy="33" r="1.6"/><circle cx="101" cy="35" r="1.6"/></g></svg>`;
+}
 function miniPetsHTML(p, inside, mode = "day") {
-  const night = mode === "night";
-  return (p.pets || []).slice(0, MP_MAX).map((x, i) => {
-    const h = hashStr(x.name + i), [a, b, back, hx] = MP_LANES[i % MP_LANES.length], sz = Math.round((MP_SIZE[x.sp] || 56) * (back ? .74 : 1));
-    const bot = back ? (inside ? 20 : 27) : (inside ? 2 : 3), home = x.house && !inside, sleeping = home && night;
-    const house = home ? `<div class="mphouse ${back ? "back" : ""}" style="left:${hx}%;--b:${bot}%;--hw:${back ? 66 : 96}px">${mpHouseSVG(x.sp)}</div>` : "";
-    const pos = sleeping ? `--l1:${hx + (hx > 50 ? -9 : 12)}%;--l2:${hx + (hx > 50 ? -9 : 12)}%` : `--l1:${a}%;--l2:${b}%`;
-    return house + `<button class="minipet ${back ? "back" : ""} ${mpHungry(x) ? "sad" : ""} ${sleeping ? "zz" : ""}" data-mp="${i}" style="${pos};--d:${9 + (h % 7)}s;--b:${bot}%;--s:${sz}px;animation-delay:-${h % 10}s" aria-label="${esc(x.name)}"><span class="mpsh"></span><span class="mpb">${miniPetSVG(x.sp, sleeping ? "sleep" : mpHungry(x) ? "sad" : "happy", x.wear)}</span>${x.toy && !sleeping ? `<span class="mptoy">${toySVG(x.toy)}</span>` : ""}<span class="mpn">${esc(x.name)}${sleeping ? " 💤" : ""}</span></button>`;
+  const night = mode === "night", here = inside ? curRoom : "fuera";
+  const list = (p.pets || []).slice(0, MP_MAX).map((x, i) => [x, i]).filter(([x]) => mpHome(x) === here);
+  return list.map(([x, i], k) => {
+    const h = hashStr(x.name + i), [a, b, back, hx] = MP_LANES[k % MP_LANES.length], sz = Math.round((MP_SIZE[x.sp] || 56) * (back ? .74 : 1));
+    const bot = back ? (inside ? 20 : 27) : (inside ? 2 : 3), spot = inside ? x.bed : x.house, sleeping = night || mpNapping(x);
+    const house = spot ? (inside ? `<div class="mphouse mpbed ${back ? "back" : ""}" style="left:${hx}%;--b:${bot}%;--hw:${back ? 62 : 86}px">${mpBedSVG()}</div>`
+      : `<div class="mphouse ${back ? "back" : ""}" style="left:${hx}%;--b:${bot}%;--hw:${back ? 66 : 96}px">${mpHouseSVG(x.sp)}</div>`) : "";
+    const sx = spot ? (inside ? hx + (hx > 50 ? 2 : 4) : hx + (hx > 50 ? -9 : 12)) : a;
+    const pos = sleeping ? `--l1:${sx}%;--l2:${sx}%` : `--l1:${a}%;--l2:${b}%`;
+    return house + `<button class="minipet ${back ? "back" : ""} ${mpHungry(x) ? "sad" : ""} ${sleeping ? "zz" : ""}" data-mp="${i}" style="${pos};--d:${9 + (h % 7)}s;--b:${sleeping && spot && inside ? bot + 2 : bot}%;--s:${sz}px;animation-delay:-${h % 10}s" aria-label="${esc(x.name)}"><span class="mpsh"></span><span class="mpb">${miniPetSVG(x.sp, sleeping ? "sleep" : mpHungry(x) ? "sad" : "happy", x.wear)}</span>${x.toy && !sleeping ? `<span class="mptoy">${toySVG(x.toy)}</span>` : ""}<span class="mpn">${esc(x.name)}${sleeping ? " 💤" : ""}</span></button>`;
   }).join("");
 }
 function bindMiniPets() {
@@ -5234,7 +5249,7 @@ function bindMiniPets() {
     e.stopPropagation(); const x = ((state.pet || {}).pets || [])[+b.dataset.mp]; if (!x) return;
     const M = MINIPETS[x.sp] || MINIPETS.conejo; b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
     const mb = b.querySelector(".mpb"); if (mb && !mpHungry(x) && !b.classList.contains("zz")) { mb.innerHTML = miniPetSVG(x.sp, "love", x.wear); clearTimeout(b._t); b._t = setTimeout(() => { mb.innerHTML = miniPetSVG(x.sp, "happy", x.wear); }, 1800); }
-    hearts(b, "💕"); buzz(15); SFX.pop(); toast(`${M.e} ${x.name}: ${rnd(mpHungry(x) ? ["*te mira con carita de hambre* 🥺", "*rasca su cuenco vacío*"] : M.snd)}`, 2200);
+    hearts(b, b.classList.contains("zz") ? "💤" : "💕"); buzz(15); SFX.pop(); toast(`${M.e} ${x.name}: ${rnd(b.classList.contains("zz") ? ["Zzz… 😴", "*se acurruca más*", "*ronca bajito*"] : mpHungry(x) ? ["*te mira con carita de hambre* 🥺", "*rasca su cuenco vacío*"] : M.snd)}`, 2200);
   });
 }
 function renderMiniPets(p, I) {
@@ -5243,7 +5258,7 @@ function renderMiniPets(p, I) {
   if (I.si === 0) { el.innerHTML = `<div class="empty">Cuando ${pn} nazca podrá tener sus propias mascotas 🐾</div>`; return; }
   let h = pets.length ? pets.map((x, i) => { const M = MINIPETS[x.sp] || MINIPETS.conejo, fed = x.fed === today;
     const Hs = MP_HOUSE[x.sp] || MP_HOUSE.perro;
-    return `<div class="mprow"><i class="mpic" data-mpopen="${i}">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "happy", x.wear)}</i><div data-mpopen="${i}"><b>${esc(x.name)} <span class="mphrt">${mpHearts(x)}</span></b><small>${M.n} · ${fed ? "ha comido hoy 😋" : mpHungry(x) ? "¡tiene mucha hambre! 🥺" : "todavía no ha comido hoy"}${x.house ? ` · 🏠` : ""} · <u>ver su ficha ›</u></small></div>
+    return `<div class="mprow"><i class="mpic" data-mpopen="${i}">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "happy", x.wear)}</i><div data-mpopen="${i}"><b>${esc(x.name)} <span class="mphrt">${mpHearts(x)}</span></b><small>${M.n} · ${fed ? "ha comido hoy 😋" : mpHungry(x) ? "¡tiene mucha hambre! 🥺" : "todavía no ha comido hoy"}${mpHome(x) !== "fuera" ? ` · vive en ${esc((ROOMS.find(r => r[0] === mpHome(x)) || [0, ""])[1])}` : x.house ? " · 🏠" : ""}${mpNapping(x) ? " · 😴" : ""} · <u>ver su ficha ›</u></small></div>
       <div class="mpbtns">${x.house ? "" : `<button class="btn" data-mphouse="${i}" ${coins >= Hs.c ? "" : "disabled"} title="${esc(Hs.n)}">🏠 ${Hs.c}</button>`}<button class="btn ${fed ? "" : "primary"}" data-mpfeed="${i}" ${fed ? "disabled" : ""}>${fed ? "✅" : "🥣"}</button></div></div>`; }).join("")
     : `<div class="sub" style="margin-bottom:4px">${pn} todavía no tiene mascotas. ¡Adoptad una y vivirá con él en la escena! 🐾</div>`;
   if (pets.length < MP_MAX) h += `<div class="slotname">Adoptar <small>(máximo ${MP_MAX})</small></div><div class="mpadopt">${Object.entries(MINIPETS).map(([k, M]) => `<button data-mpadopt="${k}" ${coins >= M.c ? "" : "disabled"}><i class="mpic">${miniPetSVG(k)}</i>${M.n}<small>${M.c} 🪙</small></button>`).join("")}</div>`;
@@ -5272,11 +5287,15 @@ function openPetSheet(i) {
   let h = `<div class="mpsheet"><div class="mpbig">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "love", wear)}${x.toy ? `<span class="mptoy big">${toySVG(x.toy)}</span>` : ""}</div>
     <div class="mpinfo"><small>${esc(M.n)}${x.house ? " · 🏠 tiene casita" : ""}</small><div class="mphrt big">${mpHearts(x)}</div><small>${lv >= 5 ? "¡Amistad máxima! 💖" : `Amistad nivel ${lv} · ${into}/40 para el siguiente`}</small>
     <div class="bar sm" style="margin-top:6px"><div style="width:${lv >= 5 ? 100 : Math.round(into / 40 * 100)}%"></div></div></div></div>
-    <div class="mpacts">
+    <div class="mpacts four">
+      <button class="btn" id="psNap">${mpNapping(x) ? "☀️ Despertar" : "😴 Siesta"}</button>
       <button class="btn ${fed ? "" : "primary"}" id="psFeed" ${fed ? "disabled" : ""}>🥣 ${fed ? "Ya ha comido" : "Comida"}</button>
       <button class="btn" id="psTreat" ${treat || coins < MP_TREAT ? "disabled" : ""}>🍪 ${treat ? "Chuche hoy ✅" : `Chuche · ${MP_TREAT} 🪙`}</button>
       <button class="btn" id="psPlay" ${!x.toy || played ? "disabled" : ""}>🎾 ${played ? "Ya ha jugado" : x.toy ? "Jugar" : "Sin juguete"}</button>
     </div>
+    <div class="slotname" style="margin-top:2px">🏡 Dónde vive</div>
+    <div class="mphomes">${MP_HOMES.map(([id, n]) => `<button class="${mpHome(x) === id ? "on" : ""}" data-pshome="${id}">${n}</button>`).join("")}</div>
+    <div class="mpbedrow">${x.bed ? `<span>🛏️ Tiene camita para dentro de casa${mpHome(x) === "fuera" ? " (la usa cuando vive dentro)" : ""}</span>` : `<span>🛏️ Camita para dentro de casa: de noche duerme en ella</span><button class="btn" id="psBed" ${coins >= MP_BED ? "" : "disabled"}>${MP_BED} 🪙</button>`}</div>
     <div class="seg mpseg"><button class="${petSheetTab === "acc" ? "on" : ""}" data-pst="acc">👗 Accesorios</button><button class="${petSheetTab === "toy" ? "on" : ""}" data-pst="toy">🎾 Juguetes</button></div>`;
   if (petSheetTab === "acc") h += `<div class="shopgrid mpshop">${MP_ACC.map(([id, c]) => { const it = CAT[id]; if (!it) return ""; const ow = owned[id], on = wear[it.slot] === id;
       return `<button class="shopit ${on ? "on" : ""}" data-psacc="${id}" ${!ow && coins < c ? "disabled" : ""}>${shopIcon(it)}<b>${esc(it.n)}</b><span>${on ? "Puesto ✅" : ow ? "Ponérselo" : c + " 🪙"}</span></button>`; }).join("")}</div>`;
@@ -5285,12 +5304,25 @@ function openPetSheet(i) {
   h += `<div class="sub" style="font-size:12px;margin-top:10px">❤️ La amistad sube al darle de comer (+5), con chuches (+10) y jugando (+8). Con más amistad os da más monedas al comer. <a href="#" id="psRename">✏️ Cambiarle el nombre</a></div>`;
   openSheet(`${M.e} ${x.name}`, h); fitIcons($("sheetBody"));
   $("psFeed").onclick = () => mpFeed(i);
+  $("psNap").onclick = () => mpSet(i, y => ({ nap: mpNapping(y) ? 0 : Date.now() + 36e5 }), y => mpNapping(y) ? `${y.name} se ha ido a dormir la siesta 😴` : `¡${y.name} ya está despierto! ☀️`);
+  const bd = $("psBed"); if (bd) bd.onclick = () => mpSet(i, (y, q) => { if (y.bed || coinsOf(q) < MP_BED) return null; q.coins -= MP_BED; return { bed: Date.now() }; }, y => `🛏️ ¡${y.name} tiene camita nueva!`);
+  $("sheetBody").querySelectorAll("[data-pshome]").forEach(b => b.onclick = () => { const to = b.dataset.pshome; if (to === mpHome(x)) return;
+    mpSet(i, () => ({ home: to }), y => `${y.name} ahora vive ${to === "fuera" ? "fuera, en el jardín grande 🌳" : "en " + (ROOMS.find(r => r[0] === to) || [0, "la casita"])[1].replace(/^\S+\s/, "el ").replace("el Cocina", "la cocina").toLowerCase()}`, () => {
+      if (to === "fuera") { petView = "out"; ls.set("petView", "out"); } else { petView = "in"; curRoom = to; ls.set("petView", "in"); ls.set("petRoom", to); }
+    }); });
   $("psTreat").onclick = () => mpCare(i, "treat");
   $("psPlay").onclick = () => mpCare(i, "play");
   $("sheetBody").querySelectorAll("[data-pst]").forEach(b => b.onclick = () => { petSheetTab = b.dataset.pst; openPetSheet(i); });
   $("sheetBody").querySelectorAll("[data-psacc]").forEach(b => b.onclick = () => mpItem(i, "acc", b.dataset.psacc));
   $("sheetBody").querySelectorAll("[data-pstoy]").forEach(b => b.onclick = () => mpItem(i, "toy", b.dataset.pstoy));
   $("psRename").onclick = e => { e.preventDefault(); const n = prompt("Nuevo nombre:", x.name); if (!n || !n.trim()) return; petTx(q => { const L = [...(q.pets || [])]; if (!L[i]) return null; L[i] = { ...L[i], name: n.trim().slice(0, 16) }; q.pets = L; return q; }).then(() => { sceneSig = ""; renderPet(); openPetSheet(i); }).catch(offline); };
+}
+// cambia algo de una mascotita (fn devuelve los campos nuevos o null) y vuelve a pintar la escena y su ficha
+function mpSet(i, fn, msg, after) {
+  let y = null;
+  petTx(q => { const L = [...(q.pets || [])], x = L[i]; if (!x) return null; const ch = fn(x, q); if (!ch) return null; y = { ...x, ...ch }; L[i] = y; q.pets = L; return q; })
+    .then(r => { if (!r || !y) return toast("Necesitáis más monedas 🪙"); if (after) after(y); sceneSig = ""; renderPet(); openPetSheet(i); if (msg) toast(msg(y), 2600); })
+    .catch(offline);
 }
 // comprar o ponerse un accesorio / comprar o darle un juguete
 function mpItem(i, kind, id) {
