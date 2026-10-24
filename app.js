@@ -2247,7 +2247,7 @@ function renderScene(I, pvScene, pvRoom) {
   // familia (mascotas anteriores), pequeñitas a un lado
   (p.family || []).slice(-3).forEach((f, i) => { sky += `<div class="famfig" style="left:${4 + i * 14}%">${chickSVG(Math.min(6, f.stage || 6), "happy", f.wear || {}, 0, f.color, { species: f.species })}</div>`; });
   sky += famScene(p, I);
-  if (tog) { for (let i = 0; i < 9; i++) sky += `<i class="toghrt" style="left:${(6 + i * 11 + (hashStr("t" + i) % 6)).toFixed(0)}%;animation-delay:${(-(hashStr("d" + i) % 60) / 10).toFixed(1)}s;font-size:${14 + hashStr("s" + i) % 12}px">${i % 3 ? "💕" : "💗"}</i>`; if (petView !== "in") sky += `<span class="couple" title="Vosotros dos">💑</span>`; }
+  if (tog) { for (let i = 0; i < 9; i++) sky += `<i class="toghrt" style="left:${(6 + i * 11 + (hashStr("t" + i) % 6)).toFixed(0)}%;animation-delay:${(-(hashStr("d" + i) % 60) / 10).toFixed(1)}s;font-size:${14 + hashStr("s" + i) % 12}px">${i % 3 ? "💕" : "💗"}</i>`; if (petView !== "in") sky += `<span class="togcouple" title="Vosotros dos">💑</span>`; }
   if (I.bd) sky += `<span class="deco" style="left:6%;bottom:8%;font-size:40px">🎂</span><span class="deco flutter" style="right:8%;top:20%;font-size:34px">🎈</span>`;
   sky += `<div class="vign"></div>`;
   sky += miniPetsHTML(p, petView === "in", mode);
