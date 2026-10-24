@@ -87,7 +87,7 @@ function tick() {
       $("countdownSub").textContent = dd > 0 ? hh + " h " + mm + " min" : "¡ya casi!";
     }
   } else if (state.main.together) { $("countdown").textContent = "💞"; $("countdownSub").textContent = "¡estáis juntos!"; }
-  else { $("countdown").textContent = "—"; $("countdownSub").textContent = "elige fecha en ⚙️"; }
+  else { $("countdown").textContent = "📅"; $("countdownSub").textContent = "toca para poner fecha"; }
   if (otdKey) watchOTD();
   if (typeof petDiaryCheck === "function") petDiaryCheck();
   if (typeof weeklyCheck === "function") weeklyCheck().catch(e => console.warn(e));
@@ -5702,6 +5702,8 @@ function drawLive() {
 }
 
 // ---------- 8) Cuenta atrás para veros ----------
+// Tocar «Nos vemos en» del Inicio lleva a la tarjeta de la cuenta atrás
+document.querySelector(".hnext").onclick = () => { const c = $("meetCard"); if (!c) return; c.scrollIntoView({ behavior: "smooth", block: "start" }); };
 let meetT = 0;
 function renderMeet() {
   const el = $("meetCard"); if (!el) return;
