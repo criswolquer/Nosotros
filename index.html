@@ -2227,6 +2227,28 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 .scene.land-on.dawn .minipet .mpb{filter:saturate(1.06) sepia(.14)}
 .minipet.back{z-index:1}
 .minipet.back .mpn{opacity:.85}
+/* ===== 3.8 · Ficha y tienda de las mascotitas ===== */
+.mpsheet{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.mpbig{position:relative;flex:none;width:118px;height:118px;border-radius:24px;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.14),rgba(255,255,255,.03));padding:6px}
+.mpbig svg{width:100%;height:100%;overflow:visible;display:block}
+.mpinfo{flex:1;min-width:0}
+.mpinfo small{display:block;font-size:12px;color:var(--muted)}
+.mphrt{font-size:11px;letter-spacing:-1px;font-weight:400}
+.mphrt.big{font-size:18px;margin:2px 0}
+.mpacts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.mpacts .btn{padding:9px 4px;font-size:12.5px}
+.mpseg{position:static;box-shadow:none;margin-bottom:10px}
+.mpseg button{font-size:13px;padding:8px 2px}
+.mpshop .shopit.on{border-color:var(--ok);box-shadow:0 0 0 2px rgba(111,220,154,.3)}
+.mpshop .shopit i.isvg{width:44px;height:40px;display:flex}
+.mpshop .shopit i.isvg svg{width:100%;height:100%;overflow:visible}
+.mptoy{position:absolute;right:-14%;bottom:20px;width:calc(var(--s,56px) * .34);height:calc(var(--s,56px) * .34);animation:mptoy 2.4s ease-in-out infinite;pointer-events:none}
+.mptoy svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+.mptoy.big{right:2px;bottom:4px;width:34px;height:34px}
+@keyframes mptoy{0%,100%{transform:rotate(0) translateX(0)}50%{transform:rotate(-25deg) translateX(-4px)}}
+.mprow [data-mpopen]{cursor:pointer}
+.mprow u{text-decoration:none;color:var(--accent);font-weight:700}
+#psRename{color:var(--accent);font-weight:700;text-decoration:none;white-space:nowrap}
 </style>
 </head>
 <body>

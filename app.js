@@ -2212,7 +2212,7 @@ function renderScene(I, pvScene, pvRoom) {
   const p = I.p, scene = pvScene || p.scene || "jardin", room = { ...roomOf(p, curRoom), ...(pvRoom || {}) };
   const photo = phOf(memList.find(m => phOf(m)) || {}), wk = wxKind(), away = tripAway(p);
   const tog = !!(state.main || {}).together;
-  const sig = [tog ? "tog" : "", (p.pets || []).map(x => x.sp + x.name + (mpHungry(x) ? 1 : 0) + (x.house ? "h" : "")).join(","), petView, curRoom, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0, wk, away ? 1 : 0, editMode, JSON.stringify(p.family || []).length, month, treasureReady(p) ? 1 : 0, room.items.reloj && petView === "in" ? Math.floor(Date.now() / 3e5) : 0].join("|");
+  const sig = [tog ? "tog" : "", (p.pets || []).map(x => x.sp + x.name + (mpHungry(x) ? 1 : 0) + (x.house ? "h" : "") + JSON.stringify(x.wear || {}) + (x.toy || "")).join(","), petView, curRoom, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0, wk, away ? 1 : 0, editMode, JSON.stringify(p.family || []).length, month, treasureReady(p) ? 1 : 0, room.items.reloj && petView === "in" ? Math.floor(Date.now() / 3e5) : 0].join("|");
   if (sig + famSig(p) === sceneSig) return; sceneSig = sig + famSig(p);
   const S0 = $("petScene");
   let sky = "";
@@ -5197,10 +5197,26 @@ function mpHouseSVG(sp) {
   };
   return `<svg viewBox="0 0 120 100" class="mphouse-svg">${H[sp] || H.perro}</svg>`;
 }
-function miniPetSVG(sp, expr = "happy") {
-  if (sp === "tortuga") return turtleSVG(expr === "love" ? "happy" : expr);
-  return chickSVG(2, expr, {}, 0, MP_COL[sp] || "blanco", { species: sp });
+function miniPetSVG(sp, expr = "happy", wear = {}) {
+  if (sp === "tortuga") {   // a la tortuga le colocamos los accesorios en su cabecita
+    const svg = turtleSVG(expr === "love" ? "happy" : expr), acc = ["head", "face", "neck"].map(k => wear[k] ? itemSVG(wear[k]) : "").join("");
+    return acc ? svg.replace(/<\/svg>$/, `<g transform="translate(160 124) scale(.5) translate(-100 -116)">${acc}</g></svg>`) : svg;
+  }
+  return chickSVG(2, expr, { ...wear }, 0, MP_COL[sp] || "blanco", { species: sp });
 }
+// 🛍️ Cosas para las mascotitas: accesorios (los mismos dibujos que la ropa del pollito), juguetes y chuches
+const MP_ACC = [["lazo", 25], ["flor", 25], ["pajarita", 30], ["bufanda", 35], ["gorrolana", 40], ["gorro", 45], ["gafas", 45], ["gafascor", 55], ["collar", 60]];
+const MP_TOYS = {
+  pelota: { n: "Pelota", c: 30, svg: `<circle cx="20" cy="20" r="17" fill="#ff5c7a"/><path d="M4 16 Q20 26 36 16 M4 24 Q20 34 36 24" stroke="#fff" stroke-width="3" fill="none"/><ellipse cx="14" cy="11" rx="5" ry="3" fill="#fff" opacity=".5"/>` },
+  hueso: { n: "Hueso", c: 35, svg: `<g fill="#fff4dc" stroke="#d9c3a0" stroke-width="2"><rect x="9" y="16" width="22" height="8" rx="3"/><circle cx="8" cy="15" r="5"/><circle cx="8" cy="25" r="5"/><circle cx="32" cy="15" r="5"/><circle cx="32" cy="25" r="5"/></g>` },
+  raton: { n: "Ratoncito", c: 35, svg: `<path d="M34 26 Q40 30 38 36" stroke="#c9c2d6" stroke-width="2" fill="none"/><ellipse cx="20" cy="24" rx="15" ry="10" fill="#b7b0c8"/><circle cx="9" cy="14" r="5" fill="#b7b0c8"/><circle cx="9" cy="14" r="2.6" fill="#ffb3c4"/><circle cx="8" cy="24" r="1.8" fill="#2b1a10"/><circle cx="5" cy="27" r="1.6" fill="#ff8fa3"/>` },
+  ovillo: { n: "Ovillo de lana", c: 30, svg: `<circle cx="20" cy="22" r="15" fill="#9b7bff"/><path d="M8 14 Q20 24 32 12 M6 24 Q20 32 34 22 M12 34 Q20 20 30 34" stroke="#c9b8ff" stroke-width="2" fill="none"/><path d="M33 30 Q40 36 34 39" stroke="#9b7bff" stroke-width="2" fill="none"/>` },
+  zanahoria: { n: "Zanahoria de peluche", c: 30, svg: `<path d="M10 12 L32 34 Q34 37 31 36 L8 16 Z" fill="#ff9a3c" stroke="#e07a1f" stroke-width="1.5"/><path d="M12 13 L8 4 M12 13 L4 8 M12 13 L14 3" stroke="#4c9a3d" stroke-width="3" stroke-linecap="round"/><path d="M16 20 l3 -2 M21 25 l3 -2" stroke="#e07a1f" stroke-width="1.5"/>` }
+};
+const toySVG = id => `<svg viewBox="0 0 40 40">${(MP_TOYS[id] || MP_TOYS.pelota).svg}</svg>`;
+const MP_TREAT = 10;
+const mpLvl = x => Math.min(5, 1 + Math.floor(((x && x.xp) || 0) / 40));
+const mpHearts = x => { const l = mpLvl(x); return "❤️".repeat(l) + "🤍".repeat(5 - l); };
 // con casita aguantan un día más sin ponerse tristes
 const mpHungry = x => !!x && x.fed !== dayKey() && (!x.fed || daysBetween(x.fed, dayKey()) >= (x.house ? 3 : 2));
 function miniPetsHTML(p, inside, mode = "day") {
@@ -5210,14 +5226,14 @@ function miniPetsHTML(p, inside, mode = "day") {
     const bot = back ? (inside ? 20 : 27) : (inside ? 2 : 3), home = x.house && !inside, sleeping = home && night;
     const house = home ? `<div class="mphouse ${back ? "back" : ""}" style="left:${hx}%;--b:${bot}%;--hw:${back ? 66 : 96}px">${mpHouseSVG(x.sp)}</div>` : "";
     const pos = sleeping ? `--l1:${hx + (hx > 50 ? -9 : 12)}%;--l2:${hx + (hx > 50 ? -9 : 12)}%` : `--l1:${a}%;--l2:${b}%`;
-    return house + `<button class="minipet ${back ? "back" : ""} ${mpHungry(x) ? "sad" : ""} ${sleeping ? "zz" : ""}" data-mp="${i}" style="${pos};--d:${9 + (h % 7)}s;--b:${bot}%;--s:${sz}px;animation-delay:-${h % 10}s" aria-label="${esc(x.name)}"><span class="mpsh"></span><span class="mpb">${miniPetSVG(x.sp, sleeping ? "sleep" : mpHungry(x) ? "sad" : "happy")}</span><span class="mpn">${esc(x.name)}${sleeping ? " 💤" : ""}</span></button>`;
+    return house + `<button class="minipet ${back ? "back" : ""} ${mpHungry(x) ? "sad" : ""} ${sleeping ? "zz" : ""}" data-mp="${i}" style="${pos};--d:${9 + (h % 7)}s;--b:${bot}%;--s:${sz}px;animation-delay:-${h % 10}s" aria-label="${esc(x.name)}"><span class="mpsh"></span><span class="mpb">${miniPetSVG(x.sp, sleeping ? "sleep" : mpHungry(x) ? "sad" : "happy", x.wear)}</span>${x.toy && !sleeping ? `<span class="mptoy">${toySVG(x.toy)}</span>` : ""}<span class="mpn">${esc(x.name)}${sleeping ? " 💤" : ""}</span></button>`;
   }).join("");
 }
 function bindMiniPets() {
   document.querySelectorAll("#petSky .minipet").forEach(b => b.onclick = e => {
     e.stopPropagation(); const x = ((state.pet || {}).pets || [])[+b.dataset.mp]; if (!x) return;
     const M = MINIPETS[x.sp] || MINIPETS.conejo; b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
-    const mb = b.querySelector(".mpb"); if (mb && !mpHungry(x) && !b.classList.contains("zz")) { mb.innerHTML = miniPetSVG(x.sp, "love"); clearTimeout(b._t); b._t = setTimeout(() => { mb.innerHTML = miniPetSVG(x.sp, "happy"); }, 1800); }
+    const mb = b.querySelector(".mpb"); if (mb && !mpHungry(x) && !b.classList.contains("zz")) { mb.innerHTML = miniPetSVG(x.sp, "love", x.wear); clearTimeout(b._t); b._t = setTimeout(() => { mb.innerHTML = miniPetSVG(x.sp, "happy", x.wear); }, 1800); }
     hearts(b, "💕"); buzz(15); SFX.pop(); toast(`${M.e} ${x.name}: ${rnd(mpHungry(x) ? ["*te mira con carita de hambre* 🥺", "*rasca su cuenco vacío*"] : M.snd)}`, 2200);
   });
 }
@@ -5227,15 +5243,16 @@ function renderMiniPets(p, I) {
   if (I.si === 0) { el.innerHTML = `<div class="empty">Cuando ${pn} nazca podrá tener sus propias mascotas 🐾</div>`; return; }
   let h = pets.length ? pets.map((x, i) => { const M = MINIPETS[x.sp] || MINIPETS.conejo, fed = x.fed === today;
     const Hs = MP_HOUSE[x.sp] || MP_HOUSE.perro;
-    return `<div class="mprow"><i class="mpic">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "happy")}</i><div><b>${esc(x.name)}</b><small>${M.n} · ${fed ? "ha comido hoy 😋" : mpHungry(x) ? "¡tiene mucha hambre! 🥺" : "todavía no ha comido hoy"}${x.house ? ` · 🏠 ${esc(Hs.n.toLowerCase())}` : ""}</small></div>
+    return `<div class="mprow"><i class="mpic" data-mpopen="${i}">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "happy", x.wear)}</i><div data-mpopen="${i}"><b>${esc(x.name)} <span class="mphrt">${mpHearts(x)}</span></b><small>${M.n} · ${fed ? "ha comido hoy 😋" : mpHungry(x) ? "¡tiene mucha hambre! 🥺" : "todavía no ha comido hoy"}${x.house ? ` · 🏠` : ""} · <u>ver su ficha ›</u></small></div>
       <div class="mpbtns">${x.house ? "" : `<button class="btn" data-mphouse="${i}" ${coins >= Hs.c ? "" : "disabled"} title="${esc(Hs.n)}">🏠 ${Hs.c}</button>`}<button class="btn ${fed ? "" : "primary"}" data-mpfeed="${i}" ${fed ? "disabled" : ""}>${fed ? "✅" : "🥣"}</button></div></div>`; }).join("")
     : `<div class="sub" style="margin-bottom:4px">${pn} todavía no tiene mascotas. ¡Adoptad una y vivirá con él en la escena! 🐾</div>`;
   if (pets.length < MP_MAX) h += `<div class="slotname">Adoptar <small>(máximo ${MP_MAX})</small></div><div class="mpadopt">${Object.entries(MINIPETS).map(([k, M]) => `<button data-mpadopt="${k}" ${coins >= M.c ? "" : "disabled"}><i class="mpic">${miniPetSVG(k)}</i>${M.n}<small>${M.c} 🪙</small></button>`).join("")}</div>`;
-  h += `<div class="sub" style="font-size:12px;margin-top:8px">🥣 Dadles de comer cada día: ${pn} se pone más contento (+cariño) y os dan 3 🪙. 🏠 Con casita duermen en ella por la noche y aguantan un día más sin ponerse tristes. Tocadlas en la escena para acariciarlas.</div>`;
+  h += `<div class="sub" style="font-size:12px;margin-top:8px">🥣 Dadles de comer cada día: ${pn} se pone más contento (+cariño) y os dan monedas (más cuanta más amistad ❤️). Tocad a cada una para ver su ficha y comprarle accesorios, juguetes y chuches. 🏠 Con casita duermen en ella por la noche y aguantan un día más sin ponerse tristes. Tocadlas en la escena para acariciarlas.</div>`;
   el.innerHTML = h;
   el.querySelectorAll("[data-mpadopt]").forEach(b => b.onclick = () => mpAdopt(b.dataset.mpadopt));
   el.querySelectorAll("[data-mpfeed]").forEach(b => b.onclick = () => mpFeed(+b.dataset.mpfeed));
   el.querySelectorAll("[data-mphouse]").forEach(b => b.onclick = () => mpBuyHouse(+b.dataset.mphouse));
+  el.querySelectorAll("[data-mpopen]").forEach(b => b.onclick = () => openPetSheet(+b.dataset.mpopen));
 }
 function mpAdopt(sp) {
   const M = MINIPETS[sp], p = state.pet || {}; if (!M) return;
@@ -5244,6 +5261,59 @@ function mpAdopt(sp) {
   const nm = (n.trim() || M.n).slice(0, 16);
   petTx(q => { q.pets = [...(q.pets || [])]; if (q.pets.length >= MP_MAX || coinsOf(q) < M.c) return null; q.coins -= M.c; q.pets.push({ sp, name: nm, at: Date.now(), by: who, fed: dayKey() }); bump(q, "mpadopt"); return q; })
     .then(r => { if (!r) return toast("No se pudo adoptar ahora"); sceneSig = ""; renderPet(); confetti(); setTimeout(() => say(`¡${nm} ${M.e} es mi mascota! ¡Gracias, ${name(who)}! 🥹`, 4000), 500); sendMsg(`🐾 ${r.name || "Pollito"} tiene una mascota nueva: ${nm} ${M.e} ¡Ven a conocerla!`, "pet"); })
+    .catch(offline);
+}
+// 📋 Ficha de cada mascotita: amistad, cuidados del día y su tienda
+let petSheetI = -1, petSheetTab = "acc";
+function openPetSheet(i) {
+  const p = state.pet || {}, x = (p.pets || [])[i]; if (!x) return; petSheetI = i;
+  const M = MINIPETS[x.sp] || MINIPETS.conejo, coins = coinsOf(p), today = dayKey(), lv = mpLvl(x), into = ((x.xp || 0) % 40), owned = x.owned || {}, wear = x.wear || {};
+  const fed = x.fed === today, treat = x.treat === today, played = x.played === today;
+  let h = `<div class="mpsheet"><div class="mpbig">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "love", wear)}${x.toy ? `<span class="mptoy big">${toySVG(x.toy)}</span>` : ""}</div>
+    <div class="mpinfo"><small>${esc(M.n)}${x.house ? " · 🏠 tiene casita" : ""}</small><div class="mphrt big">${mpHearts(x)}</div><small>${lv >= 5 ? "¡Amistad máxima! 💖" : `Amistad nivel ${lv} · ${into}/40 para el siguiente`}</small>
+    <div class="bar sm" style="margin-top:6px"><div style="width:${lv >= 5 ? 100 : Math.round(into / 40 * 100)}%"></div></div></div></div>
+    <div class="mpacts">
+      <button class="btn ${fed ? "" : "primary"}" id="psFeed" ${fed ? "disabled" : ""}>🥣 ${fed ? "Ya ha comido" : "Comida"}</button>
+      <button class="btn" id="psTreat" ${treat || coins < MP_TREAT ? "disabled" : ""}>🍪 ${treat ? "Chuche hoy ✅" : `Chuche · ${MP_TREAT} 🪙`}</button>
+      <button class="btn" id="psPlay" ${!x.toy || played ? "disabled" : ""}>🎾 ${played ? "Ya ha jugado" : x.toy ? "Jugar" : "Sin juguete"}</button>
+    </div>
+    <div class="seg mpseg"><button class="${petSheetTab === "acc" ? "on" : ""}" data-pst="acc">👗 Accesorios</button><button class="${petSheetTab === "toy" ? "on" : ""}" data-pst="toy">🎾 Juguetes</button></div>`;
+  if (petSheetTab === "acc") h += `<div class="shopgrid mpshop">${MP_ACC.map(([id, c]) => { const it = CAT[id]; if (!it) return ""; const ow = owned[id], on = wear[it.slot] === id;
+      return `<button class="shopit ${on ? "on" : ""}" data-psacc="${id}" ${!ow && coins < c ? "disabled" : ""}>${shopIcon(it)}<b>${esc(it.n)}</b><span>${on ? "Puesto ✅" : ow ? "Ponérselo" : c + " 🪙"}</span></button>`; }).join("")}</div>`;
+  else h += `<div class="shopgrid mpshop">${Object.entries(MP_TOYS).map(([id, T]) => { const ow = owned["toy:" + id], on = x.toy === id;
+      return `<button class="shopit ${on ? "on" : ""}" data-pstoy="${id}" ${!ow && coins < T.c ? "disabled" : ""}><i class="isvg">${toySVG(id)}</i><b>${esc(T.n)}</b><span>${on ? "Lo tiene ✅" : ow ? "Dárselo" : T.c + " 🪙"}</span></button>`; }).join("")}</div>`;
+  h += `<div class="sub" style="font-size:12px;margin-top:10px">❤️ La amistad sube al darle de comer (+5), con chuches (+10) y jugando (+8). Con más amistad os da más monedas al comer. <a href="#" id="psRename">✏️ Cambiarle el nombre</a></div>`;
+  openSheet(`${M.e} ${x.name}`, h); fitIcons($("sheetBody"));
+  $("psFeed").onclick = () => mpFeed(i);
+  $("psTreat").onclick = () => mpCare(i, "treat");
+  $("psPlay").onclick = () => mpCare(i, "play");
+  $("sheetBody").querySelectorAll("[data-pst]").forEach(b => b.onclick = () => { petSheetTab = b.dataset.pst; openPetSheet(i); });
+  $("sheetBody").querySelectorAll("[data-psacc]").forEach(b => b.onclick = () => mpItem(i, "acc", b.dataset.psacc));
+  $("sheetBody").querySelectorAll("[data-pstoy]").forEach(b => b.onclick = () => mpItem(i, "toy", b.dataset.pstoy));
+  $("psRename").onclick = e => { e.preventDefault(); const n = prompt("Nuevo nombre:", x.name); if (!n || !n.trim()) return; petTx(q => { const L = [...(q.pets || [])]; if (!L[i]) return null; L[i] = { ...L[i], name: n.trim().slice(0, 16) }; q.pets = L; return q; }).then(() => { sceneSig = ""; renderPet(); openPetSheet(i); }).catch(offline); };
+}
+// comprar o ponerse un accesorio / comprar o darle un juguete
+function mpItem(i, kind, id) {
+  const price = kind === "acc" ? (MP_ACC.find(a => a[0] === id) || [0, 0])[1] : (MP_TOYS[id] || {}).c || 0, key = kind === "acc" ? id : "toy:" + id;
+  let bought = false;
+  petTx(q => {
+    const L = [...(q.pets || [])], x = L[i]; if (!x) return null; const y = { ...x, owned: { ...(x.owned || {}) }, wear: { ...(x.wear || {}) } };
+    if (!y.owned[key]) { if (coinsOf(q) < price) return null; q.coins -= price; y.owned[key] = Date.now(); bought = true; bump(q, "buy"); }
+    if (kind === "acc") { const sl = CAT[id].slot; y.wear[sl] = y.wear[sl] === id && !bought ? null : id; }
+    else y.toy = y.toy === id && !bought ? null : id;
+    L[i] = y; q.pets = L; return q;
+  }).then(r => { if (!r) return toast("Necesitáis más monedas 🪙"); sceneSig = ""; renderPet(); openPetSheet(i); if (bought) { hearts($("sheetBody").querySelector(".mpbig") || $("petBox"), "💕"); } })
+    .catch(offline);
+}
+// chuche (+10 amistad, 1 al día) y jugar con su juguete (+8 amistad y diversión para el pollito, 1 al día)
+function mpCare(i, k) {
+  let ok = false, nm = "";
+  petTx(q => { const L = [...(q.pets || [])], x = L[i]; if (!x) return null; nm = x.name;
+    if (k === "treat") { if (x.treat === dayKey() || coinsOf(q) < MP_TREAT) return null; q.coins -= MP_TREAT; L[i] = { ...x, treat: dayKey(), xp: (x.xp || 0) + 10 }; }
+    else { if (!x.toy || x.played === dayKey()) return null; L[i] = { ...x, played: dayKey(), xp: (x.xp || 0) + 8 }; setNeed(q, "fun", 12); }
+    q.pets = L; ok = true; return q; })
+    .then(() => { if (!ok) return; sceneSig = ""; renderPet(); openPetSheet(i); hearts($("sheetBody").querySelector(".mpbig") || $("petBox"), k === "treat" ? "🍪" : "💕"); buzz(20);
+      setTimeout(() => say(k === "treat" ? `¡A ${nm} le ha encantado la chuche! 🍪` : `¡${nm} y yo nos lo hemos pasado genial jugando! 🎾`, 3000), 300); })
     .catch(offline);
 }
 function mpBuyHouse(i) {
@@ -5256,8 +5326,9 @@ function mpBuyHouse(i) {
 }
 function mpFeed(i) {
   let ok = false, nm = "", e = "";
-  petTx(q => { const L = [...(q.pets || [])], x = L[i]; if (!x || x.fed === dayKey()) return null; L[i] = { ...x, fed: dayKey() }; q.pets = L; nm = x.name; e = (MINIPETS[x.sp] || MINIPETS.conejo).e; q.coins += 3; setNeed(q, "love", 8); bump(q, "mpfeed"); ok = true; return q; })
-    .then(r => { if (!ok) return; sceneSig = ""; renderPet(); coinFx(3); setTimeout(() => say(`¡Gracias por darle de comer a ${nm}! ${e}💛`), 400); })
+  let g = 0;
+  petTx(q => { const L = [...(q.pets || [])], x = L[i]; if (!x || x.fed === dayKey()) return null; g = 2 + mpLvl(x); L[i] = { ...x, fed: dayKey(), xp: (x.xp || 0) + 5 }; q.pets = L; nm = x.name; e = (MINIPETS[x.sp] || MINIPETS.conejo).e; q.coins += g; setNeed(q, "love", 8); bump(q, "mpfeed"); ok = true; return q; })
+    .then(r => { if (!ok) return; sceneSig = ""; renderPet(); coinFx(g); if (!$("petSheet").classList.contains("hidden") && petSheetI === i) openPetSheet(i); setTimeout(() => say(`¡Gracias por darle de comer a ${nm}! ${e}💛`), 400); })
     .catch(offline);
 }
 Object.assign(EV_TXT, { mpfeed: () => "le ha dado de comer a mis mascotas 🐾", mpadopt: () => "me ha adoptado una mascota 🐾" });
