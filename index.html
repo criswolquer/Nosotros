@@ -2193,7 +2193,18 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 .mpadopt button i.mpic{width:52px;height:52px}
 .turtle .tt-head{animation:ttnod 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:20% 60%}
 @keyframes ttnod{0%,70%,100%{transform:translateX(0)}80%{transform:translateX(5px) rotate(4deg)}}
-.minipet .mpn{display:block;font-size:10.5px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin-top:-6px;text-align:center}
+.minipet .mpn{display:inline-block;font-size:10.5px;font-weight:800;color:#fff;background:rgba(30,15,35,.45);border-radius:99px;padding:1px 7px;margin-top:-4px;white-space:nowrap;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.minipet{display:flex;flex-direction:column;align-items:center}
+.minipet .mpsh{position:absolute;left:50%;bottom:calc(18px - var(--s,56px) * .02);width:calc(var(--s,56px) * .7);height:calc(var(--s,56px) * .14);transform:translateX(-50%);border-radius:50%;background:radial-gradient(rgba(0,0,0,.28),rgba(0,0,0,0) 70%);pointer-events:none}
+.minipet.zz{animation:none}
+.minipet.zz .mpb{animation:mpbreathe 3.5s ease-in-out infinite}
+@keyframes mpbreathe{50%{transform:scale(1.03,.97)}}
+.mphouse{position:absolute;bottom:calc(var(--b,3%) - 4px);width:var(--hw,96px);z-index:2;pointer-events:none;filter:drop-shadow(0 4px 4px rgba(0,0,0,.18))}
+.mphouse.back{z-index:1}
+.mphouse svg{width:100%;height:auto;display:block}
+.scene.land-on.night .mphouse{filter:brightness(.7) saturate(.8)}
+.scene.land-on.dawn .mphouse{filter:sepia(.12) saturate(1.05)}
+.mpbtns{display:flex;gap:6px;flex:none}
 .minipet.sad .mpb{animation:none;filter:grayscale(.3)}
 .minipet.pop .mpb{animation:mppop .5s ease-out}
 @keyframes mpwalk{from{left:var(--l1)}to{left:var(--l2)}}

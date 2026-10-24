@@ -2212,7 +2212,7 @@ function renderScene(I, pvScene, pvRoom) {
   const p = I.p, scene = pvScene || p.scene || "jardin", room = { ...roomOf(p, curRoom), ...(pvRoom || {}) };
   const photo = phOf(memList.find(m => phOf(m)) || {}), wk = wxKind(), away = tripAway(p);
   const tog = !!(state.main || {}).together;
-  const sig = [tog ? "tog" : "", (p.pets || []).map(x => x.sp + x.name + (mpHungry(x) ? 1 : 0)).join(","), petView, curRoom, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0, wk, away ? 1 : 0, editMode, JSON.stringify(p.family || []).length, month, treasureReady(p) ? 1 : 0, room.items.reloj && petView === "in" ? Math.floor(Date.now() / 3e5) : 0].join("|");
+  const sig = [tog ? "tog" : "", (p.pets || []).map(x => x.sp + x.name + (mpHungry(x) ? 1 : 0) + (x.house ? "h" : "")).join(","), petView, curRoom, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0, wk, away ? 1 : 0, editMode, JSON.stringify(p.family || []).length, month, treasureReady(p) ? 1 : 0, room.items.reloj && petView === "in" ? Math.floor(Date.now() / 3e5) : 0].join("|");
   if (sig + famSig(p) === sceneSig) return; sceneSig = sig + famSig(p);
   const S0 = $("petScene");
   let sky = "";
@@ -2250,7 +2250,7 @@ function renderScene(I, pvScene, pvRoom) {
   if (tog) { for (let i = 0; i < 9; i++) sky += `<i class="toghrt" style="left:${(6 + i * 11 + (hashStr("t" + i) % 6)).toFixed(0)}%;animation-delay:${(-(hashStr("d" + i) % 60) / 10).toFixed(1)}s;font-size:${14 + hashStr("s" + i) % 12}px">${i % 3 ? "💕" : "💗"}</i>`; if (petView !== "in") sky += `<span class="couple" title="Vosotros dos">💑</span>`; }
   if (I.bd) sky += `<span class="deco" style="left:6%;bottom:8%;font-size:40px">🎂</span><span class="deco flutter" style="right:8%;top:20%;font-size:34px">🎈</span>`;
   sky += `<div class="vign"></div>`;
-  sky += miniPetsHTML(p, petView === "in");
+  sky += miniPetsHTML(p, petView === "in", mode);
   $("petSky").innerHTML = sky; bindFamScene(); bindMiniPets();
   const vk = petView + curRoom; if (renderScene.vk && renderScene.vk !== vk) sceneFade(); renderScene.vk = vk;
   $("petView").textContent = petView === "in" ? "🌳" : "🏠"; $("petView").title = petView === "in" ? "Salir al jardín" : "Entrar en la casita"; $("petView").setAttribute("aria-label", $("petView").title);
@@ -5129,11 +5129,11 @@ const MINIPETS = {
 const MP_MAX = 4;
 // Dibujadas con el mismo estilo que el pollito (gato, perro, conejo y hámster usan su dibujo; la tortuga tiene el suyo)
 const MP_COL = { gato: "naranja", perro: "choco", conejo: "blanco", hamster: { body: "#f3b47a", belly: "#fff2e2", dark: "#d98c4c" } };
-const MP_SIZE = { conejo: 72, gato: 70, perro: 76, hamster: 60, tortuga: 74 };
-const MP_LANES = [[2, 26, 0], [58, 78, 1], [56, 80, 0], [4, 24, 1]];   // [desde %, hasta %, fila]: dos delante y dos detrás, cada una por su zona
+const MP_SIZE = { conejo: 80, gato: 78, perro: 84, hamster: 66, tortuga: 82 };
+const MP_LANES = [[14, 34, 0, 0], [52, 70, 1, 76], [48, 66, 0, 74], [10, 28, 1, 1]];   // [desde %, hasta %, fila de atrás, dónde está su casita %]   // [desde %, hasta %, fila]: dos delante y dos detrás, cada una por su zona
 let mpUid = 0;
 function turtleSVG(expr) {
-  const u = "tt" + (++mpUid), sad = expr === "sad", happy = !sad;
+  const u = "tt" + (++mpUid), sad = expr === "sad" || expr === "sleep", happy = !sad;
   const eye = x => sad ? `<path d="M${x - 5} 122 q5 4 10 0" stroke="#24301c" stroke-width="3" fill="none" stroke-linecap="round"/>`
     : `<ellipse cx="${x}" cy="121" rx="5.5" ry="7" fill="#1d2616"/><circle cx="${x + 1.8}" cy="118" r="2.2" fill="#fff"/>`;
   return `<svg viewBox="0 0 200 200" class="chick turtle ${happy ? "happy" : "sad"}"><defs>
@@ -5154,21 +5154,70 @@ function turtleSVG(expr) {
       <path d="${sad ? "M154 141 q6 -4 12 0" : "M153 136 q7 7 14 0"}" stroke="#24301c" stroke-width="2.6" fill="none" stroke-linecap="round"/></g>
     </g></svg>`;
 }
+// 🏠 Casitas de las mascotitas (mismo estilo: degradados, borde suave y brillo)
+const MP_HOUSE = { perro: { n: "Caseta", c: 120 }, gato: { n: "Cestita con cojín", c: 90 }, conejo: { n: "Conejera", c: 110 }, hamster: { n: "Jaula con rueda", c: 80 }, tortuga: { n: "Estanque", c: 100 } };
+function mpHouseSVG(sp) {
+  const u = "mh" + (++mpUid), sh = `<ellipse cx="60" cy="96" rx="54" ry="6" fill="#000" opacity=".18"/>`;
+  const g = (id, a, b) => `<linearGradient id="${u}${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+  const H = {
+    perro: `<defs>${g("w", "#e0a46c", "#b9773f")}${g("r", "#f06a62", "#c9403b")}</defs>${sh}
+      <rect x="18" y="40" width="84" height="56" rx="4" fill="url(#${u}w)" stroke="#8a5428" stroke-opacity=".5" stroke-width="2"/>
+      <path d="M18 56 H102 M18 72 H102 M18 88 H102" stroke="#8a5428" stroke-opacity=".3" stroke-width="2"/>
+      <path d="M8 46 L60 8 L112 46 L104 52 L60 20 L16 52 Z" fill="url(#${u}r)" stroke="#9c2f2b" stroke-opacity=".5" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M26 40 L60 16" stroke="#fff" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
+      <path d="M42 96 V68 Q42 52 60 52 Q78 52 78 68 V96 Z" fill="#4a2a18"/><path d="M47 96 V70 Q47 58 60 58" stroke="#000" stroke-opacity=".25" stroke-width="3" fill="none"/>
+      <rect x="44" y="28" width="32" height="10" rx="3" fill="#fff4dc" stroke="#8a5428" stroke-opacity=".5"/><circle cx="60" cy="33" r="2.5" fill="#c9403b"/>`,
+    gato: `<defs>${g("b", "#e9b46f", "#b9823d")}${g("c", "#ffc1d2", "#ff8fb0")}</defs>${sh}
+      <ellipse cx="60" cy="70" rx="52" ry="18" fill="#9c6a2e"/><ellipse cx="60" cy="64" rx="44" ry="13" fill="url(#${u}c)"/>
+      <ellipse cx="48" cy="60" rx="14" ry="4" fill="#fff" opacity=".45"/>
+      <path d="M8 70 Q8 94 60 94 Q112 94 112 70 Q112 82 60 84 Q8 82 8 70Z" fill="url(#${u}b)"/>
+      <path d="M8 70 Q8 94 60 94 Q112 94 112 70" fill="none" stroke="#7a4f1f" stroke-opacity=".45" stroke-width="2"/>
+      ${[20, 34, 48, 62, 76, 90, 102].map(x => `<path d="M${x} 74 q4 8 0 16" stroke="#8a5a26" stroke-opacity=".4" stroke-width="2" fill="none"/>`).join("")}
+      <circle cx="100" cy="50" r="7" fill="#7fb7ff"/><path d="M93 50 q7 -10 14 0" stroke="#fff" stroke-width="1.5" fill="none" opacity=".6"/>`,
+    conejo: `<defs>${g("w", "#e3b07b", "#b98149")}${g("r", "#7ccf6a", "#4c9a3d")}</defs>${sh}
+      <rect x="20" y="86" width="6" height="10" fill="#8a5428"/><rect x="94" y="86" width="6" height="10" fill="#8a5428"/>
+      <rect x="12" y="38" width="96" height="50" rx="5" fill="url(#${u}w)" stroke="#8a5428" stroke-opacity=".5" stroke-width="2"/>
+      <rect x="20" y="46" width="44" height="34" rx="3" fill="#5b3a22"/><path d="M20 54 H64 M20 63 H64 M20 72 H64 M29 46 V80 M38 46 V80 M47 46 V80 M56 46 V80" stroke="#d9dde2" stroke-width="1.6" opacity=".9"/>
+      <rect x="70" y="46" width="30" height="34" rx="3" fill="#c98a55" stroke="#8a5428" stroke-opacity=".4"/><circle cx="94" cy="64" r="2.5" fill="#8a5428"/>
+      <path d="M4 42 L60 18 L116 42 Z" fill="url(#${u}r)" stroke="#3d7a30" stroke-opacity=".5" stroke-width="2" stroke-linejoin="round"/>
+      <g transform="translate(84 22) rotate(30)"><path d="M0 0 L6 22 L12 0 Z" fill="#ff9a3c"/><path d="M3 0 l-3 -7 M6 0 v-8 M9 0 l3 -7" stroke="#4c9a3d" stroke-width="2.5" stroke-linecap="round"/></g>`,
+    hamster: `<defs>${g("t", "#8fc8ff", "#4f97e0")}</defs>${sh}
+      <rect x="10" y="80" width="100" height="14" rx="6" fill="url(#${u}t)" stroke="#3a78b8" stroke-opacity=".5" stroke-width="2"/>
+      <path d="M14 82 V46 Q14 8 60 8 Q106 8 106 46 V82" fill="#eaf4ff" fill-opacity=".25"/>
+      <g stroke="#a7b3c2" stroke-width="2.2" fill="none">${[22, 34, 46, 60, 74, 86, 98].map(x => `<path d="M${x} 82 V${x < 30 || x > 90 ? 40 : 26} Q${x} ${x === 60 ? 8 : 14} 60 10"/>`).join("")}<path d="M14 82 V46 Q14 8 60 8 Q106 8 106 46 V82"/><path d="M14 50 H106"/></g>
+      <path d="M52 8 Q60 -2 68 8" stroke="#a7b3c2" stroke-width="3" fill="none"/>
+      <circle cx="80" cy="60" r="16" fill="none" stroke="#ff8fb0" stroke-width="4"/><circle cx="80" cy="60" r="3" fill="#ff8fb0"/><path d="M80 44 V76 M64 60 H96" stroke="#ff8fb0" stroke-width="1.5" opacity=".7"/><path d="M80 76 L80 82" stroke="#ff8fb0" stroke-width="3"/>
+      <ellipse cx="34" cy="78" rx="10" ry="4" fill="#ffd23f"/>`,
+    tortuga: `<defs><radialGradient id="${u}p" cx=".5" cy=".4"><stop offset="0" stop-color="#9be0ff"/><stop offset="1" stop-color="#3fa7dc"/></radialGradient></defs>
+      <ellipse cx="60" cy="80" rx="56" ry="18" fill="#8a8f98"/><ellipse cx="60" cy="78" rx="48" ry="13" fill="url(#${u}p)"/>
+      <path d="M36 76 q8 -4 16 0 M66 82 q8 -4 16 0" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/>
+      ${[[10, 80, 9], [24, 92, 7], [104, 76, 10], [92, 92, 8], [60, 96, 6]].map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r + 2}" ry="${r}" fill="#a9aeb6" stroke="#6f747c" stroke-opacity=".4"/>`).join("")}
+      <ellipse cx="78" cy="74" rx="10" ry="4" fill="#5fb54a"/><path d="M78 74 L86 72" stroke="#3d7a30" stroke-width="1.5"/><circle cx="74" cy="72" r="3" fill="#ff9fc0"/>
+      <path d="M20 74 Q16 46 22 32 M24 74 Q26 50 32 40" stroke="#4c9a3d" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="22" cy="32" rx="3" ry="8" fill="#8a5a38"/>`
+  };
+  return `<svg viewBox="0 0 120 100" class="mphouse-svg">${H[sp] || H.perro}</svg>`;
+}
 function miniPetSVG(sp, expr = "happy") {
-  if (sp === "tortuga") return turtleSVG(expr);
+  if (sp === "tortuga") return turtleSVG(expr === "love" ? "happy" : expr);
   return chickSVG(2, expr, {}, 0, MP_COL[sp] || "blanco", { species: sp });
 }
-const mpHungry = x => !!x && x.fed !== dayKey() && (!x.fed || daysBetween(x.fed, dayKey()) >= 2);
-function miniPetsHTML(p, inside) {
+// con casita aguantan un día más sin ponerse tristes
+const mpHungry = x => !!x && x.fed !== dayKey() && (!x.fed || daysBetween(x.fed, dayKey()) >= (x.house ? 3 : 2));
+function miniPetsHTML(p, inside, mode = "day") {
+  const night = mode === "night";
   return (p.pets || []).slice(0, MP_MAX).map((x, i) => {
-    const h = hashStr(x.name + i), [a, b, back] = MP_LANES[i % MP_LANES.length];
-    return `<button class="minipet ${back ? "back" : ""} ${mpHungry(x) ? "sad" : ""}" data-mp="${i}" style="--l1:${a}%;--l2:${b}%;--d:${9 + (h % 7)}s;--b:${back ? (inside ? 20 : 27) : (inside ? 2 : 3)}%;--s:${Math.round((MP_SIZE[x.sp] || 56) * (back ? .72 : 1))}px;animation-delay:-${h % 10}s" aria-label="${esc(x.name)}"><span class="mpb">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "happy")}</span><span class="mpn">${esc(x.name)}</span></button>`;
+    const h = hashStr(x.name + i), [a, b, back, hx] = MP_LANES[i % MP_LANES.length], sz = Math.round((MP_SIZE[x.sp] || 56) * (back ? .74 : 1));
+    const bot = back ? (inside ? 20 : 27) : (inside ? 2 : 3), home = x.house && !inside, sleeping = home && night;
+    const house = home ? `<div class="mphouse ${back ? "back" : ""}" style="left:${hx}%;--b:${bot}%;--hw:${back ? 66 : 96}px">${mpHouseSVG(x.sp)}</div>` : "";
+    const pos = sleeping ? `--l1:${hx + (hx > 50 ? -9 : 12)}%;--l2:${hx + (hx > 50 ? -9 : 12)}%` : `--l1:${a}%;--l2:${b}%`;
+    return house + `<button class="minipet ${back ? "back" : ""} ${mpHungry(x) ? "sad" : ""} ${sleeping ? "zz" : ""}" data-mp="${i}" style="${pos};--d:${9 + (h % 7)}s;--b:${bot}%;--s:${sz}px;animation-delay:-${h % 10}s" aria-label="${esc(x.name)}"><span class="mpsh"></span><span class="mpb">${miniPetSVG(x.sp, sleeping ? "sleep" : mpHungry(x) ? "sad" : "happy")}</span><span class="mpn">${esc(x.name)}${sleeping ? " 💤" : ""}</span></button>`;
   }).join("");
 }
 function bindMiniPets() {
   document.querySelectorAll("#petSky .minipet").forEach(b => b.onclick = e => {
     e.stopPropagation(); const x = ((state.pet || {}).pets || [])[+b.dataset.mp]; if (!x) return;
     const M = MINIPETS[x.sp] || MINIPETS.conejo; b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+    const mb = b.querySelector(".mpb"); if (mb && !mpHungry(x) && !b.classList.contains("zz")) { mb.innerHTML = miniPetSVG(x.sp, "love"); clearTimeout(b._t); b._t = setTimeout(() => { mb.innerHTML = miniPetSVG(x.sp, "happy"); }, 1800); }
     hearts(b, "💕"); buzz(15); SFX.pop(); toast(`${M.e} ${x.name}: ${rnd(mpHungry(x) ? ["*te mira con carita de hambre* 🥺", "*rasca su cuenco vacío*"] : M.snd)}`, 2200);
   });
 }
@@ -5177,13 +5226,16 @@ function renderMiniPets(p, I) {
   const pets = p.pets || [], pn = esc(p.name || "Pollito"), coins = coinsOf(p), today = dayKey();
   if (I.si === 0) { el.innerHTML = `<div class="empty">Cuando ${pn} nazca podrá tener sus propias mascotas 🐾</div>`; return; }
   let h = pets.length ? pets.map((x, i) => { const M = MINIPETS[x.sp] || MINIPETS.conejo, fed = x.fed === today;
-    return `<div class="mprow"><i class="mpic">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "happy")}</i><div><b>${esc(x.name)}</b><small>${M.n} · ${fed ? "ha comido hoy 😋" : mpHungry(x) ? "¡tiene mucha hambre! 🥺" : "todavía no ha comido hoy"}</small></div><button class="btn ${fed ? "" : "primary"}" data-mpfeed="${i}" ${fed ? "disabled" : ""}>${fed ? "✅" : "🥣 Comida"}</button></div>`; }).join("")
+    const Hs = MP_HOUSE[x.sp] || MP_HOUSE.perro;
+    return `<div class="mprow"><i class="mpic">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "happy")}</i><div><b>${esc(x.name)}</b><small>${M.n} · ${fed ? "ha comido hoy 😋" : mpHungry(x) ? "¡tiene mucha hambre! 🥺" : "todavía no ha comido hoy"}${x.house ? ` · 🏠 ${esc(Hs.n.toLowerCase())}` : ""}</small></div>
+      <div class="mpbtns">${x.house ? "" : `<button class="btn" data-mphouse="${i}" ${coins >= Hs.c ? "" : "disabled"} title="${esc(Hs.n)}">🏠 ${Hs.c}</button>`}<button class="btn ${fed ? "" : "primary"}" data-mpfeed="${i}" ${fed ? "disabled" : ""}>${fed ? "✅" : "🥣"}</button></div></div>`; }).join("")
     : `<div class="sub" style="margin-bottom:4px">${pn} todavía no tiene mascotas. ¡Adoptad una y vivirá con él en la escena! 🐾</div>`;
   if (pets.length < MP_MAX) h += `<div class="slotname">Adoptar <small>(máximo ${MP_MAX})</small></div><div class="mpadopt">${Object.entries(MINIPETS).map(([k, M]) => `<button data-mpadopt="${k}" ${coins >= M.c ? "" : "disabled"}><i class="mpic">${miniPetSVG(k)}</i>${M.n}<small>${M.c} 🪙</small></button>`).join("")}</div>`;
-  h += `<div class="sub" style="font-size:12px;margin-top:8px">Dadles de comer cada día: ${pn} se pone más contento (+cariño) y os dan 3 🪙. Tocadlas en la escena para acariciarlas.</div>`;
+  h += `<div class="sub" style="font-size:12px;margin-top:8px">🥣 Dadles de comer cada día: ${pn} se pone más contento (+cariño) y os dan 3 🪙. 🏠 Con casita duermen en ella por la noche y aguantan un día más sin ponerse tristes. Tocadlas en la escena para acariciarlas.</div>`;
   el.innerHTML = h;
   el.querySelectorAll("[data-mpadopt]").forEach(b => b.onclick = () => mpAdopt(b.dataset.mpadopt));
   el.querySelectorAll("[data-mpfeed]").forEach(b => b.onclick = () => mpFeed(+b.dataset.mpfeed));
+  el.querySelectorAll("[data-mphouse]").forEach(b => b.onclick = () => mpBuyHouse(+b.dataset.mphouse));
 }
 function mpAdopt(sp) {
   const M = MINIPETS[sp], p = state.pet || {}; if (!M) return;
@@ -5192,6 +5244,14 @@ function mpAdopt(sp) {
   const nm = (n.trim() || M.n).slice(0, 16);
   petTx(q => { q.pets = [...(q.pets || [])]; if (q.pets.length >= MP_MAX || coinsOf(q) < M.c) return null; q.coins -= M.c; q.pets.push({ sp, name: nm, at: Date.now(), by: who, fed: dayKey() }); bump(q, "mpadopt"); return q; })
     .then(r => { if (!r) return toast("No se pudo adoptar ahora"); sceneSig = ""; renderPet(); confetti(); setTimeout(() => say(`¡${nm} ${M.e} es mi mascota! ¡Gracias, ${name(who)}! 🥹`, 4000), 500); sendMsg(`🐾 ${r.name || "Pollito"} tiene una mascota nueva: ${nm} ${M.e} ¡Ven a conocerla!`, "pet"); })
+    .catch(offline);
+}
+function mpBuyHouse(i) {
+  const x = ((state.pet || {}).pets || [])[i]; if (!x) return; const Hs = MP_HOUSE[x.sp] || MP_HOUSE.perro;
+  if (coinsOf(state.pet) < Hs.c) return toast(`Necesitáis ${Hs.c} 🪙`);
+  if (!confirm(`¿Comprar ${Hs.n.toLowerCase()} para ${x.name} por ${Hs.c} 🪙?`)) return;
+  petTx(q => { const L = [...(q.pets || [])], y = L[i]; if (!y || y.house || coinsOf(q) < Hs.c) return null; L[i] = { ...y, house: Date.now() }; q.pets = L; q.coins -= Hs.c; bump(q, "buy"); return q; })
+    .then(r => { if (!r) return; sceneSig = ""; if (petView === "in") { petView = "out"; ls.set("petView", "out"); } renderPet(); confetti(); setTimeout(() => say(`¡${x.name} tiene casita nueva! 🏠 Esta noche dormirá ahí 💤`, 4000), 500); sendMsg(`🏠 ${x.name} ya tiene ${Hs.n.toLowerCase()} en el jardín de ${r.name || "Pollito"}`, "pet"); })
     .catch(offline);
 }
 function mpFeed(i) {
