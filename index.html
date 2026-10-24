@@ -2121,6 +2121,24 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 .hnext{cursor:pointer;transition:transform .12s;position:relative;z-index:1}
 .hnext:active{transform:scale(.96)}
 .love:active,.xgrid button:active{transform:scale(.96)}
+/* ===== 3.5 · Ritual del día y «mientras no estabas» ===== */
+.ritual{margin:14px 14px 0;border-radius:20px;padding:14px;background:linear-gradient(150deg,rgba(255,179,138,.16),rgba(255,107,139,.12));border:1px solid rgba(255,179,138,.28)}
+.ritual .rtop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ritual .rtop b{font-size:15.5px}
+.ritual .rtop small{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}
+.ritual .rstep{display:flex;align-items:center;gap:10px;margin-top:10px;background:rgba(0,0,0,.18);border-radius:14px;padding:9px 10px}
+.ritual .rstep>i{font-style:normal;font-size:24px;width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:rgba(255,255,255,.08);flex:none}
+.ritual .rstep span{flex:1;font-size:14px;font-weight:700}
+.ritual .rstep.ok span{text-decoration:line-through;opacity:.55}
+.ritual .rstep .btn{padding:8px 14px;font-size:13.5px}
+.ritual .rstep .chk{font-size:20px}
+.ritual .rdone{text-align:center;padding:6px 0 2px;font-weight:800;font-size:15px}
+.ritual .rdone small{display:block;font-weight:600;font-size:12.5px;color:var(--muted);margin-top:3px}
+.ritual .rnews{position:relative;background:rgba(255,255,255,.07);border-radius:14px;padding:10px 34px 10px 12px;margin-bottom:12px}
+.ritual .rnews b{font-size:14px}
+.ritual .rnews ul{margin:6px 0 8px;padding-left:18px;font-size:13.5px;line-height:1.45}
+.ritual .rnews .x{position:absolute;top:6px;right:6px;background:none;border:0;color:var(--muted);font-size:16px;padding:4px 6px}
+.ritual .rnews .btn{width:100%;padding:9px;font-size:14px}
 </style>
 </head>
 <body>
@@ -2245,6 +2263,7 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
     <div class="knock hidden" id="knockBar"></div>
     <div class="livebar hidden" id="liveBar"></div>
     <div class="roombar hidden" id="roomBar"></div>
+    <div class="ritual hidden" id="petRitual"></div>
     <div style="padding:14px 18px 18px">
       <div style="text-align:center">
         <button class="pet-name" id="petName">Pollito</button> <span style="color:var(--muted);font-size:13px">✏️</span>

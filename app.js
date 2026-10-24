@@ -2335,6 +2335,7 @@ function renderPet() {
   $("stages").innerHTML = STAGES.map((s, k) => `<span class="${k <= si ? "on" : ""}" title="${esc(stageName(k, p.species))}">${k <= si ? stageEmoji(k, p.species) : "?"}<small>${s.xp}</small></span>`).join("");
   renderAlbum(p, color, wear);
   renderShop(p, I);
+  renderRitual(p, I);
   renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderEvent(p); renderDuelBadge(); jobCheck(p); renderKnock(p); renderMail(p); nbBdayNotice(p); renderBack(p); renderFamily(p, I); renderLove(p, I); renderTree(p);
   $("dotPet").classList.toggle("hidden", I.meT && !I.sick && I.nv.food >= 30 && !(forMe || replyForMe) && !missionsClaimable(p) && !(p.trip && tripBack(p)));
 
@@ -4565,12 +4566,61 @@ const EV_TXT = {
   dress: () => "me ha cambiado de ropa 👗", trip: () => "me ha mandado de excursión", treasure: () => "hemos encontrado un tesoro ✨", game: n => `ha jugado ${n > 1 ? n + " partidas" : "una partida"} a los minijuegos`,
   trick: () => "le he enseñado mis trucos 🎪", post: () => "me ha dado una carta para ti ✉️", teach: () => "me ha enseñado una frase secreta 🤫", talk: () => "ha estado charlando conmigo 💬", gift: () => "ha abierto un regalo 🎁"
 };
+// ---------- 💛 3.5 · El ritual del día y lo que ha hecho tu pareja mientras no estabas ----------
+// Cada día el pollito pide solo dos cosas: comer y un capricho. Hecho eso, está feliz y os da un premio.
+const RITUAL = [
+  { k: "hug", e: "🤗", t: () => "Hazme un mimito", go: () => $("petHug").click() },
+  { k: "play", e: "⚽", t: () => "¿Jugamos un rato?", go: () => $("petPlay").click() },
+  { k: "bath", e: "🛁", t: () => "Necesito un bañito", go: () => $("petBath").click() },
+  { k: "teach", e: "🗣️", t: o => `Enséñame una frase para ${o}`, go: () => { const b = $("advTeach"); if (b) b.click(); } }
+];
+const RITUAL_PRIZE = 15;
+let ritClaiming = false;
+let awayNews = (() => { try { const a = JSON.parse(ls.get("awayNews") || "null"); return a && Date.now() - a.at < DAY ? a : null; } catch (e) { return null; } })();
+function ritualWish(I) {
+  const today = dayKey();
+  try { const r = JSON.parse(ls.get("ritual") || "null"); if (r && r.d === today && RITUAL.some(x => x.k === r.k)) return RITUAL.find(x => x.k === r.k); } catch (e) {}
+  // lo que más necesita ahora; si va bien de todo, uno distinto cada día
+  const need = [["love", "hug"], ["fun", "play"], ["clean", "bath"]].filter(([n]) => I.nv[n] < 45).sort((a, b) => I.nv[a[0]] - I.nv[b[0]])[0];
+  const seed = [...(today + who)].reduce((a, c) => a + c.charCodeAt(0), 0);
+  const w = need ? RITUAL.find(x => x.k === need[1]) : RITUAL[seed % RITUAL.length];
+  ls.set("ritual", JSON.stringify({ d: today, k: w.k }));
+  return w;
+}
+function setAwayNews(parts) { awayNews = { o: other(), parts: parts.slice(0, 5), at: Date.now() }; ls.set("awayNews", JSON.stringify(awayNews)); renderRitual(); }
+function clearAwayNews() { awayNews = null; ls.set("awayNews", "null"); renderRitual(); }
+function renderRitual(p, I) {
+  const el = $("petRitual"); if (!el) return;
+  I = I || petInfo(); p = p || I.p;
+  const o = name(other()), pn = esc(p.name || "Pollito"), si = I.si, away = tripAway(p);
+  let h = "";
+  if (awayNews && awayNews.o === other() && si > 0)
+    h += `<div class="rnews"><button class="x" id="ritNewsX" aria-label="Cerrar">✕</button><b>💌 Mientras no estabas, ${esc(o)}…</b><ul>${awayNews.parts.map(x => `<li>${esc(x)}</li>`).join("")}</ul><button class="btn primary" id="ritThanks">💛 Darle las gracias</button></div>`;
+  const wish = si > 0 && !away ? ritualWish(I) : null;
+  const steps = [{ e: si === 0 ? "🔥" : "🍓", t: si === 0 ? "Dame calorcito" : "Tengo hambre, ¿me das de comer?", ok: I.meT, go: () => $("petFeed").click() }];
+  if (wish) steps.push({ e: wish.e, t: wish.t(o), ok: mProg(p, wish.k) >= 1, go: wish.go });
+  const done = steps.every(s => s.ok), claimed = !!(((p.day || {}).rit || {})[who]);
+  if (away) h += `<div class="rdone">${pn} está de excursión 🧳<small>Cuando vuelva te pedirá lo de hoy</small></div>`;
+  else if (done) h += `<div class="rdone">✨ ¡Listo por hoy! ${pn} está feliz 💛<small>${I.otT ? `${esc(o)} también ha venido hoy 💞` : `Ahora le toca a ${esc(o)}`} · mañana te pedirá algo nuevo</small></div>`;
+  else h += `<div class="rtop"><b>Hoy ${pn} te pide…</b><small>${steps.filter(s => s.ok).length}/${steps.length} · +${RITUAL_PRIZE} 🪙</small></div>` +
+    steps.map((s, i) => `<div class="rstep ${s.ok ? "ok" : ""}"><i>${s.e}</i><span>${esc(s.t)}</span>${s.ok ? `<span class="chk">✅</span>` : `<button class="btn primary" data-rit="${i}">Vamos</button>`}</div>`).join("");
+  el.innerHTML = h; el.classList.toggle("hidden", !h);
+  el.querySelectorAll("[data-rit]").forEach(b => b.onclick = () => steps[+b.dataset.rit].go());
+  const nx = $("ritNewsX"); if (nx) nx.onclick = clearAwayNews;
+  const th = $("ritThanks"); if (th) th.onclick = () => { sendMsg(`💛 ¡Gracias por cuidar de ${p.name || "Pollito"}! Me lo ha contado todo 🐥`, "pet"); toast(`Se lo he dicho a ${o} 💌`); clearAwayNews(); };
+  if (done && !claimed && !away && !ritClaiming) {
+    ritClaiming = true; let lvl = 0;
+    petTx(q => { q.day.rit = { ...(q.day.rit || {}) }; if (q.day.rit[who]) return null; q.day.rit[who] = Date.now(); q.coins += RITUAL_PRIZE; lvl = gainExp(q, 5); return q; })
+      .then(r => { ritClaiming = false; if (!r) return; setTimeout(() => { coinFx(RITUAL_PRIZE); say(rnd([`¡Gracias, ${name(who)}! Hoy soy el pollito más feliz 💛`, "¡Me has cuidado genial hoy! 🥰", "¡Qué bien me cuidas! Toma un premio 🪙"]), 3500); react("happy", 2200); }, 1800); lvlToast(lvl); })
+      .catch(e => { ritClaiming = false; offline(e); });
+  }
+}
 function petWelcome() {
   const p = state.pet || {}; if (stageOf(p.xp || 0) === 0) return;
   const since = (p.seen || {})[who] || 0, o = name(other()), me = name(who);
   const agg = {}; (p.log || []).filter(e => e.w === other() && e.at > since).forEach(e => { agg[e.k] = (agg[e.k] || 0) + (e.n || 1); });
   const parts = Object.entries(agg).map(([k, n]) => (EV_TXT[k] ? EV_TXT[k](n) : null)).filter(Boolean);
-  if (parts.length) { say(`¡Hola ${me}! Mientras no estabas, ${o} ${joinY(parts.slice(0, 3))} 🥰`, 6500); react("happy", 2500); }
+  if (parts.length) { say(`¡Hola ${me}! Mientras no estabas, ${o} ${joinY(parts.slice(0, 3))} 🥰`, 6500); react("happy", 2500); setAwayNews(parts); }
   else say(phrase());
   if (Date.now() - since > 10 * 6e4) S.merge("state/pet", { seen: { [who]: Date.now() } });
   const pw = pendingWord(p); if (pw) setTimeout(() => sayWord(pw), parts.length ? 6800 : 500); else setTimeout(() => maybeAsk(), parts.length ? 7000 : 3800);
