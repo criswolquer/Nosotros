@@ -813,6 +813,9 @@ function currentExpr(I) {
   if (I.nv.food < 30) return "hungry";
   if (I.nv.fun < 25) return "bored";
   if (I.bd) return "happy";
+  const M = state.main || {};
+  if (M.together) return "love";
+  if (M.apartAt && Date.now() - M.apartAt < 3 * 36e5) return "sad";
   if (NEEDS.every(([k]) => I.nv[k] >= 60)) return "happy";
   return "normal";
 }
@@ -2207,7 +2210,8 @@ function renderScene(I, pvScene, pvRoom) {
   const h = hourIn(myTz), mode = (h >= 21 || h < 6) ? "night" : (h < 8 || h >= 19) ? "dawn" : "day", month = new Date().getMonth();
   const p = I.p, scene = pvScene || p.scene || "jardin", room = { ...roomOf(p, curRoom), ...(pvRoom || {}) };
   const photo = phOf(memList.find(m => phOf(m)) || {}), wk = wxKind(), away = tripAway(p);
-  const sig = [petView, curRoom, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0, wk, away ? 1 : 0, editMode, JSON.stringify(p.family || []).length, month, treasureReady(p) ? 1 : 0, room.items.reloj && petView === "in" ? Math.floor(Date.now() / 3e5) : 0].join("|");
+  const tog = !!(state.main || {}).together;
+  const sig = [tog ? "tog" : "", petView, curRoom, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0, wk, away ? 1 : 0, editMode, JSON.stringify(p.family || []).length, month, treasureReady(p) ? 1 : 0, room.items.reloj && petView === "in" ? Math.floor(Date.now() / 3e5) : 0].join("|");
   if (sig + famSig(p) === sceneSig) return; sceneSig = sig + famSig(p);
   const S0 = $("petScene");
   let sky = "";
@@ -2242,6 +2246,7 @@ function renderScene(I, pvScene, pvRoom) {
   // familia (mascotas anteriores), pequeñitas a un lado
   (p.family || []).slice(-3).forEach((f, i) => { sky += `<div class="famfig" style="left:${4 + i * 14}%">${chickSVG(Math.min(6, f.stage || 6), "happy", f.wear || {}, 0, f.color, { species: f.species })}</div>`; });
   sky += famScene(p, I);
+  if (tog) { for (let i = 0; i < 9; i++) sky += `<i class="toghrt" style="left:${(6 + i * 11 + (hashStr("t" + i) % 6)).toFixed(0)}%;animation-delay:${(-(hashStr("d" + i) % 60) / 10).toFixed(1)}s;font-size:${14 + hashStr("s" + i) % 12}px">${i % 3 ? "💕" : "💗"}</i>`; if (petView !== "in") sky += `<span class="couple" title="Vosotros dos">💑</span>`; }
   if (I.bd) sky += `<span class="deco" style="left:6%;bottom:8%;font-size:40px">🎂</span><span class="deco flutter" style="right:8%;top:20%;font-size:34px">🎈</span>`;
   sky += `<div class="vign"></div>`;
   $("petSky").innerHTML = sky; bindFamScene();
@@ -2349,7 +2354,7 @@ function renderPet() {
   renderAlbum(p, color, wear);
   renderShop(p, I);
   renderRitual(p, I);
-  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderEvent(p); renderDuelBadge(); jobCheck(p); renderKnock(p); renderMail(p); nbBdayNotice(p); renderBack(p); renderFamily(p, I); renderLove(p, I); renderTree(p);
+  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderMoments(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderEvent(p); renderDuelBadge(); jobCheck(p); renderKnock(p); renderMail(p); nbBdayNotice(p); renderBack(p); renderFamily(p, I); renderLove(p, I); renderTree(p);
   $("dotPet").classList.toggle("hidden", I.meT && !I.sick && I.nv.food >= 30 && !(forMe || replyForMe) && !missionsClaimable(p) && !(p.trip && tripBack(p)));
 
   if (si > 0 && !p.sick && !setOn(p, "lluvia") && I.low >= 2 && sickChecked !== I.today && Date.now() - (p.curedAt || 0) > 12 * 36e5) { sickChecked = I.today; petTx(q => { if (q.sick) return null; q.sick = true; q.sickAt = Date.now(); firstMark(q, "sick"); return q; }).then(r => { if (r) sendMsg(`🤒 ${r.name || "El pollito"} se ha puesto malito. Necesita medicina 💊`, "pet"); }).catch(() => {}); }
@@ -3414,7 +3419,125 @@ function fgEnd() {
     }).catch(() => { $("fgMsg").innerHTML = `¡Has atrapado <b>${score}</b>!<button class="btn" id="fgOut">Salir</button>`; $("fgOut").onclick = fgClose; });
 }
 function fgClose() { if (fg) { fg.run = false; cancelAnimationFrame(fg.raf); } fg = null; $("fgView").classList.add("hidden"); document.body.style.overflow = ""; fgInfo(); }
-$("fgQuit").onclick = () => (mg ? mgClose() : fgClose());
+$("fgQuit").onclick = () => (cp ? cpClose() : mg ? mgClose() : fgClose());
+
+// ---------- 🌠 3.6 · Lluvia de estrellas a dúo: los dos a la vez, en directo ----------
+// Las estrellas salen de una semilla común (las dos pantallas ven lo mismo); lo que atrapa uno desaparece para el otro.
+// 💛 Corazones dorados: solo cuentan si los dos pollitos están debajo a la vez.
+const CP_SECS = 40, CP_GOAL = 45, CP_PRIZE = 40;
+let cp = null, coop = null, coopSeen = "", cpPlayed = 0;
+const cpRng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const coopFresh = d => d && ((d.st === "invite" && Date.now() - d.at < 10 * 6e4) || (d.st === "play" && Date.now() < d.start + (CP_SECS + 30) * 1000));
+function cpPlan(seed) {   // lista fija de estrellas: [{id, t (s), x (0-1), v (px/s), k}]
+  const r = cpRng(seed), L = []; let t = 0.6, i = 0;
+  while (t < CP_SECS - 1) { const g = r() < .09; L.push({ id: i++, t, x: .08 + r() * .84, v: 150 + r() * 70 + t * 2.5, k: g ? "gold" : r() < .12 ? "big" : "star" }); t += .42 - Math.min(.16, t * .004); }
+  return L;
+}
+function watchCoop() { S.watchDoc("games/coop", d => { coop = d; coopUI(); }); }
+function coopUI() {
+  const d = coop, row = $("cpPlay") && $("cpPlay").closest(".mgrow"), o = name(other());
+  const inv = coopFresh(d) && d.st === "invite" && d.by !== who;
+  if (row) { row.classList.toggle("inv", !!inv); $("cpInfo").textContent = inv ? `¡${o} te está esperando para jugar! Toca 💞` : coopFresh(d) && d.st === "invite" && d.by === who ? `Esperando a ${o}…` : "Jugáis los dos a la vez, en directo"; $("cpPlay").textContent = inv ? "Unirme" : "💞"; }
+  if (inv && coopSeen !== "i" + d.at) { coopSeen = "i" + d.at; toast(`🌠 ${o} te invita a la Lluvia de estrellas · Mascota → Minijuegos`, 4000); }
+  if (coopFresh(d) && d.st === "play" && (d.ply || {})[who] && d.start !== cpPlayed && (!cp || cp.start !== d.start)) cpOpen(d);
+  if (cp && d && d.start === cp.start) { cp.caught = d.caught || {}; cp.px = (d.px || {})[other()] ?? cp.px; cp.golds = d.golds || {}; }
+  if (cp && cp.waiting && coopFresh(d) && d.st === "play" && d.start !== cpPlayed) cpOpen(d);
+}
+$("cpPlay").onclick = () => {
+  if (!hatched()) return toast("Primero tiene que nacer 🥚");
+  const d = coop, o = name(other());
+  if (coopFresh(d) && d.st === "invite" && d.by !== who) {   // me uno: la partida empieza en 4 segundos para los dos
+    S.tx("games/coop", x => (x && x.st === "invite" ? { ...x, st: "play", start: Date.now() + 4000, caught: {}, golds: {}, px: {}, ply: { [x.by]: 1, [who]: 1 } } : null)).catch(offline);
+    return;
+  }
+  const seed = Math.floor(Math.random() * 2 ** 31);
+  S.tx("games/coop", () => ({ st: "invite", by: who, at: Date.now(), seed })).then(() => {
+    notifyOther(`🌠 ${name(who)} te invita a jugar a dúo a la Lluvia de estrellas · ¡entra ya!`);
+    cpWait();
+  }).catch(offline);
+};
+function cpCanvas() {
+  $("fgView").classList.remove("hidden"); document.body.style.overflow = "hidden";
+  const cv = $("fgCanvas"), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr; const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr); return { ctx, W, H };
+}
+function cpWait() {
+  if (mg) { mgStop(); mg = null; }
+  cp = { waiting: true, ...cpCanvas(), x: 0, items: [] }; cp.x = cp.W / 2;
+  $("fgScore").textContent = "🌠 a dúo"; $("fgTime").textContent = "";
+  $("fgMsg").innerHTML = `<div style="font-size:44px">💞</div>Esperando a <b>${esc(name(other()))}</b>…<br><small>Le ha llegado un aviso. En cuanto entre, empezáis los dos a la vez</small><button class="btn" id="cpCancel">Cancelar</button>`;
+  $("cpCancel").onclick = () => { S.merge("games/coop", { st: "off" }); cpClose(); };
+  mgSky(cp.ctx, cp.W, cp.H, "#1b1446", "#4a2c7a", 0, "#2e5638");
+}
+function cpOpen(d) {
+  if (cp && cp.raf) cancelAnimationFrame(cp.raf);
+  if (fg) { fg.run = false; cancelAnimationFrame(fg.raf); fg = null; }
+  if (mg) { mgStop(); mg = null; }
+  const c = cpCanvas(); cpPlayed = d.start;
+  cp = { ...c, start: d.start, plan: cpPlan(d.seed), caught: d.caught || {}, golds: d.golds || {}, x: c.W / 2, px: null, ppx: c.W / 2, parts: [], sent: 0, lastSend: 0, done: false, flash: null };
+  $("fgMsg").innerHTML = ""; $("fgScore").textContent = "🌠 0 / " + CP_GOAL; $("fgTime").textContent = "⏱ " + CP_SECS;
+  cp.raf = requestAnimationFrame(cpLoop);
+}
+const cpMove = e => { if (!cp || cp.waiting) return; const r = $("fgCanvas").getBoundingClientRect(); const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left; cp.x = Math.max(28, Math.min(cp.W - 28, cx)); };
+$("fgCanvas").addEventListener("touchmove", e => { if (cp) cpMove(e); }, { passive: true });
+$("fgCanvas").addEventListener("touchstart", e => { if (cp) cpMove(e); }, { passive: true });
+$("fgCanvas").addEventListener("mousemove", e => { if (cp) cpMove(e); });
+const cpPts = it => (it.k === "gold" ? 5 : it.k === "big" ? 2 : 1);
+function cpScore() { let n = 0, me = 0; for (const it of cp.plan) { const w = cp.caught[it.id]; if (w) { n += cpPts(it); if (w === who) me += cpPts(it); } } return { n, me }; }
+function cpLoop() {
+  if (!cp || cp.waiting) return;
+  const now = Date.now(), el = (now - cp.start) / 1000, { ctx, W, H } = cp, cy = H - 70;
+  if (now - cp.lastSend > 260 && Math.abs(cp.x - cp.sent) > 3) { cp.lastSend = now; cp.sent = cp.x; S.merge("games/coop", { px: { [who]: Math.round(cp.x / W * 1000) / 1000 } }); }
+  const ox = cp.px == null ? null : cp.px * W; if (ox != null) cp.ppx += (ox - cp.ppx) * .2;
+  mgSky(ctx, W, H, "#1b1446", "#4a2c7a", el, "#2e5638");
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  if (el < 0) { ctx.font = "900 80px system-ui"; ctx.fillStyle = "#fff"; ctx.fillText(Math.ceil(-el), W / 2, H * .38); ctx.font = "700 17px system-ui"; ctx.fillText("¡Preparados!", W / 2, H * .38 + 60); }
+  for (const it of cp.plan) {
+    if (cp.caught[it.id] || el < it.t) continue;
+    const y = -20 + (el - it.t) * it.v; if (y > H + 30) continue;
+    const x = it.x * W;
+    if (y > cy - 34 && y < cy + 18) {
+      const meIn = Math.abs(x - cp.x) < 40, otIn = Math.abs(x - cp.ppx) < 46 && cp.px != null;
+      if (it.k === "gold" ? meIn && otIn : meIn) {
+        cp.caught[it.id] = who; S.merge("games/coop", { caught: { [it.id]: who } });
+        SFX.pop(); buzz(15); mgBurst(cp.parts, x, y, it.k === "gold" ? ["💛", "💞", "✨"] : ["✨", "⭐"], it.k === "gold" ? 14 : 7);
+        cp.flash = { txt: it.k === "gold" ? "💛 ¡Juntos! +5" : "+" + cpPts(it), t: .7, x }; continue;
+      }
+      if (it.k === "gold" && meIn && !otIn && !cp.hint) { cp.hint = now; cp.flash = { txt: `¡Necesitas a ${name(other())} debajo!`, t: 1.2, x }; }
+    }
+    ctx.save(); ctx.translate(x, y);
+    if (it.k === "gold") { ctx.fillStyle = "rgba(255,215,90,.35)"; ctx.beginPath(); ctx.arc(0, 0, 26 + Math.sin(now / 140) * 3, 0, 7); ctx.fill(); }
+    ctx.font = (it.k === "big" ? 40 : 30) + "px system-ui, Apple Color Emoji, Segoe UI Emoji"; ctx.fillText(it.k === "gold" ? "💛" : it.k === "big" ? "🌟" : "⭐", 0, 0); ctx.restore();
+  }
+  if (cp.hint && now - cp.hint > 2500) cp.hint = 0;
+  // los dos pollitos: el tuyo y el de tu pareja (semitransparente, con su nombre)
+  const drawP = (x, mine) => { ctx.save(); ctx.globalAlpha = mine ? 1 : .6; ctx.fillStyle = "rgba(0,0,0,.2)"; ctx.beginPath(); ctx.ellipse(x, cy + 44, 30, 7, 0, 0, 7); ctx.fill(); mgPet(ctx, x, cy + 18, mine ? 100 : 86, "laugh", 0, 1); ctx.font = "800 13px system-ui"; ctx.lineWidth = 4; ctx.strokeStyle = "rgba(20,10,40,.7)"; const lb = mine ? "Tú" : name(other()), ly = mine ? cy + 58 : cy - 50; ctx.strokeText(lb, x, ly); ctx.fillStyle = userColor(mine ? who : other()); ctx.fillText(lb, x, ly); ctx.restore(); };
+  if (cp.px != null) drawP(cp.ppx, false);
+  drawP(cp.x, true);
+  if (cp.px != null && Math.abs(cp.x - cp.ppx) < 60) { ctx.font = "22px system-ui"; ctx.fillText("💞", (cp.x + cp.ppx) / 2, cy - 64 + Math.sin(now / 200) * 4); }
+  mgParts(ctx, cp.parts, 1 / 60);
+  if (cp.flash && cp.flash.t > 0) { cp.flash.t -= 1 / 60; ctx.font = "900 20px system-ui"; ctx.lineWidth = 5; ctx.strokeStyle = "#2a1b4a"; ctx.fillStyle = "#ffe08a"; const yy = cy - 82 - (1 - cp.flash.t) * 24; ctx.strokeText(cp.flash.txt, cp.flash.x, yy); ctx.fillText(cp.flash.txt, cp.flash.x, yy); }
+  const sc = cpScore(), left = Math.max(0, CP_SECS - Math.max(0, el));
+  $("fgScore").textContent = `🌠 ${sc.n} / ${CP_GOAL}`; $("fgTime").textContent = "⏱ " + Math.ceil(left);
+  if (el >= CP_SECS + 1.2) return cpEnd();
+  cp.raf = requestAnimationFrame(cpLoop);
+}
+function cpEnd() {
+  if (!cp || cp.done) return; cp.done = true; cancelAnimationFrame(cp.raf);
+  const { n, me } = cpScore(), ot = n - me, win = n >= CP_GOAL, o = name(other()), cp_start = cp.start; let gain = 0;
+  let already = 0;
+  petTx(q => { const c = q.day.coop = { ...(q.day.coop || {}) }; if (c[cp_start] !== undefined) { already = c[cp_start]; return null; } if (Object.keys(c).length >= 3) return null;
+    gain = Math.min(CP_PRIZE, Math.round(n * .8) + (win ? 10 : 0)); c[cp_start] = gain; q.coins += gain; gainExp(q, 15); bump(q, "game"); return q; })
+    .catch(() => null).then(r => { if (!r && already) gain = already;
+      if (win) confetti();
+      $("fgMsg").innerHTML = `<div style="font-size:44px">${win ? "🏆" : "🌠"}</div>${win ? "¡Lo habéis conseguido juntos!" : "¡Buen equipo!"}<br>Entre los dos: <b>${n}</b> puntos <small>(${esc(name(who))} ${me} · ${esc(o)} ${ot})</small><br>${gain ? `+${gain} 🪙 para la mascota${r ? "" : " (ya sumadas)"}` : "Hoy ya habéis cobrado las 3 partidas con premio"}<br><small>Meta: ${CP_GOAL} puntos</small>
+        <button class="btn primary" id="cpAgain">Otra vez 🔁</button><button class="btn" id="cpOut">Salir</button>`;
+      $("cpAgain").onclick = () => { cpClose(); $("cpPlay").click(); }; $("cpOut").onclick = cpClose;
+      if (win && r && gain) sendMsg(`🌠 ¡Hemos hecho ${n} puntos juntos en la Lluvia de estrellas! 💞`, "game");
+    });
+}
+function cpClose() { if (cp && cp.raf) cancelAnimationFrame(cp.raf); cp = null; $("fgView").classList.add("hidden"); document.body.style.overflow = ""; $("fgMsg").innerHTML = ""; }
+
 
 
 // =====================================================================
@@ -4369,7 +4492,7 @@ function setPetSeg(s) {
 }
 document.querySelectorAll("#memSegBar button").forEach(b => b.onclick = () => setMemSeg(b.dataset.s));
 // 🗂️ 3.5 · Secciones plegables en Mascota: lo diario abierto, el resto con un toque (se recuerda)
-const FOLD_OPEN = ["Misiones de hoy", "Minijuegos", "Crecimiento", "Camino de premios", "Álbum de fotos"];
+const FOLD_OPEN = ["Misiones de hoy", "Minijuegos", "Crecimiento", "Camino de premios", "Vuestra historia", "Álbum de fotos"];
 function unfoldCard(sec) { if (!sec || !sec.classList.contains("folded")) return; sec.classList.remove("folded"); ls.set("fold:" + sec.dataset.fold, "0"); }
 document.querySelectorAll("#tab-pet section.card").forEach(sec => {
   const lab = sec.firstElementChild; if (!lab || !lab.classList.contains("label")) return;
@@ -4693,6 +4816,9 @@ function petWelcome() {
 function petCtx(I) {
   const p = I.p, o = name(other()), L = [], today = localKey(), now = Date.now();
   if (I.si === 0) return L;
+  const M = state.main || {};
+  if (M.together) L.push(`¡Estáis juntos! Hoy soy el pollito más feliz del mundo 💞`, `Dale un abrazo a ${o} de mi parte 🫂`, "¡Aprovechad cada minuto juntos! 🥰");
+  else if (M.apartAt && now - M.apartAt < 6 * 36e5) L.push("Ya os echo de menos… 🥺", `¿Cuándo volvéis a veros? Ponedlo en la cuenta atrás ✈️`, "Lo bueno es que cada día que pasa queda uno menos 💛");
   if (I.otT && !I.meT) L.push(`${o} ya me ha dado de comer, pero tú todavía no 🥺`, `${o} ha venido a darme de comer. ¿Y tú? 🍓`);
   if (I.meT && !I.otT) L.push(`Tú ya me has dado de comer, pero ${o} todavía no 🥺`);
   if (I.meT && I.otT) L.push("¡Hoy me habéis dado de comer los dos! 💞");
@@ -4989,6 +5115,21 @@ function checkFirsts(d) {
     firstsSeen.add(k); const F = FIRSTM[k]; if (!F || Date.now() - f[k].at > 3 * 6e4) continue;
     setTimeout(() => { toast(`🍼 ¡Primera vez! ${F[1]} ${F[2]}${f[k].info ? " · " + f[k].info : ""}`, 4200); if (!$("tab-pet").classList.contains("hidden")) hearts($("petBox"), F[1]); }, 1200);
   }
+}
+// 💞 Vuestra historia con él: cuándo nació, cada vez que creció y los momentos que habéis celebrado
+let momentsAll = false;
+function renderMoments(p) {
+  const el = $("petMoments"); if (!el) return;
+  const sp = p.species || "pollito", E = [];
+  Object.entries(p.album || {}).forEach(([k, t]) => { k = +k; if (!t || k === 0) return; E.push({ at: k === 1 && p.hatchedAt > 1e12 ? p.hatchedAt : t, e: stageEmoji(k, sp), t: k === 1 ? `¡Nació ${p.name || "vuestro pollito"}!` : `Creció: ahora es ${stageName(k, sp)}`, big: k === 1 || k === 6 }); });
+  (p.moments || []).forEach(m => E.push({ at: m.at, e: m.e, t: m.t, big: /^aniv|^meet/.test(m.id), sub: /^meet/.test(m.id) ? "Os visteis y lo celebrasteis juntos" : "" }));
+  E.sort((a, b) => b.at - a.at);
+  if (p.born) E.push({ at: Math.min(p.born, ...E.map(x => x.at)), e: "🥚", t: "Llegó el huevo", big: false, sub: "Aquí empezó todo" });   // siempre lo primero de la historia
+  if (!E.length) { el.innerHTML = `<div class="empty">Aquí se irán guardando vuestros momentos: cuando nazca, cuando crezca y cada mesiversario o reencuentro que celebréis con él 💞</div>`; return; }
+  const show = momentsAll ? E : E.slice(0, 8);
+  el.innerHTML = `<div class="momline">${show.map(x => `<div class="mom ${x.big ? "big" : ""}"><small>${esc(fmtDate(x.at, { day: "numeric", month: "long", year: "numeric" }))}</small><b><i>${x.e}</i>${esc(x.t)}</b>${x.sub ? `<span>${esc(x.sub)}</span>` : ""}</div>`).join("")}</div>` +
+    (E.length > 8 ? `<button class="linkbtn" id="momMore" style="display:block;margin:2px auto 0">${momentsAll ? "Ver menos" : `Ver los ${E.length} momentos`}</button>` : "");
+  const mb = $("momMore"); if (mb) mb.onclick = () => { momentsAll = !momentsAll; renderMoments(state.pet || p); };
 }
 function renderFirsts(p) {
   const el = $("petFirsts"); if (!el) return;
@@ -5829,7 +5970,7 @@ function renderMeet() {
     const d = Math.max(0, -calDays(m.togetherAt || now));
     el.innerHTML = `<div class="label">Ahora estáis juntos 💞</div><div class="togeth"><span>🥰</span><b>¡Disfrutad mucho!</b><small>${d ? `Juntos desde hace ${d} ${d === 1 ? "día" : "días"}` : "Juntos desde hoy"}</small></div>
       <button class="btn primary" id="meetApart" style="width:100%">✈️ Ya nos hemos separado · poner la próxima fecha</button>`;
-    $("meetApart").onclick = () => S.merge("state/main", { together: false, togetherAt: null });
+    $("meetApart").onclick = () => S.merge("state/main", { together: false, togetherAt: null, apartAt: Date.now() });
     return;
   }
   if (!nx || nx < now - DAY || bogus) {
@@ -10029,7 +10170,7 @@ async function start() {
   S.merge("state/main", { tz: { [who]: myTz } });
   S.watchDoc("state/main", d => { state.main = d || {}; tick(); renderDates(); renderPush(); renderMeet(); renderThink(); });
   S.watchDoc("state/pet", d => { state.pet = d; checkFirsts(d); renderPet(); fgInfo(); nbLiveRefresh(); if (!$("petSheet").classList.contains("hidden") && $("sheetTitle").textContent.startsWith("🌱")) renderGarden(); });
-  watchDiary(); watchOTD(); watchPresence(); watchPetPics(); watchAiMem(); watchWeekly(); watchLive(); spLoadKey(); watchSpicy(); watchSpCal(); watchDuel();
+  watchDiary(); watchOTD(); watchPresence(); watchPetPics(); watchAiMem(); watchWeekly(); watchLive(); watchCoop(); spLoadKey(); watchSpicy(); watchSpCal(); watchDuel();
   // 🎁 Una sola vez para la pareja: el pollito empieza ya en el día 7 (fase «Pequeñín»)
   setTimeout(() => {
     const q = state.pet || {}; if (q.boost7 || (q.xp || 0) >= 7) return;
