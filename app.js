@@ -41,6 +41,25 @@ function fmt(tz, o) { try { return new Intl.DateTimeFormat("es-ES", { timeZone: 
 const hourIn = tz => parseInt(fmt(tz, { hour: "2-digit", hour12: false }), 10) % 24;
 const mood = h => h >= 23 || h < 7 ? "🌙 durmiendo" : h < 12 ? "☀️ mañana" : h < 20 ? "🌤 tarde" : "🌆 noche";
 function offsetMin(tz) { const d = new Date(); try { return Math.round((new Date(d.toLocaleString("en-US", { timeZone: tz })) - new Date(d.toLocaleString("en-US", { timeZone: "UTC" }))) / 6e4); } catch (e) { return 0; } }
+// ⏳ Aviso de Inicio: cuántos días faltan para veros (cambia el mensaje según lo cerca que esté)
+const AVISO_HITOS = { 100: "¡Ya solo tres cifras! 💯", 50: "¡Media centena y bajando! 🎯", 30: "¡Solo un mes! 🗓️", 21: "¡Tres semanas! 🥳", 14: "¡Dos semanas! 🤩", 10: "¡Cuenta atrás de un dígito… casi! 🔟", 7: "¡Una semana! Ve preparando la maleta 🧳", 3: "¡Tres días! 🫣", 2: "¡Pasado mañana! 💓" };
+function renderAviso(next) {
+  const el = $("hAviso"); if (!el) return;
+  const d = next ? calDays(next) : -1;
+  el.classList.toggle("hidden", d < 0); if (d < 0) return;
+  const o = esc(name(other())), m = state.main, now = Date.now();
+  const set = m.nextSet && m.nextSet < next ? m.nextSet : next - 30 * DAY;
+  const pct = Math.min(100, Math.max(0, Math.round((now - set) / (next - set) * 100)));
+  const wk = Math.floor(d / 7), wd = d % 7;
+  const head = d === 0 ? "🥹 ¡Hoy es el día! Hoy ves a " + o
+    : d === 1 ? "✈️ Aviso… ¡mañana llegas! Mañana ves a " + o
+    : `⏳ Aviso… te quedan <b>${d}</b> días para llegar ✈️`;
+  const sub = d === 0 ? "Disfrutad cada minuto 💞"
+    : AVISO_HITOS[d] || (wk >= 2 ? `${wk} semanas${wd ? " y " + wd + (wd === 1 ? " día" : " días") : ""} para ver a ${o}` : `Ya casi ves a ${o} 💓`);
+  el.className = "haviso" + (d <= 7 ? " cerca" : "") + (d === 0 || AVISO_HITOS[d] ? " hito" : "");
+  el.innerHTML = `<div class="avtop">${head}</div><div class="avsub">${sub}</div>${d ? `<div class="avbar"><i style="width:${pct}%"></i></div><div class="avpct">Ya lleváis el ${pct}% de la espera</div>` : ""}`;
+  el.onclick = () => { const c = $("meetCard"); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); };
+}
 function tick() {
   const otz = (state.main.tz && state.main.tz[other()]) || myTz;
   $("meName").textContent = name(who);
@@ -58,9 +77,7 @@ function tick() {
   } else { $("together").textContent = "—"; $("togetherSub").textContent = "días"; }
 
   const next = !state.main.together && state.main.next && !(state.main.nextSet && state.main.next - state.main.nextSet < 30 * 6e4) && state.main.next > Date.now() - DAY ? state.main.next : null;
-  const aviso = next ? Math.floor((next - Date.now()) / DAY) : 0;
-  $("hAviso").textContent = aviso > 0 ? `⏳ Aviso… te ${aviso === 1 ? "queda 1 día" : "quedan " + aviso + " días"} para llegar ✈️` : "";
-  $("hAviso").classList.toggle("hidden", aviso <= 0);
+  renderAviso(next);
   if (next) {
     const ms = next - Date.now();
     if (ms <= 0) { $("countdown").textContent = "¡Ya!"; $("countdownSub").textContent = "🥹"; }
