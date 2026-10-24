@@ -1051,6 +1051,7 @@ function chickSVG(si, expr, wear, crackLevel, colorId, extra = {}) {
     : si >= 2 ? `<path d="M100 70 Q96 58 102 52" stroke="${dark}" stroke-width="4" fill="none" stroke-linecap="round"/>` : "";
   let earsBack = "";
   if (sp === "gato") earsBack = `<path d="M60 90 L66 46 L96 70 Z" fill="${body}"/><path d="M140 90 L134 46 L104 70 Z" fill="${body}"/><path d="M68 80 L71 56 L88 70 Z" fill="#ff9fb4"/><path d="M132 80 L129 56 L112 70 Z" fill="#ff9fb4"/>`;
+  if (sp === "hamster") earsBack = `<circle cx="66" cy="76" r="15" fill="${dark}"/><circle cx="66" cy="77" r="8.5" fill="#ffb3c4"/><circle cx="134" cy="76" r="15" fill="${dark}"/><circle cx="134" cy="77" r="8.5" fill="#ffb3c4"/>`;
   if (sp === "conejo") earsBack = `<ellipse cx="80" cy="44" rx="12" ry="34" fill="${body}" transform="rotate(-10 80 44)"/><ellipse cx="80" cy="46" rx="6" ry="24" fill="#ffb3cf" transform="rotate(-10 80 46)"/><ellipse cx="120" cy="44" rx="12" ry="34" fill="${body}" transform="rotate(10 120 44)"/><ellipse cx="120" cy="46" rx="6" ry="24" fill="#ffb3cf" transform="rotate(10 120 46)"/>`;
   if (earsBack) earsBack = `<g stroke="${line}" stroke-width="2" stroke-opacity=".35" stroke-linejoin="round">${earsBack}</g>`;
   const earsFront = sp === "perro" ? `<g stroke="${line}" stroke-width="2" stroke-opacity=".35">${[[56, 18], [144, -18]].map(([x, r]) => `<ellipse cx="${x}" cy="102" rx="14" ry="30" fill="${dark}" transform="rotate(${r} ${x} 102)"/><ellipse cx="${x}" cy="102" rx="14" ry="30" fill="url(#${u}s)" stroke="none" transform="rotate(${r} ${x} 102)"/>`).join("")}</g>` : "";
@@ -1062,8 +1063,8 @@ function chickSVG(si, expr, wear, crackLevel, colorId, extra = {}) {
     const nose = sp === "perro" ? `<ellipse cx="100" cy="120" rx="8" ry="6" fill="${ink}"/><ellipse cx="97" cy="118" rx="2.5" ry="1.5" fill="#fff" opacity=".6"/>` : `<path d="M95 118 L105 118 L100 124 Z" fill="#ff8fa3"/>`;
     const m = `<g class="beak-low" style="transform-box:fill-box"><path d="M100 125 Q95 131 89 127 M100 125 Q105 131 111 127" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/></g>`;
     const tongue = open && sp === "perro" ? `<path d="M95 130 Q100 144 105 130 Z" fill="#ff6b8b"/>` : open ? `<ellipse cx="100" cy="131" rx="5" ry="${2 + open}" fill="#c2413d"/>` : "";
-    const teeth = sp === "conejo" ? `<rect x="96" y="126" width="8" height="7" rx="1.5" fill="#fff" stroke="#ddd"/>` : "";
-    const whisk = sp === "gato" ? `<path d="M84 122 L62 118 M84 126 L62 128 M116 122 L138 118 M116 126 L138 128" stroke="${ink}" stroke-width="1.6" opacity=".55"/>` : "";
+    const teeth = sp === "conejo" || sp === "hamster" ? `<rect x="96" y="126" width="8" height="7" rx="1.5" fill="#fff" stroke="#ddd"/>` : "";
+    const whisk = sp === "gato" || sp === "hamster" ? `<path d="M84 122 L62 118 M84 126 L62 128 M116 122 L138 118 M116 126 L138 128" stroke="${ink}" stroke-width="1.6" opacity=".55"/>` : "";
     mouth = tongue + nose + m + teeth + whisk;
   }
   const shellFront = si === 1 ? `<path d="M38 132 L50 118 L62 134 L76 116 L90 134 L104 116 L118 134 L132 116 L146 134 L162 118 L162 150 Q162 186 100 186 Q38 186 38 150 Z" fill="#fff6e6" stroke="#e8d9bf" stroke-width="3" stroke-linejoin="round"/>` : "";
@@ -5126,11 +5127,42 @@ const MINIPETS = {
   tortuga: { e: "🐢", n: "Tortuga", c: 100, s: 28, snd: ["*saca la cabecita* 🐢", "*va despacito, pero segura*", "*se esconde y vuelve a salir*"] }
 };
 const MP_MAX = 4;
+// Dibujadas con el mismo estilo que el pollito (gato, perro, conejo y hámster usan su dibujo; la tortuga tiene el suyo)
+const MP_COL = { gato: "naranja", perro: "choco", conejo: "blanco", hamster: { body: "#f3b47a", belly: "#fff2e2", dark: "#d98c4c" } };
+const MP_SIZE = { conejo: 72, gato: 70, perro: 76, hamster: 60, tortuga: 74 };
+const MP_LANES = [[2, 26, 0], [58, 78, 1], [56, 80, 0], [4, 24, 1]];   // [desde %, hasta %, fila]: dos delante y dos detrás, cada una por su zona
+let mpUid = 0;
+function turtleSVG(expr) {
+  const u = "tt" + (++mpUid), sad = expr === "sad", happy = !sad;
+  const eye = x => sad ? `<path d="M${x - 5} 122 q5 4 10 0" stroke="#24301c" stroke-width="3" fill="none" stroke-linecap="round"/>`
+    : `<ellipse cx="${x}" cy="121" rx="5.5" ry="7" fill="#1d2616"/><circle cx="${x + 1.8}" cy="118" r="2.2" fill="#fff"/>`;
+  return `<svg viewBox="0 0 200 200" class="chick turtle ${happy ? "happy" : "sad"}"><defs>
+    <radialGradient id="${u}s" cx=".38" cy=".28" r=".85"><stop offset="0" stop-color="#b6e08a"/><stop offset=".55" stop-color="#7cbf55"/><stop offset="1" stop-color="#4c8a35"/></radialGradient>
+    <radialGradient id="${u}h" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#c8ec9f"/><stop offset=".7" stop-color="#8fcd68"/><stop offset="1" stop-color="#5f9d43"/></radialGradient>
+    <radialGradient id="${u}g"><stop offset="0" stop-color="#000" stop-opacity=".3"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="${u}k"><stop offset="0" stop-color="#ff6f8f" stop-opacity=".9"/><stop offset="1" stop-color="#ff8fa3" stop-opacity="0"/></radialGradient></defs>
+    <ellipse cx="96" cy="176" rx="64" ry="10" fill="url(#${u}g)"/>
+    <g class="bodyg">
+      <g fill="#8fcd68" stroke="#5f9d43" stroke-width="2">${[[58, 160], [128, 160], [70, 150], [118, 150]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="13" ry="10"/>`).join("")}</g>
+      <path d="M38 148 Q30 146 30 140" stroke="#8fcd68" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <path d="M40 150 Q42 82 96 78 Q150 82 152 150 Z" fill="url(#${u}s)" stroke="#3f7a2c" stroke-width="2.4" stroke-opacity=".5"/>
+      <g fill="none" stroke="#3f7a2c" stroke-width="2.2" stroke-opacity=".45" stroke-linejoin="round"><path d="M80 98 L112 98 L122 118 L112 138 L80 138 L70 118 Z"/><path d="M80 98 L66 92 M112 98 L126 92 M122 118 L146 120 M70 118 L46 120 M80 138 L70 150 M112 138 L122 150"/></g>
+      <path d="M38 148 Q96 160 154 148 L152 154 Q96 168 40 154 Z" fill="#e9d38c" stroke="#b89a4c" stroke-width="1.5"/>
+      <ellipse cx="78" cy="96" rx="16" ry="8" fill="#fff" opacity=".3" transform="rotate(-20 78 96)"/>
+      <g class="${happy ? "tt-head" : ""}"><circle cx="160" cy="124" r="25" fill="url(#${u}h)" stroke="#5f9d43" stroke-width="2"/>${eye(152)}${eye(168)}
+      <ellipse cx="148" cy="134" rx="6" ry="4" fill="url(#${u}k)"/><ellipse cx="176" cy="134" rx="6" ry="4" fill="url(#${u}k)"/>
+      <path d="${sad ? "M154 141 q6 -4 12 0" : "M153 136 q7 7 14 0"}" stroke="#24301c" stroke-width="2.6" fill="none" stroke-linecap="round"/></g>
+    </g></svg>`;
+}
+function miniPetSVG(sp, expr = "happy") {
+  if (sp === "tortuga") return turtleSVG(expr);
+  return chickSVG(2, expr, {}, 0, MP_COL[sp] || "blanco", { species: sp });
+}
 const mpHungry = x => !!x && x.fed !== dayKey() && (!x.fed || daysBetween(x.fed, dayKey()) >= 2);
 function miniPetsHTML(p, inside) {
   return (p.pets || []).slice(0, MP_MAX).map((x, i) => {
-    const M = MINIPETS[x.sp] || MINIPETS.conejo, h = hashStr(x.name + i), a = 6 + (h % 30), b = a + 22 + (h % 30);
-    return `<button class="minipet ${mpHungry(x) ? "sad" : ""}" data-mp="${i}" style="--l1:${a}%;--l2:${Math.min(84, b)}%;--d:${10 + (h % 9)}s;--b:${inside ? 6 + (h % 6) : 7 + (h % 7)}%;--s:${M.s}px;animation-delay:-${h % 10}s" aria-label="${esc(x.name)}"><span class="mpb">${M.e}</span><span class="mpn">${esc(x.name)}</span></button>`;
+    const h = hashStr(x.name + i), [a, b, back] = MP_LANES[i % MP_LANES.length];
+    return `<button class="minipet ${back ? "back" : ""} ${mpHungry(x) ? "sad" : ""}" data-mp="${i}" style="--l1:${a}%;--l2:${b}%;--d:${9 + (h % 7)}s;--b:${back ? (inside ? 20 : 27) : (inside ? 2 : 3)}%;--s:${Math.round((MP_SIZE[x.sp] || 56) * (back ? .72 : 1))}px;animation-delay:-${h % 10}s" aria-label="${esc(x.name)}"><span class="mpb">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "happy")}</span><span class="mpn">${esc(x.name)}</span></button>`;
   }).join("");
 }
 function bindMiniPets() {
@@ -5145,9 +5177,9 @@ function renderMiniPets(p, I) {
   const pets = p.pets || [], pn = esc(p.name || "Pollito"), coins = coinsOf(p), today = dayKey();
   if (I.si === 0) { el.innerHTML = `<div class="empty">Cuando ${pn} nazca podrá tener sus propias mascotas 🐾</div>`; return; }
   let h = pets.length ? pets.map((x, i) => { const M = MINIPETS[x.sp] || MINIPETS.conejo, fed = x.fed === today;
-    return `<div class="mprow"><i>${M.e}</i><div><b>${esc(x.name)}</b><small>${M.n} · ${fed ? "ha comido hoy 😋" : mpHungry(x) ? "¡tiene mucha hambre! 🥺" : "todavía no ha comido hoy"}</small></div><button class="btn ${fed ? "" : "primary"}" data-mpfeed="${i}" ${fed ? "disabled" : ""}>${fed ? "✅" : "🥣 Comida"}</button></div>`; }).join("")
+    return `<div class="mprow"><i class="mpic">${miniPetSVG(x.sp, mpHungry(x) ? "sad" : "happy")}</i><div><b>${esc(x.name)}</b><small>${M.n} · ${fed ? "ha comido hoy 😋" : mpHungry(x) ? "¡tiene mucha hambre! 🥺" : "todavía no ha comido hoy"}</small></div><button class="btn ${fed ? "" : "primary"}" data-mpfeed="${i}" ${fed ? "disabled" : ""}>${fed ? "✅" : "🥣 Comida"}</button></div>`; }).join("")
     : `<div class="sub" style="margin-bottom:4px">${pn} todavía no tiene mascotas. ¡Adoptad una y vivirá con él en la escena! 🐾</div>`;
-  if (pets.length < MP_MAX) h += `<div class="slotname">Adoptar <small>(máximo ${MP_MAX})</small></div><div class="mpadopt">${Object.entries(MINIPETS).map(([k, M]) => `<button data-mpadopt="${k}" ${coins >= M.c ? "" : "disabled"}><i>${M.e}</i>${M.n}<small>${M.c} 🪙</small></button>`).join("")}</div>`;
+  if (pets.length < MP_MAX) h += `<div class="slotname">Adoptar <small>(máximo ${MP_MAX})</small></div><div class="mpadopt">${Object.entries(MINIPETS).map(([k, M]) => `<button data-mpadopt="${k}" ${coins >= M.c ? "" : "disabled"}><i class="mpic">${miniPetSVG(k)}</i>${M.n}<small>${M.c} 🪙</small></button>`).join("")}</div>`;
   h += `<div class="sub" style="font-size:12px;margin-top:8px">Dadles de comer cada día: ${pn} se pone más contento (+cariño) y os dan 3 🪙. Tocadlas en la escena para acariciarlas.</div>`;
   el.innerHTML = h;
   el.querySelectorAll("[data-mpadopt]").forEach(b => b.onclick = () => mpAdopt(b.dataset.mpadopt));
