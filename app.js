@@ -1088,6 +1088,8 @@ function chickSVG(si, expr, wear, crackLevel, colorId, extra = {}) {
       <circle cx="100" cy="116" r="51" fill="none" stroke="${bodyStroke ? "#d8cfc2" : line}" stroke-width="2.4" stroke-opacity="${bodyStroke ? 1 : .35}"/>
       ${wear.body ? `<g clip-path="url(#bodyclip)">${itemSVG(wear.body)}</g>` : ""}
       <ellipse cx="80" cy="84" rx="12" ry="7" fill="#fff" opacity=".35" transform="rotate(-25 80 84)"/>
+      <path d="M124.5 73.6 A49 49 0 0 1 148.3 107.5" stroke="#fffbe8" stroke-opacity=".55" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      <g clip-path="url(#bodyclip)"><ellipse cx="100" cy="170" rx="46" ry="14" fill="${extra.bounce || "#a6e27f"}" opacity=".22"/></g>
       ${markSVG(wear.mark, C, "over")}${earsFront}${dirt}${head}${itemSVG(neckItem)}
       ${eyesSVG(expr, u)}
       <ellipse cx="67" cy="123" rx="11" ry="7" fill="${cheekCol}" opacity="${cheekOp}"/>
@@ -2215,7 +2217,7 @@ function renderScene(I, pvScene, pvRoom) {
     S0.className = "scene land-on sc-" + scene + " " + (mode === "day" ? "" : mode);
     S0.style.removeProperty("--wall"); S0.style.removeProperty("--floor");
     sky += landscape(scene, mode, wk, month);
-    sky += ambientHTML(scene, mode, wk, month);
+    sky += ambientHTML(scene, mode, wk, month) + grassFront(scene, mode);
     if (mode !== "day") sky += `<div class="landveil ${mode}"></div>`;
     if (scene === "nieve" || wk === "snow") for (let i = 0; i < 16; i++) sky += `<i class="flake" style="left:${(Math.random() * 100).toFixed(0)}%;animation-delay:${(Math.random() * 6).toFixed(1)}s;animation-duration:${(5 + Math.random() * 4).toFixed(1)}s">❄</i>`;
     if ((wk === "rain" || wk === "storm") && scene !== "mar" && scene !== "espacio") { for (let i = 0; i < 30; i++) sky += `<i class="drop" style="left:${(Math.random() * 100).toFixed(0)}%;animation-delay:${(Math.random() * 1.2).toFixed(2)}s"></i>`; sky += `<span class="umbrella">☂️</span>`; }
@@ -2233,7 +2235,7 @@ function renderScene(I, pvScene, pvRoom) {
   sky += `<div class="vign"></div>`;
   $("petSky").innerHTML = sky; bindFamScene();
   const vk = petView + curRoom; if (renderScene.vk && renderScene.vk !== vk) sceneFade(); renderScene.vk = vk;
-  $("petView").textContent = petView === "in" ? "🌳 Salir" : "🏠 Casita";
+  $("petView").textContent = petView === "in" ? "🌳" : "🏠"; $("petView").title = petView === "in" ? "Salir al jardín" : "Entrar en la casita"; $("petView").setAttribute("aria-label", $("petView").title);
   $("roomBar").classList.toggle("hidden", petView !== "in");
   $("roomBar").innerHTML = ROOMS.map(([id, n]) => `<button class="${id === curRoom ? "on" : ""}" data-room="${id}">${n}</button>`).join("") +
     `<button class="${editMode ? "on" : ""}" id="editBtn">${editMode ? "✅ Listo" : "✏️ Mover"}</button>` + (mode === "night" && room.items.lampara ? `<button id="lightBtn">${room.light === false ? "💡 Encender" : "🌑 Apagar"}</button>` : "");
@@ -4355,6 +4357,18 @@ function setPetSeg(s) {
   lvScrolled = false; renderPet();
 }
 document.querySelectorAll("#memSegBar button").forEach(b => b.onclick = () => setMemSeg(b.dataset.s));
+// 🗂️ 3.5 · Secciones plegables en Mascota: lo diario abierto, el resto con un toque (se recuerda)
+const FOLD_OPEN = ["Misiones de hoy", "Minijuegos", "Crecimiento", "Camino de premios", "Álbum de fotos"];
+function unfoldCard(sec) { if (!sec || !sec.classList.contains("folded")) return; sec.classList.remove("folded"); ls.set("fold:" + sec.dataset.fold, "0"); }
+document.querySelectorAll("#tab-pet section.card").forEach(sec => {
+  const lab = sec.firstElementChild; if (!lab || !lab.classList.contains("label")) return;
+  const key = lab.textContent.replace(/[^\p{L}\s]/gu, "").trim(); sec.dataset.fold = key;
+  const saved = ls.get("fold:" + key), folded = saved === null ? !FOLD_OPEN.some(k => key.startsWith(k)) : saved === "1";
+  sec.classList.add("foldable"); sec.classList.toggle("folded", folded);
+  lab.setAttribute("role", "button"); lab.tabIndex = 0;
+  const toggle = () => { const f = !sec.classList.contains("folded"); sec.classList.toggle("folded", f); ls.set("fold:" + key, f ? "1" : "0"); };
+  lab.onclick = toggle; lab.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } };
+});
 document.querySelectorAll("#petSegBar button").forEach(b => b.onclick = () => setPetSeg(b.dataset.s));
 document.querySelectorAll("[data-pseg]").forEach(e => e.classList.toggle("hidden", e.dataset.pseg !== petSeg));
 document.querySelectorAll("#petSegBar button").forEach(b => b.classList.toggle("on", b.dataset.s === petSeg));
@@ -4589,6 +4603,43 @@ function ritualWish(I) {
 }
 function setAwayNews(parts) { awayNews = { o: other(), parts: parts.slice(0, 5), at: Date.now() }; ls.set("awayNews", JSON.stringify(awayNews)); renderRitual(); }
 function clearAwayNews() { awayNews = null; ls.set("awayNews", "null"); renderRitual(); }
+// 🎉 Vuestros momentos: el pollito los celebra y crece con ellos (una vez por pareja; cada uno ve la fiesta)
+function momentsToday() {
+  const L = [], now = new Date(), m = state.main || {};
+  if (CONFIG.start) {
+    const s = new Date(CONFIG.start + "T12:00:00"), months = (now.getFullYear() - s.getFullYear()) * 12 + now.getMonth() - s.getMonth();
+    const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), sd = Math.min(s.getDate(), last);
+    if (months > 0 && now.getDate() === sd) L.push(months % 12 === 0
+      ? { id: "aniv" + months, e: "💍", t: `¡Feliz aniversario! ${months / 12 === 1 ? "Un año" : months / 12 + " años"} juntos`, c: 100, xp: 3 }
+      : { id: "mes" + months, e: "💞", t: `¡Feliz mesiversario! ${months} meses juntos`, c: 30, xp: 1 });
+    const days = Math.floor((Date.now() - new Date(CONFIG.start + "T00:00:00")) / DAY);
+    if (days > 0 && days % 100 === 0) L.push({ id: "d" + days, e: "💯", t: `¡${days} días juntos!`, c: 40, xp: 1 });
+  }
+  const meetToday = (m.together && m.togetherAt && localKey(new Date(m.togetherAt)) === localKey()) || (!m.together && m.next && calDays(m.next) === 0);
+  if (meetToday) L.push({ id: "meet" + localKey(), e: "🥹", t: "¡Hoy os veis!", c: 50, xp: 2 });
+  return L;
+}
+function celebrateMoment(mo) {
+  let first = false, lvl = 0, evolved = 0;
+  petTx(q => {
+    q.mom = { ...(q.mom || {}) }; const r = { ...(q.mom[mo.id] || {}) };
+    if (r[who]) return null;
+    first = !r.at; r[who] = Date.now();
+    if (first) {
+      r.at = Date.now(); q.coins += mo.c; lvl = gainExp(q, 30);
+      const before = stageOf(q.xp || 0);
+      if (before > 0) { q.xp += mo.xp; const after = stageOf(q.xp); if (after > before) { evolved = after; q.album[after] = Date.now(); } }
+      q.moments = [...(q.moments || []), { id: mo.id, e: mo.e, t: mo.t, at: Date.now() }].slice(-60);
+    }
+    q.mom[mo.id] = r; return q;
+  }).then(r => {
+    if (!r) return;
+    confetti(); hearts($("petBox"), mo.e); react("love", 3000); buzz([30, 40, 30]);
+    setTimeout(() => say(evolved ? `¡Con tanto amor he crecido! Ahora soy ${stageName(evolved, r.species)} ✨` : first ? `${mo.e} ¡Lo celebro con vosotros! Os regalo ${mo.c} 🪙` : `${mo.e} ¡${name(other())} y yo ya lo hemos celebrado, faltabas tú! 🥰`, 4500), 600);
+    if (first) { setTimeout(() => coinFx(mo.c), 900); sendMsg(`${mo.e} ${mo.t} · ${r.name || "Pollito"} lo está celebrando 🎉`, "pet"); }
+    lvlToast(lvl);
+  }).catch(offline);
+}
 function renderRitual(p, I) {
   const el = $("petRitual"); if (!el) return;
   I = I || petInfo(); p = p || I.p;
@@ -4596,6 +4647,8 @@ function renderRitual(p, I) {
   let h = "";
   if (awayNews && awayNews.o === other() && si > 0)
     h += `<div class="rnews"><button class="x" id="ritNewsX" aria-label="Cerrar">✕</button><b>💌 Mientras no estabas, ${esc(o)}…</b><ul>${awayNews.parts.map(x => `<li>${esc(x)}</li>`).join("")}</ul><button class="btn primary" id="ritThanks">💛 Darle las gracias</button></div>`;
+  const mo = si > 0 ? momentsToday().find(m => !(((p.mom || {})[m.id] || {})[who])) : null;
+  if (mo) { const done1 = ((p.mom || {})[mo.id] || {}).at; h += `<div class="rmoment"><i>${mo.e}</i><b>${esc(mo.t)}</b><small>${done1 ? `${esc(o)} ya lo ha celebrado con ${pn}. ¡Te está esperando!` : `${pn} quiere celebrarlo con vosotros: +${mo.c} 🪙 y le hará crecer`}</small><button class="btn primary" id="ritMoment">🎉 ¡Celebrarlo!</button></div>`; }
   const wish = si > 0 && !away ? ritualWish(I) : null;
   const steps = [{ e: si === 0 ? "🔥" : "🍓", t: si === 0 ? "Dame calorcito" : "Tengo hambre, ¿me das de comer?", ok: I.meT, go: () => $("petFeed").click() }];
   if (wish) steps.push({ e: wish.e, t: wish.t(o), ok: mProg(p, wish.k) >= 1, go: wish.go });
@@ -4607,6 +4660,7 @@ function renderRitual(p, I) {
   el.innerHTML = h; el.classList.toggle("hidden", !h);
   el.querySelectorAll("[data-rit]").forEach(b => b.onclick = () => steps[+b.dataset.rit].go());
   const nx = $("ritNewsX"); if (nx) nx.onclick = clearAwayNews;
+  const mb = $("ritMoment"); if (mb && mo) mb.onclick = () => { mb.disabled = true; celebrateMoment(mo); };
   const th = $("ritThanks"); if (th) th.onclick = () => { sendMsg(`💛 ¡Gracias por cuidar de ${p.name || "Pollito"}! Me lo ha contado todo 🐥`, "pet"); toast(`Se lo he dicho a ${o} 💌`); clearAwayNews(); };
   if (done && !claimed && !away && !ritClaiming) {
     ritClaiming = true; let lvl = 0;
@@ -6685,12 +6739,23 @@ $("petBox").addEventListener("pointerdown", () => { const b = $("petBox"); b.cla
 function sceneFade() { const s = $("petSky"); if (!s) return; s.classList.remove("fadein"); void s.offsetWidth; s.classList.add("fadein"); }
 
 // ---------- Ambiente: pájaros, luciérnagas, hojas y luz ----------
+// 🌿 Hierba delante del pollito: da profundidad y se mece con el viento
+const GRASS_C = { jardin: ["#5fb548", "#7cc95b"], bosque: ["#4f9d4a", "#6cb862"], montana: ["#6aa95a", "#8cc477"], amor: ["#e57fa4", "#f5a3c0"] };
+function grassFront(scene, mode) {
+  const C = GRASS_C[scene]; if (!C) return "";
+  let blades = "";
+  for (let i = 0; i < 46; i++) {
+    const x = i * 8.9 + (hashStr("g" + i) % 6), h = 16 + (hashStr("h" + i) % 20), lean = (hashStr("l" + i) % 9) - 4, c = i % 3 ? C[0] : C[1];
+    blades += `<path d="M${x - 3} 40 Q${x + lean / 2} ${40 - h / 2} ${x + lean} ${40 - h} Q${x + lean / 2 + 1} ${40 - h / 2} ${x + 3} 40Z" fill="${c}"/>`;
+  }
+  return `<svg class="grassfront ${mode}" viewBox="0 0 410 40" preserveAspectRatio="none">${blades}</svg>`;
+}
 function ambientHTML(scene, mode, wk, month) {
   let h = "";
   if (["rain", "storm", "snow"].includes(wk) || scene === "espacio" || scene === "mar") return h;
   if (mode === "day") {
     for (let i = 0; i < 2; i++) h += `<svg class="bird" style="top:${12 + i * 9}%;animation-delay:${-i * 7 - Math.random() * 6}s;animation-duration:${16 + i * 5}s" viewBox="0 0 30 12"><path d="M1 6 Q8 0 15 6 Q22 0 29 6" stroke="#3a3a48" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
-    h += `<div class="sunrays"></div>`;
+    h += `<div class="sunrays"></div><div class="lightleak"></div>`;
     for (let i = 0; i < 6; i++) h += `<i class="mote" style="left:${(10 + Math.random() * 80).toFixed(0)}%;top:${(30 + Math.random() * 40).toFixed(0)}%;animation-delay:${(-Math.random() * 8).toFixed(1)}s"></i>`;
   } else if (mode === "night") {
     for (let i = 0; i < 9; i++) h += `<i class="firefly" style="left:${(6 + Math.random() * 88).toFixed(0)}%;top:${(45 + Math.random() * 45).toFixed(0)}%;animation-delay:${(-Math.random() * 6).toFixed(1)}s;animation-duration:${(5 + Math.random() * 4).toFixed(1)}s"></i>`;
@@ -7945,7 +8010,7 @@ function renderNbHouse() {
     const mi = $("nbMateIn"); if (mi) mi.onclick = () => { mi.disabled = true; mateVisit(false).then(renderNbHouse); };
     const mo = $("nbMateOut"); if (mo) mo.onclick = () => { mo.disabled = true; mateVisit(true).then(renderNbHouse); };
     nbDecorate();
-    $("nbLove").onclick = () => { closeBarrio(); const b = document.querySelector('#petSegBar [data-s="hoy"]'); if (b) b.click(); setTimeout(() => { const lc = $("loveCard"); if (lc) lc.scrollIntoView({ behavior: "smooth" }); }, 300); };
+    $("nbLove").onclick = () => { closeBarrio(); const b = document.querySelector('#petSegBar [data-s="hoy"]'); if (b) b.click(); setTimeout(() => { const lc = $("loveCard"); if (lc) { unfoldCard(lc); lc.scrollIntoView({ behavior: "smooth" }); } }, 300); };
     return;
   }
   const N = NB[nbCur]; if (!N) { nbCur = null; return renderBarrio(); }
