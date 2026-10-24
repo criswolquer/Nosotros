@@ -2211,7 +2211,7 @@ function renderScene(I, pvScene, pvRoom) {
   const p = I.p, scene = pvScene || p.scene || "jardin", room = { ...roomOf(p, curRoom), ...(pvRoom || {}) };
   const photo = phOf(memList.find(m => phOf(m)) || {}), wk = wxKind(), away = tripAway(p);
   const tog = !!(state.main || {}).together;
-  const sig = [tog ? "tog" : "", petView, curRoom, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0, wk, away ? 1 : 0, editMode, JSON.stringify(p.family || []).length, month, treasureReady(p) ? 1 : 0, room.items.reloj && petView === "in" ? Math.floor(Date.now() / 3e5) : 0].join("|");
+  const sig = [tog ? "tog" : "", (p.pets || []).map(x => x.sp + x.name + (mpHungry(x) ? 1 : 0)).join(","), petView, curRoom, mode, scene, JSON.stringify(room), photo.length, I.bd ? 1 : 0, wk, away ? 1 : 0, editMode, JSON.stringify(p.family || []).length, month, treasureReady(p) ? 1 : 0, room.items.reloj && petView === "in" ? Math.floor(Date.now() / 3e5) : 0].join("|");
   if (sig + famSig(p) === sceneSig) return; sceneSig = sig + famSig(p);
   const S0 = $("petScene");
   let sky = "";
@@ -2249,7 +2249,8 @@ function renderScene(I, pvScene, pvRoom) {
   if (tog) { for (let i = 0; i < 9; i++) sky += `<i class="toghrt" style="left:${(6 + i * 11 + (hashStr("t" + i) % 6)).toFixed(0)}%;animation-delay:${(-(hashStr("d" + i) % 60) / 10).toFixed(1)}s;font-size:${14 + hashStr("s" + i) % 12}px">${i % 3 ? "💕" : "💗"}</i>`; if (petView !== "in") sky += `<span class="couple" title="Vosotros dos">💑</span>`; }
   if (I.bd) sky += `<span class="deco" style="left:6%;bottom:8%;font-size:40px">🎂</span><span class="deco flutter" style="right:8%;top:20%;font-size:34px">🎈</span>`;
   sky += `<div class="vign"></div>`;
-  $("petSky").innerHTML = sky; bindFamScene();
+  sky += miniPetsHTML(p, petView === "in");
+  $("petSky").innerHTML = sky; bindFamScene(); bindMiniPets();
   const vk = petView + curRoom; if (renderScene.vk && renderScene.vk !== vk) sceneFade(); renderScene.vk = vk;
   $("petView").textContent = petView === "in" ? "🌳" : "🏠"; $("petView").title = petView === "in" ? "Salir al jardín" : "Entrar en la casita"; $("petView").setAttribute("aria-label", $("petView").title);
   $("roomBar").classList.toggle("hidden", petView !== "in");
@@ -2354,7 +2355,7 @@ function renderPet() {
   renderAlbum(p, color, wear);
   renderShop(p, I);
   renderRitual(p, I);
-  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderMoments(p); renderWords(p); renderCollections(p); renderGamesPet(p); renderEvent(p); renderDuelBadge(); jobCheck(p); renderKnock(p); renderMail(p); nbBdayNotice(p); renderBack(p); renderFamily(p, I); renderLove(p, I); renderTree(p);
+  renderMissions(p, I); renderLevels(p, I); renderAdventures(p, I); renderFirsts(p); renderMoments(p); renderMiniPets(p, I); renderWords(p); renderCollections(p); renderGamesPet(p); renderEvent(p); renderDuelBadge(); jobCheck(p); renderKnock(p); renderMail(p); nbBdayNotice(p); renderBack(p); renderFamily(p, I); renderLove(p, I); renderTree(p);
   $("dotPet").classList.toggle("hidden", I.meT && !I.sick && I.nv.food >= 30 && !(forMe || replyForMe) && !missionsClaimable(p) && !(p.trip && tripBack(p)));
 
   if (si > 0 && !p.sick && !setOn(p, "lluvia") && I.low >= 2 && sickChecked !== I.today && Date.now() - (p.curedAt || 0) > 12 * 36e5) { sickChecked = I.today; petTx(q => { if (q.sick) return null; q.sick = true; q.sickAt = Date.now(); firstMark(q, "sick"); return q; }).then(r => { if (r) sendMsg(`🤒 ${r.name || "El pollito"} se ha puesto malito. Necesita medicina 💊`, "pet"); }).catch(() => {}); }
@@ -4492,7 +4493,7 @@ function setPetSeg(s) {
 }
 document.querySelectorAll("#memSegBar button").forEach(b => b.onclick = () => setMemSeg(b.dataset.s));
 // 🗂️ 3.5 · Secciones plegables en Mascota: lo diario abierto, el resto con un toque (se recuerda)
-const FOLD_OPEN = ["Misiones de hoy", "Minijuegos", "Crecimiento", "Camino de premios", "Vuestra historia", "Álbum de fotos"];
+const FOLD_OPEN = ["Sus mascotas", "Misiones de hoy", "Minijuegos", "Crecimiento", "Camino de premios", "Vuestra historia", "Álbum de fotos"];
 function unfoldCard(sec) { if (!sec || !sec.classList.contains("folded")) return; sec.classList.remove("folded"); ls.set("fold:" + sec.dataset.fold, "0"); }
 document.querySelectorAll("#tab-pet section.card").forEach(sec => {
   const lab = sec.firstElementChild; if (!lab || !lab.classList.contains("label")) return;
@@ -5116,6 +5117,59 @@ function checkFirsts(d) {
     setTimeout(() => { toast(`🍼 ¡Primera vez! ${F[1]} ${F[2]}${f[k].info ? " · " + f[k].info : ""}`, 4200); if (!$("tab-pet").classList.contains("hidden")) hearts($("petBox"), F[1]); }, 1200);
   }
 }
+// 🐾 3.7 · Mascotitas del pollito: viven con él en la escena, se acarician y se les da de comer cada día
+const MINIPETS = {
+  conejo: { e: "🐰", n: "Conejito", c: 120, s: 32, snd: ["*mueve la naricita* 🐰", "*da un saltito* 🥕", "*se limpia las orejas*"] },
+  gato: { e: "🐱", n: "Gatito", c: 160, s: 32, snd: ["¡Miau! 😺", "*ronronea* 💕", "*se estira y bosteza*"] },
+  perro: { e: "🐶", n: "Perrito", c: 160, s: 34, snd: ["¡Guau guau! 🐶", "*mueve la colita*", "*te trae una pelota* ⚽"] },
+  hamster: { e: "🐹", n: "Hámster", c: 90, s: 26, snd: ["*se llena los mofletes* 🐹", "*corre en círculos*", "¡Ñic ñic!"] },
+  tortuga: { e: "🐢", n: "Tortuga", c: 100, s: 28, snd: ["*saca la cabecita* 🐢", "*va despacito, pero segura*", "*se esconde y vuelve a salir*"] }
+};
+const MP_MAX = 4;
+const mpHungry = x => !!x && x.fed !== dayKey() && (!x.fed || daysBetween(x.fed, dayKey()) >= 2);
+function miniPetsHTML(p, inside) {
+  return (p.pets || []).slice(0, MP_MAX).map((x, i) => {
+    const M = MINIPETS[x.sp] || MINIPETS.conejo, h = hashStr(x.name + i), a = 6 + (h % 30), b = a + 22 + (h % 30);
+    return `<button class="minipet ${mpHungry(x) ? "sad" : ""}" data-mp="${i}" style="--l1:${a}%;--l2:${Math.min(84, b)}%;--d:${10 + (h % 9)}s;--b:${inside ? 6 + (h % 6) : 7 + (h % 7)}%;--s:${M.s}px;animation-delay:-${h % 10}s" aria-label="${esc(x.name)}"><span class="mpb">${M.e}</span><span class="mpn">${esc(x.name)}</span></button>`;
+  }).join("");
+}
+function bindMiniPets() {
+  document.querySelectorAll("#petSky .minipet").forEach(b => b.onclick = e => {
+    e.stopPropagation(); const x = ((state.pet || {}).pets || [])[+b.dataset.mp]; if (!x) return;
+    const M = MINIPETS[x.sp] || MINIPETS.conejo; b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+    hearts(b, "💕"); buzz(15); SFX.pop(); toast(`${M.e} ${x.name}: ${rnd(mpHungry(x) ? ["*te mira con carita de hambre* 🥺", "*rasca su cuenco vacío*"] : M.snd)}`, 2200);
+  });
+}
+function renderMiniPets(p, I) {
+  const el = $("petPets"); if (!el) return;
+  const pets = p.pets || [], pn = esc(p.name || "Pollito"), coins = coinsOf(p), today = dayKey();
+  if (I.si === 0) { el.innerHTML = `<div class="empty">Cuando ${pn} nazca podrá tener sus propias mascotas 🐾</div>`; return; }
+  let h = pets.length ? pets.map((x, i) => { const M = MINIPETS[x.sp] || MINIPETS.conejo, fed = x.fed === today;
+    return `<div class="mprow"><i>${M.e}</i><div><b>${esc(x.name)}</b><small>${M.n} · ${fed ? "ha comido hoy 😋" : mpHungry(x) ? "¡tiene mucha hambre! 🥺" : "todavía no ha comido hoy"}</small></div><button class="btn ${fed ? "" : "primary"}" data-mpfeed="${i}" ${fed ? "disabled" : ""}>${fed ? "✅" : "🥣 Comida"}</button></div>`; }).join("")
+    : `<div class="sub" style="margin-bottom:4px">${pn} todavía no tiene mascotas. ¡Adoptad una y vivirá con él en la escena! 🐾</div>`;
+  if (pets.length < MP_MAX) h += `<div class="slotname">Adoptar <small>(máximo ${MP_MAX})</small></div><div class="mpadopt">${Object.entries(MINIPETS).map(([k, M]) => `<button data-mpadopt="${k}" ${coins >= M.c ? "" : "disabled"}><i>${M.e}</i>${M.n}<small>${M.c} 🪙</small></button>`).join("")}</div>`;
+  h += `<div class="sub" style="font-size:12px;margin-top:8px">Dadles de comer cada día: ${pn} se pone más contento (+cariño) y os dan 3 🪙. Tocadlas en la escena para acariciarlas.</div>`;
+  el.innerHTML = h;
+  el.querySelectorAll("[data-mpadopt]").forEach(b => b.onclick = () => mpAdopt(b.dataset.mpadopt));
+  el.querySelectorAll("[data-mpfeed]").forEach(b => b.onclick = () => mpFeed(+b.dataset.mpfeed));
+}
+function mpAdopt(sp) {
+  const M = MINIPETS[sp], p = state.pet || {}; if (!M) return;
+  if (coinsOf(p) < M.c) return toast(`Necesitáis ${M.c} 🪙`);
+  const n = prompt(`¿Cómo se va a llamar el ${M.n.toLowerCase()} de ${p.name || "Pollito"}?`, ""); if (n === null) return;
+  const nm = (n.trim() || M.n).slice(0, 16);
+  petTx(q => { q.pets = [...(q.pets || [])]; if (q.pets.length >= MP_MAX || coinsOf(q) < M.c) return null; q.coins -= M.c; q.pets.push({ sp, name: nm, at: Date.now(), by: who, fed: dayKey() }); bump(q, "mpadopt"); return q; })
+    .then(r => { if (!r) return toast("No se pudo adoptar ahora"); sceneSig = ""; renderPet(); confetti(); setTimeout(() => say(`¡${nm} ${M.e} es mi mascota! ¡Gracias, ${name(who)}! 🥹`, 4000), 500); sendMsg(`🐾 ${r.name || "Pollito"} tiene una mascota nueva: ${nm} ${M.e} ¡Ven a conocerla!`, "pet"); })
+    .catch(offline);
+}
+function mpFeed(i) {
+  let ok = false, nm = "", e = "";
+  petTx(q => { const L = [...(q.pets || [])], x = L[i]; if (!x || x.fed === dayKey()) return null; L[i] = { ...x, fed: dayKey() }; q.pets = L; nm = x.name; e = (MINIPETS[x.sp] || MINIPETS.conejo).e; q.coins += 3; setNeed(q, "love", 8); bump(q, "mpfeed"); ok = true; return q; })
+    .then(r => { if (!ok) return; sceneSig = ""; renderPet(); coinFx(3); setTimeout(() => say(`¡Gracias por darle de comer a ${nm}! ${e}💛`), 400); })
+    .catch(offline);
+}
+Object.assign(EV_TXT, { mpfeed: () => "le ha dado de comer a mis mascotas 🐾", mpadopt: () => "me ha adoptado una mascota 🐾" });
+
 // 💞 Vuestra historia con él: cuándo nació, cada vez que creció y los momentos que habéis celebrado
 let momentsAll = false;
 function renderMoments(p) {

@@ -2184,6 +2184,28 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 .mgrow.coop{background:linear-gradient(120deg,rgba(255,107,139,.14),rgba(123,97,255,.14));border-radius:14px;padding:10px;border-bottom:0;margin-top:6px}
 .mgrow.coop.inv{box-shadow:0 0 0 2px var(--accent);animation:coopglow 1.4s ease-in-out infinite}
 @keyframes coopglow{50%{box-shadow:0 0 0 5px rgba(255,107,139,.35)}}
+/* ===== 3.7 · Mascotitas del pollito ===== */
+.minipet{position:absolute;bottom:var(--b,9%);left:var(--l1);z-index:3;pointer-events:auto;border:0;background:none;padding:0;animation:mpwalk var(--d,14s) ease-in-out infinite alternate;cursor:pointer}
+.minipet .mpb{display:block;font-size:var(--s,34px);line-height:1;animation:mphop 1.3s ease-in-out infinite;filter:drop-shadow(0 4px 3px rgba(0,0,0,.28))}
+.minipet .mpn{display:block;font-size:10.5px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin-top:-2px;text-align:center}
+.minipet.sad .mpb{animation:none;filter:grayscale(.35) drop-shadow(0 4px 3px rgba(0,0,0,.28))}
+.minipet.pop .mpb{animation:mppop .5s ease-out}
+@keyframes mpwalk{from{left:var(--l1)}to{left:var(--l2)}}
+@keyframes mphop{0%,60%,100%{transform:translateY(0)}75%{transform:translateY(-7px)}}
+@keyframes mppop{0%{transform:scale(1)}40%{transform:scale(1.35) rotate(-8deg)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.minipet,.minipet .mpb{animation:none}}
+.mprow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.mprow:last-child{border-bottom:0}
+.mprow>i{flex:none;width:46px;height:46px;display:grid;place-items:center;border-radius:15px;font-size:27px;font-style:normal;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.14),rgba(255,255,255,.04))}
+.mprow>div{flex:1;min-width:0}
+.mprow b{font-size:14.5px}
+.mprow small{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.mprow .btn{padding:8px 11px;font-size:13px;white-space:nowrap}
+.mpadopt{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:6px}
+.mpadopt button{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:16px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:700;font-size:13px}
+.mpadopt button i{font-style:normal;font-size:30px}
+.mpadopt button small{font-size:11.5px;color:var(--muted);font-weight:700}
+.mpadopt button:disabled{opacity:.45}
 </style>
 </head>
 <body>
@@ -2342,6 +2364,11 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
   <section class="card" data-pseg="hoy" id="loveCard">
     <div class="label">Amor y familia 💞</div>
     <div id="petLove"></div>
+  </section>
+
+  <section class="card" data-pseg="hoy" id="mpCard">
+    <div class="label">Sus mascotas 🐾</div>
+    <div id="petPets"></div>
   </section>
 
   <section class="card" data-pseg="hoy">
