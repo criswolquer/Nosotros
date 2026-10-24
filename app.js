@@ -58,6 +58,9 @@ function tick() {
   } else { $("together").textContent = "—"; $("togetherSub").textContent = "días"; }
 
   const next = !state.main.together && state.main.next && !(state.main.nextSet && state.main.next - state.main.nextSet < 30 * 6e4) && state.main.next > Date.now() - DAY ? state.main.next : null;
+  const aviso = next ? Math.floor((next - Date.now()) / DAY) : 0;
+  $("hAviso").textContent = aviso > 0 ? `⏳ Aviso… te ${aviso === 1 ? "queda 1 día" : "quedan " + aviso + " días"} para llegar ✈️` : "";
+  $("hAviso").classList.toggle("hidden", aviso <= 0);
   if (next) {
     const ms = next - Date.now();
     if (ms <= 0) { $("countdown").textContent = "¡Ya!"; $("countdownSub").textContent = "🥹"; }
