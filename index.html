@@ -2139,6 +2139,30 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 .ritual .rnews ul{margin:6px 0 8px;padding-left:18px;font-size:13.5px;line-height:1.45}
 .ritual .rnews .x{position:absolute;top:6px;right:6px;background:none;border:0;color:var(--muted);font-size:16px;padding:4px 6px}
 .ritual .rnews .btn{width:100%;padding:9px;font-size:14px}
+/* ===== 3.5 · Gráficos: escena con más profundidad y luz ===== */
+.viewbtn,.viewbtn.nbbtn{top:12px;width:40px;height:40px;padding:0;border-radius:50%;font-size:19px;display:grid;place-items:center;background:rgba(255,255,255,.92);-webkit-backdrop-filter:none;backdrop-filter:none}
+.viewbtn{right:106px}
+.viewbtn.nbbtn{right:154px}
+.grassfront{position:absolute;left:-2%;width:104%;bottom:-2px;height:42px;z-index:3;pointer-events:none;transform-origin:50% 100%;animation:grasssway 5s ease-in-out infinite}
+.grassfront.night{filter:brightness(.45) saturate(.7)}
+.grassfront.dawn{filter:brightness(.85) sepia(.15)}
+@keyframes grasssway{0%,100%{transform:skewX(0)}50%{transform:skewX(-3deg)}}
+.lightleak{position:absolute;inset:0;pointer-events:none;background:radial-gradient(70% 55% at 88% 6%,rgba(255,244,205,.38),rgba(255,244,205,0) 70%);mix-blend-mode:screen}
+.scene.land-on.night .petbox .chick{filter:brightness(.74) saturate(.78) drop-shadow(0 0 10px rgba(180,200,255,.18))}
+.scene.land-on.dawn .petbox .chick{filter:saturate(1.06) sepia(.14) brightness(.98)}
+@media (prefers-reduced-motion:reduce){.grassfront{animation:none}}
+.ritual .rmoment{text-align:center;background:radial-gradient(120% 100% at 50% 0%,rgba(255,215,120,.28),rgba(255,107,139,.12));border:1px solid rgba(255,215,120,.4);border-radius:16px;padding:14px 12px 12px;margin-bottom:12px}
+.ritual .rmoment i{display:block;font-style:normal;font-size:40px;line-height:1;animation:beat 1.6s ease-in-out infinite}
+.ritual .rmoment b{display:block;font-size:17px;margin-top:6px}
+.ritual .rmoment small{display:block;font-size:12.5px;color:var(--muted);margin:4px 0 10px}
+.ritual .rmoment .btn{width:100%}
+.say{top:62px;z-index:6}
+.card.foldable>.label{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none;-webkit-user-select:none}
+.card.foldable>.label::after{content:"";flex:none;width:9px;height:9px;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:rotate(45deg) translateY(-3px);transition:transform .2s;opacity:.7;margin-right:4px}
+.card.foldable.folded>.label::after{transform:rotate(-45deg)}
+.card.foldable.folded{padding-bottom:16px}
+.card.foldable.folded>.label{margin-bottom:0}
+.card.foldable.folded>:not(.label){display:none!important}
 </style>
 </head>
 <body>
@@ -2242,7 +2266,7 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
       <div class="sky" id="petSky"></div>
       <div class="coins" id="petCoins">🪙 0</div>
       <div class="lvlpill" id="petLvl">Nv. 1</div>
-      <button class="viewbtn" id="petView">🏠 Casita</button><button class="viewbtn nbbtn" id="petBarrio">🏘️ Barrio</button>
+      <button class="viewbtn" id="petView" title="Entrar en la casita" aria-label="Entrar en la casita">🏠</button><button class="viewbtn nbbtn" id="petBarrio" title="Ir al barrio" aria-label="Ir al barrio">🏘️</button>
       <div class="say hidden" id="petSay"></div>
       <div class="petbox" id="petBox"></div>
       <div class="lookfor hidden" id="petLook"></div>
