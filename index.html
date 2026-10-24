@@ -2186,9 +2186,15 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 @keyframes coopglow{50%{box-shadow:0 0 0 5px rgba(255,107,139,.35)}}
 /* ===== 3.7 · Mascotitas del pollito ===== */
 .minipet{position:absolute;bottom:var(--b,9%);left:var(--l1);z-index:3;pointer-events:auto;border:0;background:none;padding:0;animation:mpwalk var(--d,14s) ease-in-out infinite alternate;cursor:pointer}
-.minipet .mpb{display:block;font-size:var(--s,34px);line-height:1;animation:mphop 1.3s ease-in-out infinite;filter:drop-shadow(0 4px 3px rgba(0,0,0,.28))}
-.minipet .mpn{display:block;font-size:10.5px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin-top:-2px;text-align:center}
-.minipet.sad .mpb{animation:none;filter:grayscale(.35) drop-shadow(0 4px 3px rgba(0,0,0,.28))}
+.minipet .mpb{display:block;width:var(--s,56px);height:var(--s,56px);animation:mphop 1.3s ease-in-out infinite}
+.minipet .mpb svg,.mpic svg{width:100%;height:100%;overflow:visible;display:block}
+.mpic{display:block;width:44px;height:44px;font-style:normal}
+.mprow>i.mpic{width:46px;height:46px;padding:3px}
+.mpadopt button i.mpic{width:52px;height:52px}
+.turtle .tt-head{animation:ttnod 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:20% 60%}
+@keyframes ttnod{0%,70%,100%{transform:translateX(0)}80%{transform:translateX(5px) rotate(4deg)}}
+.minipet .mpn{display:block;font-size:10.5px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);margin-top:-6px;text-align:center}
+.minipet.sad .mpb{animation:none;filter:grayscale(.3)}
 .minipet.pop .mpb{animation:mppop .5s ease-out}
 @keyframes mpwalk{from{left:var(--l1)}to{left:var(--l2)}}
 @keyframes mphop{0%,60%,100%{transform:translateY(0)}75%{transform:translateY(-7px)}}
@@ -2206,6 +2212,10 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 .mpadopt button i{font-style:normal;font-size:30px}
 .mpadopt button small{font-size:11.5px;color:var(--muted);font-weight:700}
 .mpadopt button:disabled{opacity:.45}
+.scene.land-on.night .minipet .mpb{filter:brightness(.74) saturate(.78)}
+.scene.land-on.dawn .minipet .mpb{filter:saturate(1.06) sepia(.14)}
+.minipet.back{z-index:1}
+.minipet.back .mpn{opacity:.85}
 </style>
 </head>
 <body>
