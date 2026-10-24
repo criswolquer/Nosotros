@@ -230,7 +230,7 @@ const TRAITS = {
   jugueton: { e: "⚽", n: "Juguetón", d: "Se aburre rápido, pero jugar le da más experiencia", mul: { fun: 1.35 } },
   mimoso: { e: "🥰", n: "Mimoso", d: "Necesita cariño a menudo; los mimos valen el doble", mul: { love: 1.35 } }
 };
-const RATE = { food: 3.2, love: 2.5, fun: 3, clean: 1.6, energy: 2.2 };   // puntos que bajan por hora
+const RATE = { food: 3.2, love: 2.5, fun: 3, clean: 1.6, energy: 1.3 };   // puntos que bajan por hora
 const NEEDS = [["food", "🍗", "Hambre"], ["love", "💗", "Cariño"], ["fun", "🎈", "Diversión"], ["clean", "🫧", "Limpieza"], ["energy", "⚡", "Energía"]];
 
 // ---------- Catálogo de la tienda ----------
@@ -775,7 +775,7 @@ function needNow(p, k, now = Date.now()) {
   const h = Math.max(0, (now - n.t) / 36e5), mul = ((((TRAITS[p.trait] || {}).mul || {})[k]) || 1) * needMul(p, k);
   if (k === "energy") {
     const a = Math.max(n.t, p.napStart || 0), b = Math.min(now, p.nap || 0), sl = Math.max(0, (b - a) / 36e5);
-    return clamp(n.v - (h - sl) * RATE.energy * mul + sl * 16);
+    return clamp(n.v - (h - sl) * RATE.energy * mul + sl * 32);   // durmiendo recupera 32 por hora
   }
   return clamp(n.v - h * RATE[k] * mul);
 }
@@ -1821,9 +1821,20 @@ function dressWith(wear, color, label) {
   petTx(q => { settle(q); const w = {}; for (const [s, id] of Object.entries(wear || {})) if (id && CAT[id] && isOwned(q, CAT[id])) w[s] = id; q.wear = w; if (color && COLM[color] && isOwned(q, COLM[color])) q.color = color; bump(q, "dress"); return q; })
     .then(r => { preview = null; react("happy", 2200); say(label, 3000); announceSets(before, r); }).catch(offline);
 }
+// 🧺 Todo lo que tenéis para vestirle, por partes del cuerpo (toca para ponérselo o quitárselo)
+function ownedClothesHTML(p) {
+  const groups = [...SLOTS, ["mark", "Marcas"], ["fx", "Efectos"]].map(([sl, n]) => [n, CATALOG.filter(it => it.slot === sl && isOwned(p, it))]).filter(([, L]) => L.length);
+  const cols = CATALOG.filter(it => it.cat === "color" && isOwned(p, it)), total = groups.reduce((a, [, L]) => a + L.length, 0);
+  let h = `<div class="slotname" style="margin-top:4px">🧺 Tu ropa <small>(${total} ${total === 1 ? "prenda" : "prendas"} · toca para ponérsela o quitársela)</small></div>`;
+  if (!total && cols.length <= 1) return h + `<div class="empty" style="font-size:14px">Todavía no tenéis ropa. Compradla en 👕 la tienda o en 🎁 los cofres</div>`;
+  h += groups.map(([n, L]) => `<div class="owngrp"><small>${esc(n)}</small><div class="setpcs">${L.map(it => `<button class="pc own ${isOn(p, it) ? "worn" : ""}" data-id="${it.id}" title="${esc(it.n)}">${shopIcon(it)}${isOn(p, it) ? "<u>✅</u>" : ""}</button>`).join("")}</div></div>`).join("");
+  if (cols.length > 1) h += `<div class="owngrp"><small>Colores</small><div class="setpcs">${cols.map(it => `<button class="pc own ${(p.color || "amarillo") === it.id ? "worn" : ""}" data-id="color:${it.id}" title="${esc(it.n)}">${shopIcon(it)}${(p.color || "amarillo") === it.id ? "<u>✅</u>" : ""}</button>`).join("")}</div></div>`;
+  return h;
+}
 function renderWardrobe(p) {
   const si = Math.max(3, stageOf(p.xp || 0)), outs = p.outfits || [];
-  let h = `<div class="slotname" style="margin-top:4px">👗 Tus conjuntos</div>`;
+  let h = ownedClothesHTML(p);
+  h += `<div class="slotname">👗 Tus conjuntos</div>`;
   h += outs.length ? `<div class="outfits">${outs.map((o, i) => `<div class="outfit"><button class="outwear" data-out="${i}">${chickSVG(si, "happy", o.wear || {}, 0, o.color, { species: p.species })}<b>${esc(o.n)}</b></button><button class="outdel" data-odel="${i}">✕</button></div>`).join("")}</div>` : `<div class="empty" style="font-size:14px">Aún no hay conjuntos. Vístele como más te guste y guárdalo aquí para ponérselo con un toque.</div>`;
   h += `<button class="btn mt" style="width:100%" id="outSave">💾 Guardar lo que lleva puesto</button>`;
   h += `<div class="slotname">✨ Sets con bonus <small>(llevar todas las piezas a la vez)</small></div>`;
@@ -2580,7 +2591,7 @@ function playWith(id) {
   let g = 0, lvl = 0;
   petTx(p => {
     p.day.play[who] = (p.day.play[who] || 0) + 1; const first = p.day.play[who] <= 5; g = first ? 3 : 0; p.coins += g;
-    setNeed(p, "fun", it.fun); if (it.love) setNeed(p, "love", it.love); setNeed(p, "energy", -12); setNeed(p, "clean", -4);
+    setNeed(p, "fun", it.fun); if (it.love) setNeed(p, "love", it.love); setNeed(p, "energy", -8); setNeed(p, "clean", -4);
     if (first) lvl = gainExp(p, p.trait === "jugueton" ? 9 : 6); bump(p, "play"); return p;
   }).then(() => { setTimeout(() => coinFx(g), 900); lvlToast(lvl); }).catch(offline);
 }
