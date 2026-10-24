@@ -2095,6 +2095,16 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
 .pvbody{max-width:620px;margin:0 auto;font-size:14.5px;line-height:1.55}.pvbody h2{font-size:24px;margin:4px 0}.pvbody h3{font-size:16px;margin:18px 0 6px;color:var(--accent2)}.pvbody p{margin:6px 0}.pvbody ul{padding-left:20px;margin:6px 0}.pvbody li{margin:5px 0}.pvdate{color:var(--muted);font-size:12.5px}
 .lgpol{font-size:12.5px;color:var(--muted);text-align:center;margin-top:8px;line-height:1.4}.lgpol .linkbtn{font-size:12.5px;padding:0;text-decoration:underline;color:inherit;font-weight:700}
 .invbar.left{background:linear-gradient(135deg,rgba(120,120,160,.2),rgba(255,107,139,.1));border-color:rgba(160,160,200,.4)}
+
+/* ===== 3.5 · Mascota: pantalla más limpia ===== */
+#petSegBar button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;font-size:12px;line-height:1.15;min-width:0}
+#petSegBar button i{font-style:normal;font-size:19px}
+.actions.six{grid-template-columns:repeat(4,1fr);gap:8px}
+.actions.six .act{position:relative;padding:11px 2px 9px;font-size:12px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.01)),var(--card2);transition:transform .12s ease,background .2s}
+.actions.six .act i{font-size:27px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.28))}
+.actions.six .act:active{transform:scale(.92)}
+.viewbtn{background:rgba(255,255,255,.8);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:6px 11px;font-size:12px}
+.viewbtn.nbbtn{top:100px}
 </style>
 </head>
 <body>
@@ -2246,7 +2256,7 @@ body.spcover::after{content:"Nosotros ♥";position:fixed;inset:0;z-index:214748
     </div>
   </section>
 
-  <div class="seg" id="petSegBar"><button data-s="hoy">🎯 Hoy</button><button data-s="shop">🛍️ Tienda</button><button data-s="prog">⭐ Progreso</button><button data-s="col">📚 Colección</button></div>
+  <div class="seg" id="petSegBar"><button data-s="hoy"><i>🎯</i>Hoy</button><button data-s="shop"><i>🛍️</i>Tienda</button><button data-s="prog"><i>⭐</i>Progreso</button><button data-s="col"><i>📚</i>Colección</button></div>
 
   <section class="card evcard hidden" data-pseg="hoy" id="evCard"></section>
   <section class="card" data-pseg="hoy" id="loveCard">
