@@ -9,6 +9,8 @@
   },
   "private": true,
   "dependencies": {
+    "@paper-design/shaders": "^0.0.82",
+    "@paper-design/shaders-react": "^0.0.82",
     "@remotion/cli": "4.0.542",
     "@remotion/zod-types": "4.0.542",
     "react": "19.3.1",
